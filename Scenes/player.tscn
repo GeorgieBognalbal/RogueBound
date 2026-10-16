@@ -1,7 +1,10 @@
 [gd_scene format=3 uid="uid://fyyoe5vf3xm1"]
 
+[ext_resource type="Texture2D" uid="uid://d0p75mcdclhsy" path="res://Assets/Soldier/Soldier_Attack01.png" id="1_6t5aa"]
 [ext_resource type="Texture2D" uid="uid://104tnt50jf5g" path="res://Assets/Soldier/Soldier.png" id="1_v0iea"]
 [ext_resource type="Texture2D" uid="uid://bdndbsb2g2swc" path="res://Assets/Soldier/Soldier_Walk.png" id="2_cvnsp"]
+[ext_resource type="Texture2D" uid="uid://bddgs4r1rvex1" path="res://Assets/Soldier/Soldier_Death.png" id="2_fkybt"]
+[ext_resource type="Texture2D" uid="uid://c4ow46kt6ywpb" path="res://Assets/Soldier/Soldier_Hurt.png" id="3_x3wgy"]
 
 [sub_resource type="CSharpScript" id="CSharpScript_v0iea"]
 script/source = "using Godot;
@@ -53,6 +56,62 @@ public partial class Player : CharacterBody2D
 	}
 }
 "
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_qqcod"]
+atlas = ExtResource("1_6t5aa")
+region = Rect2(0, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_igrcy"]
+atlas = ExtResource("1_6t5aa")
+region = Rect2(100, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_fs7ks"]
+atlas = ExtResource("1_6t5aa")
+region = Rect2(200, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l6n3p"]
+atlas = ExtResource("1_6t5aa")
+region = Rect2(300, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_olqyp"]
+atlas = ExtResource("1_6t5aa")
+region = Rect2(400, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_wpjfl"]
+atlas = ExtResource("1_6t5aa")
+region = Rect2(500, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_bi64h"]
+atlas = ExtResource("2_fkybt")
+region = Rect2(0, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2ijsl"]
+atlas = ExtResource("2_fkybt")
+region = Rect2(100, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p1odr"]
+atlas = ExtResource("2_fkybt")
+region = Rect2(200, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_0gysh"]
+atlas = ExtResource("2_fkybt")
+region = Rect2(300, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vfarp"]
+atlas = ExtResource("3_x3wgy")
+region = Rect2(0, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_y6uwr"]
+atlas = ExtResource("3_x3wgy")
+region = Rect2(100, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_83xs0"]
+atlas = ExtResource("3_x3wgy")
+region = Rect2(200, 0, 100, 100)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ypfnu"]
+atlas = ExtResource("3_x3wgy")
+region = Rect2(300, 0, 100, 100)
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_vgqql"]
 atlas = ExtResource("1_v0iea")
@@ -114,6 +173,63 @@ region = Rect2(700, 0, 100, 100)
 animations = [{
 "frames": [{
 "duration": 1.0,
+"texture": SubResource("AtlasTexture_qqcod")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_igrcy")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_fs7ks")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l6n3p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_olqyp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_wpjfl")
+}],
+"loop": 0,
+"name": &"attack",
+"speed": 25.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_bi64h")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2ijsl")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p1odr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_0gysh")
+}],
+"loop": 1,
+"name": &"death",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vfarp")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_y6uwr")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_83xs0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ypfnu")
+}],
+"loop": 1,
+"name": &"hit",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
 "texture": SubResource("AtlasTexture_vgqql")
 }, {
 "duration": 1.0,
@@ -166,7 +282,10 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_7quku"]
-radius = 6.0
+radius = 13.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hygl4"]
+radius = 8.0
 
 [node name="Player" type="CharacterBody2D" unique_id=344648548]
 z_index = 5
@@ -175,8 +294,14 @@ script = SubResource("CSharpScript_v0iea")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=836303376]
 position = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_f1ek2")
-animation = &"walk"
+animation = &"death"
 autoplay = "idle"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1850248156]
+[node name="AttackArea" type="Area2D" parent="." unique_id=1024428528]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea" unique_id=1850248156]
 shape = SubResource("CircleShape2D_7quku")
+
+[node name="Body" type="CollisionShape2D" parent="." unique_id=1218664532]
+visible = false
+shape = SubResource("CircleShape2D_hygl4")

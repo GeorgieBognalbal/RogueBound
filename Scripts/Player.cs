@@ -4,7 +4,7 @@ using System;
 
 public partial class Player : CharacterBody2D
 {
-	public const float Speed = 150.0f;
+	public float Speed = 150.0f;
 	public float health = 100.0f;
 
 	private AnimatedSprite2D _animatedSprite;

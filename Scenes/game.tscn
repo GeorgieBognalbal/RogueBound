@@ -826,10 +826,14 @@ tile_map_data = PackedByteArray("AAD9//7/AQABAAEAAAD+//7/AQACAAEAAAD///7/AQADAAE
 tile_set = SubResource("TileSet_capk0")
 
 [node name="NavigationRegion2D" type="NavigationRegion2D" parent="." unique_id=1970240742]
+visible = false
 navigation_polygon = SubResource("NavigationPolygon_wowpa")
 
 [node name="Player" parent="." unique_id=344648548 instance=ExtResource("1_ebmjs")]
 script = ExtResource("2_3dryh")
+Speed = 150.0
+MaxHealth = 100.0
+DamageInvulnerabilityTime = 0.75
 AttackDamage = 10
 
 [node name="Camera2D" type="Camera2D" parent="Player" unique_id=547550522]
@@ -841,8 +845,5 @@ position_smoothing_speed = 10.0
 
 [node name="EnemySpawner" type="Node2D" parent="." unique_id=1021591405 node_paths=PackedStringArray("NavigationRegion")]
 script = ExtResource("6_i6g32")
-EnemyScene = ExtResource("5_wowpa")
+EnemyScenes = Array[PackedScene]([ExtResource("5_wowpa")])
 NavigationRegion = NodePath("../NavigationRegion2D")
-
-[node name="Enemy" parent="." unique_id=214761109 instance=ExtResource("5_wowpa")]
-position = Vector2(145, -80)

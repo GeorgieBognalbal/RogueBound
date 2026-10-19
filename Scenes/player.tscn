@@ -207,7 +207,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_0gysh")
 }],
-"loop": 1,
+"loop": 0,
 "name": &"death",
 "speed": 5.0
 }, {
@@ -224,7 +224,7 @@ animations = [{
 "duration": 1.0,
 "texture": SubResource("AtlasTexture_ypfnu")
 }],
-"loop": 1,
+"loop": 0,
 "name": &"hit",
 "speed": 5.0
 }, {
@@ -282,10 +282,10 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_7quku"]
-radius = 13.0
+radius = 12.0
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_hygl4"]
-radius = 8.0
+radius = 9.0
 
 [node name="Player" type="CharacterBody2D" unique_id=344648548]
 z_index = 5
@@ -294,14 +294,15 @@ script = SubResource("CSharpScript_v0iea")
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=836303376]
 position = Vector2(1, 1)
 sprite_frames = SubResource("SpriteFrames_f1ek2")
-animation = &"death"
+animation = &"hit"
 autoplay = "idle"
 
 [node name="AttackArea" type="Area2D" parent="." unique_id=1024428528]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="AttackArea" unique_id=1850248156]
+position = Vector2(6, 0)
 shape = SubResource("CircleShape2D_7quku")
 
 [node name="Body" type="CollisionShape2D" parent="." unique_id=1218664532]
-visible = false
+position = Vector2(1, 0)
 shape = SubResource("CircleShape2D_hygl4")

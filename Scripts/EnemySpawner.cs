@@ -1,9 +1,10 @@
-
 using Godot;
 
 public partial class EnemySpawner : Node2D
 {
-	[Export] public PackedScene EnemyScene;
+	// Add as many enemy scenes as you want in the Inspector.
+	// Each spawn picks one at random. Add a scene twice to make it more common.
+	[Export] public Godot.Collections.Array<PackedScene> EnemyScenes = new();
 	[Export] public NavigationRegion2D NavigationRegion;
 
 	[Export] public float SpawnInterval = 3.0f;
@@ -15,9 +16,6 @@ public partial class EnemySpawner : Node2D
 
 	public override async void _Ready()
 	{
-		// add lagi sa group if may new enemy
-		AddToGroup("enemies");
-
 		_player = GetTree().GetFirstNodeInGroup("player") as Node2D;
 
 		// Give Godot time to synchronize the navigation map
@@ -27,8 +25,8 @@ public partial class EnemySpawner : Node2D
 		if (_player == null)
 			GD.PushError("EnemySpawner: No node found in the 'player' group.");
 
-		if (EnemyScene == null)
-			GD.PushError("EnemySpawner: Assign EnemyScene in the Inspector.");
+		if (EnemyScenes == null || EnemyScenes.Count == 0)
+			GD.PushError("EnemySpawner: Add at least one scene to EnemyScenes in the Inspector.");
 
 		if (NavigationRegion == null)
 			GD.PushError("EnemySpawner: Assign NavigationRegion in the Inspector.");
@@ -36,7 +34,10 @@ public partial class EnemySpawner : Node2D
 
 	public override void _Process(double delta)
 	{
-		if (_player == null || EnemyScene == null || NavigationRegion == null)
+		if (_player == null
+			|| EnemyScenes == null
+			|| EnemyScenes.Count == 0
+			|| NavigationRegion == null)
 			return;
 
 		_timer += (float)delta;
@@ -66,7 +67,14 @@ public partial class EnemySpawner : Node2D
 				< MinDistanceFromPlayer)
 				continue;
 
-			Node enemy = EnemyScene.Instantiate();
+			// Pick a random enemy type
+			PackedScene scene =
+				EnemyScenes[GD.RandRange(0, EnemyScenes.Count - 1)];
+
+			if (scene == null)
+				continue;
+
+			Node enemy = scene.Instantiate();
 
 			// Add the enemy to the main scene, not the spawner
 			GetTree().CurrentScene.AddChild(enemy);
@@ -74,9 +82,9 @@ public partial class EnemySpawner : Node2D
 			if (enemy is Node2D enemy2D)
 				enemy2D.GlobalPosition = spawnPosition;
 
-			enemy.AddToGroup("enemies");
+			// Enemy._Ready already adds itself to the "enemies" group.
 
-			GD.Print("Enemy spawned at: ", spawnPosition);
+			GD.Print($"{enemy.Name} spawned at: {spawnPosition}");
 			return;
 		}
 

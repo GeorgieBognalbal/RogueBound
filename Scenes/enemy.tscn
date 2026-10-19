@@ -136,7 +136,10 @@ animations = [{
 }]
 
 [sub_resource type="CircleShape2D" id="CircleShape2D_7quku"]
-radius = 11.0
+radius = 8.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_hygl4"]
+radius = 13.0
 
 [node name="Enemy" type="CharacterBody2D" unique_id=217838147]
 script = ExtResource("1_1f0kj")
@@ -152,3 +155,9 @@ simplify_path = true
 [node name="EnemyCollisionShape" type="CollisionShape2D" parent="." unique_id=1774578408]
 position = Vector2(1, 0)
 shape = SubResource("CircleShape2D_7quku")
+
+[node name="DamageArea" type="Area2D" parent="." unique_id=621515511]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea" unique_id=100458808]
+position = Vector2(1, 0)
+shape = SubResource("CircleShape2D_hygl4")

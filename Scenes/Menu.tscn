@@ -1,0 +1,63 @@
+[gd_scene format=3 uid="uid://b7kiq2v3j4gn2"]
+
+[ext_resource type="Script" uid="uid://bhije8wbqs3q6" path="res://Scripts/Menu.cs" id="1_3kf3n"]
+
+[node name="MainMenu" type="Control" unique_id=1673165095]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_3kf3n")
+
+[node name="Background" type="ColorRect" parent="." unique_id=1070838889]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.5000001
+anchor_bottom = 1.1
+offset_left = -575.0
+offset_top = -323.0
+offset_right = 576.0
+offset_bottom = 324.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.30588236)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="." unique_id=321925888]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -214.5
+offset_top = -114.5
+offset_right = 214.5
+offset_bottom = 114.5
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="PlayButton" type="Button" parent="VBoxContainer" unique_id=1513715915]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+text = "Start"
+
+[node name="SettingsButton" type="Button" parent="VBoxContainer" unique_id=2068957008]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+text = "Settings"
+
+[node name="QuitButton" type="Button" parent="VBoxContainer" unique_id=2024952870]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+text = "Quit"
+
+[connection signal="pressed" from="VBoxContainer/PlayButton" to="." method="OnPlayPressed"]
+[connection signal="pressed" from="VBoxContainer/SettingsButton" to="." method="OnSettingsPressed"]
+[connection signal="pressed" from="VBoxContainer/QuitButton" to="." method="OnQuitPressed"]

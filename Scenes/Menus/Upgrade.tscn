@@ -1,0 +1,60 @@
+[gd_scene format=3 uid="uid://cubdbosmir2f7"]
+
+[ext_resource type="Script" uid="uid://6v1ps8uvx83c" path="res://Scripts/UpgradeScene.cs" id="1_wmfxw"]
+
+[node name="CanvasLayer" type="CanvasLayer" unique_id=1343296661]
+
+[node name="UpgradeScene" type="Control" parent="." unique_id=2007131350]
+process_mode = 3
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+script = ExtResource("1_wmfxw")
+
+[node name="DimBackground" type="ColorRect" parent="UpgradeScene" unique_id=1511871919]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(1, 1, 1, 0.62352943)
+
+[node name="CenterContainer" type="CenterContainer" parent="UpgradeScene" unique_id=705927103]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="UpgradeScene/CenterContainer" unique_id=1794334968]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer" unique_id=1679712599]
+layout_mode = 2
+text = "SELECT UPGRADE"
+
+[node name="Cards" type="HBoxContainer" parent="UpgradeScene/CenterContainer/VBoxContainer" unique_id=471572198]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+
+[node name="Card1" type="Button" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=394704676]
+layout_mode = 2
+text = "CARD 1"
+
+[node name="Card2" type="Button" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=1637482811]
+layout_mode = 2
+text = "CARD 2"
+
+[node name="Card3" type="Button" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=54116748]
+layout_mode = 2
+text = "CARD 3"

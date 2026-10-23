@@ -5,23 +5,28 @@ using System.Collections.Generic;
 
 public partial class Player : CharacterBody2D
 {
-	// =========================
-	// MOVEMENT & HEALTH
-	// =========================
 
-	[Export] public float Speed = 150.0f;
-	[Export] public float MaxHealth = 100.0f;
+	[Export] public PackedScene UpgradeScene;
+
+    // =========================
+    // MOVEMENT & HEALTH
+    // =========================
+
+    [Export] public bool Invincible = false;
+    [Export] public float Speed = 150.0f;
+    [Export] public float MaxHealth = 100.0f;
 	[Export] public float DamageInvulnerabilityTime = 0.75f;
 
 	public float health = 100.0f;
 
 	private float _invulnerabilityTimer = 0.0f;
+    private bool _godMode = false;
 
-	// =========================
-	// COMBAT
-	// =========================
+    // =========================
+    // COMBAT
+    // =========================
 
-	[Export] public int AttackDamage = 10;
+    [Export] public int AttackDamage = 10;
 
 	private AnimatedSprite2D _animatedSprite;
 	private bool _isAttacking = false;
@@ -108,20 +113,29 @@ public partial class Player : CharacterBody2D
 		MoveAndSlide();
 	}
 
-	// =========================
-	// PLAYER ATTACK
-	// =========================
+    // =========================
+    // PLAYER ATTACK
+    // =========================
 
-	public override void _Input(InputEvent @event)
-	{
-		if (@event.IsActionPressed("attack") && !_isAttacking)
-		{
-			GD.Print("ATTACK KEY DETECTED!");
-			Attack();
-		}
-	}
+    public override void _Input(InputEvent @event)
+    {
+        if (@event.IsActionPressed("attack") && !_isAttacking)
+        {
+            GD.Print("ATTACK KEY DETECTED!");
+            Attack();
+        }
 
-	private async void Attack()
+        if (@event is InputEventKey keyEvent
+            && keyEvent.Pressed
+            && !keyEvent.Echo
+            && keyEvent.Keycode == Key.F1)
+        {
+            _godMode = !_godMode;
+            GD.Print($"GOD MODE: {(_godMode ? "ON" : "OFF")}");
+        }
+    }
+
+    private async void Attack()
 	{
 		_isAttacking = true;
 		_animatedSprite.Play("attack");
@@ -153,32 +167,34 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-	// =========================
-	// PLAYER TAKES DAMAGE
-	// =========================
+    // =========================
+    // PLAYER TAKES DAMAGE
+    // =========================
 
-	public void TakeDamage(float damage)
-	{
-		if (damage <= 0 || health <= 0)
-			return;
+    public void TakeDamage(float damage)
+    {
+        if (_godMode || Invincible)
+            return;
 
-		// Prevent continuous damage every frame.
-		if (_invulnerabilityTimer > 0)
-			return;
+        if (damage <= 0 || health <= 0)
+            return;
 
-		health = Mathf.Max(health - damage, 0);
-		_invulnerabilityTimer = DamageInvulnerabilityTime;
+        if (_invulnerabilityTimer > 0)
+            return;
 
-		_animatedSprite.Play("hit");
-		GD.Print($"Player took {damage} damage! HP: {health}/{MaxHealth}");
+        health = Mathf.Max(health - damage, 0);
+        _invulnerabilityTimer = DamageInvulnerabilityTime;
 
-		HealthChanged?.Invoke(health, MaxHealth);
+        _animatedSprite.Play("hit");
 
-		if (health <= 0)
-			Die();
-	}
+        GD.Print($"Player took {damage} damage! HP: {health}/{MaxHealth}");
+        HealthChanged?.Invoke(health, MaxHealth);
 
-	public void Heal(float amount)
+        if (health <= 0)
+            Die();
+    }
+
+    public void Heal(float amount)
 	{
 		if (amount <= 0 || health <= 0)
 			return;
@@ -311,5 +327,19 @@ public partial class Player : CharacterBody2D
 				GD.PushWarning($"Unknown upgrade: {upgradeId}");
 				break;
 		}
+	}
+
+	private void ShowUpgradeMenu()
+	{
+		if (UpgradeScene == null)
+		{
+			GD.PushError("Assign UpgradeScene in the Inspector!");
+			return;
+		}
+
+		GetTree().Paused = true;
+
+		Control menu = UpgradeScene.Instantiate<Control>();
+		GetTree().Root.AddChild(menu);
 	}
 }

@@ -1,9 +1,8 @@
+
 using Godot;
 
 public partial class EnemySpawner : Node2D
 {
-	// Add as many enemy scenes as you want in the Inspector.
-	// Each spawn picks one at random. Add a scene twice to make it more common.
 	[Export] public Godot.Collections.Array<PackedScene> EnemyScenes = new();
 	[Export] public NavigationRegion2D NavigationRegion;
 
@@ -13,27 +12,42 @@ public partial class EnemySpawner : Node2D
 
 	private Node2D _player;
 	private float _timer;
+	private int _remainingToSpawn = 0;
+
+	public int RemainingToSpawn => _remainingToSpawn;
 
 	public override async void _Ready()
 	{
 		_player = GetTree().GetFirstNodeInGroup("player") as Node2D;
 
-		// Give Godot time to synchronize the navigation map
+		// Wait for navigation to synchronize.
 		await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 		await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 
 		if (_player == null)
-			GD.PushError("EnemySpawner: No node found in the 'player' group.");
+			GD.PushError("EnemySpawner: No player found in the 'player' group.");
 
 		if (EnemyScenes == null || EnemyScenes.Count == 0)
-			GD.PushError("EnemySpawner: Add at least one scene to EnemyScenes in the Inspector.");
+			GD.PushError("EnemySpawner: Add at least one scene to EnemyScenes.");
 
 		if (NavigationRegion == null)
 			GD.PushError("EnemySpawner: Assign NavigationRegion in the Inspector.");
 	}
 
+	// Called by WaveManager when a new wave starts.
+	public void StartWave(int amount)
+	{
+		_remainingToSpawn = Mathf.Max(amount, 0);
+		_timer = SpawnInterval;
+
+		GD.Print($"Spawner: Starting wave with {_remainingToSpawn} enemies.");
+	}
+
 	public override void _Process(double delta)
 	{
+		if (_remainingToSpawn <= 0)
+			return;
+
 		if (_player == null
 			|| EnemyScenes == null
 			|| EnemyScenes.Count == 0
@@ -45,16 +59,22 @@ public partial class EnemySpawner : Node2D
 		if (_timer >= SpawnInterval)
 		{
 			_timer = 0;
-			TrySpawnEnemy();
+
+			// Decrease the remaining count only when spawning succeeds.
+			if (TrySpawnEnemy())
+				_remainingToSpawn--;
+
+			if (_remainingToSpawn == 0)
+				GD.Print("Spawner: All enemies for this wave have spawned.");
 		}
 	}
 
-	private void TrySpawnEnemy()
+	private bool TrySpawnEnemy()
 	{
 		var enemies = GetTree().GetNodesInGroup("enemies");
 
 		if (enemies.Count >= MaxEnemies)
-			return;
+			return false;
 
 		var map = NavigationRegion.GetNavigationMap();
 
@@ -67,29 +87,27 @@ public partial class EnemySpawner : Node2D
 				< MinDistanceFromPlayer)
 				continue;
 
-			// Pick a random enemy type
-			PackedScene scene =
-				EnemyScenes[GD.RandRange(0, EnemyScenes.Count - 1)];
+			// Randomly choose an enemy scene.
+			int randomIndex = GD.RandRange(0, EnemyScenes.Count - 1);
+			PackedScene scene = EnemyScenes[randomIndex];
 
 			if (scene == null)
 				continue;
 
 			Node enemy = scene.Instantiate();
 
-			// Add the enemy to the main scene, not the spawner
+			// Add enemy to the main gameplay scene.
 			GetTree().CurrentScene.AddChild(enemy);
 
 			if (enemy is Node2D enemy2D)
 				enemy2D.GlobalPosition = spawnPosition;
 
-			// Enemy._Ready already adds itself to the "enemies" group.
-
 			GD.Print($"{enemy.Name} spawned at: {spawnPosition}");
-			return;
+
+			return true;
 		}
 
-		GD.PushWarning(
-            "EnemySpawner: Could not find a valid spawn position."
-		);
+		GD.PushWarning("EnemySpawner: Could not find a valid spawn position.");
+		return false;
 	}
 }

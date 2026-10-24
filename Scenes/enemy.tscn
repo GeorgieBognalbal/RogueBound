@@ -1,9 +1,9 @@
 [gd_scene format=3 uid="uid://cohiqpndtgam"]
 
 [ext_resource type="Script" uid="uid://cupdwsd6o563m" path="res://Scripts/Enemy.cs" id="1_1f0kj"]
-[ext_resource type="Texture2D" uid="uid://cybaleqol36in" path="res://Assets/Orc/Orc with shadows/Orc_Death.png" id="2_287tu"]
-[ext_resource type="Texture2D" uid="uid://cibjul1elbjr7" path="res://Assets/Orc/Orc with shadows/Orc_Walk.png" id="2_afpow"]
-[ext_resource type="Texture2D" uid="uid://dh7it10ydjsoq" path="res://Assets/Orc/Orc with shadows/Orc_Hurt.png" id="3_afpow"]
+[ext_resource type="Texture2D" uid="uid://cybaleqol36in" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Death.png" id="2_287tu"]
+[ext_resource type="Texture2D" uid="uid://cibjul1elbjr7" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Walk.png" id="2_afpow"]
+[ext_resource type="Texture2D" uid="uid://dh7it10ydjsoq" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Hurt.png" id="3_afpow"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hgeoe"]
 atlas = ExtResource("2_287tu")

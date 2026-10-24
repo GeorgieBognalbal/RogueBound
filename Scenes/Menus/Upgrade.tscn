@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cubdbosmir2f7"]
 
-[ext_resource type="Script" uid="uid://6v1ps8uvx83c" path="res://Scripts/UpgradeScene.cs" id="1_wmfxw"]
+[ext_resource type="Script" uid="uid://6v1ps8uvx83c" path="res://Scripts/GUI/UpgradeScene.cs" id="1_wmfxw"]
 
 [node name="CanvasLayer" type="CanvasLayer" unique_id=1343296661]
 
@@ -25,13 +25,19 @@ offset_top = -2.0
 offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(1, 1, 1, 0.62352943)
+color = Color(0, 0, 0, 0.4745098)
 
 [node name="CenterContainer" type="CenterContainer" parent="UpgradeScene" unique_id=705927103]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -232.0
+offset_top = -340.0
+offset_right = 232.0
+offset_bottom = 148.0
 grow_horizontal = 2
 grow_vertical = 2
 
@@ -47,14 +53,92 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 
-[node name="Card1" type="Button" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=394704676]
+[node name="Card1" type="Control" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=161141498]
 layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card1" unique_id=1780307635]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -236.0
+offset_top = 15.0
+offset_right = -86.0
+offset_bottom = 255.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card1" unique_id=1111161793]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -188.0
+offset_top = 55.0
+offset_right = -132.0
+offset_bottom = 78.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "CARD 1"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Card2" type="Button" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=1637482811]
+[node name="Card2" type="Control" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=1055259121]
 layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card2" unique_id=510788674]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -72.0
+offset_top = 15.0
+offset_right = 78.0
+offset_bottom = 255.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card2" unique_id=961989854]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -32.0
+offset_top = 55.0
+offset_right = 24.0
+offset_bottom = 78.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "CARD 2"
+horizontal_alignment = 1
+vertical_alignment = 1
 
-[node name="Card3" type="Button" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=54116748]
+[node name="Card3" type="Control" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=886884067]
 layout_mode = 2
+
+[node name="TextureButton" type="TextureButton" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card3" unique_id=1176880746]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 92.0
+offset_top = 15.0
+offset_right = 242.0
+offset_bottom = 255.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card3" unique_id=473381005]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 132.0
+offset_top = 55.0
+offset_right = 188.0
+offset_bottom = 78.0
+grow_horizontal = 2
+grow_vertical = 2
 text = "CARD 3"
+horizontal_alignment = 1
+vertical_alignment = 1

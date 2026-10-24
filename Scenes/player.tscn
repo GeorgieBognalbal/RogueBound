@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://fyyoe5vf3xm1"]
 
-[ext_resource type="Texture2D" uid="uid://d0p75mcdclhsy" path="res://Assets/Soldier/Soldier_Attack01.png" id="1_6t5aa"]
-[ext_resource type="Texture2D" uid="uid://104tnt50jf5g" path="res://Assets/Soldier/Soldier.png" id="1_v0iea"]
-[ext_resource type="Texture2D" uid="uid://bdndbsb2g2swc" path="res://Assets/Soldier/Soldier_Walk.png" id="2_cvnsp"]
-[ext_resource type="Texture2D" uid="uid://bddgs4r1rvex1" path="res://Assets/Soldier/Soldier_Death.png" id="2_fkybt"]
-[ext_resource type="Texture2D" uid="uid://c4ow46kt6ywpb" path="res://Assets/Soldier/Soldier_Hurt.png" id="3_x3wgy"]
+[ext_resource type="Texture2D" uid="uid://d0p75mcdclhsy" path="res://Assets/Temp/Soldier/Soldier_Attack01.png" id="1_6t5aa"]
+[ext_resource type="Texture2D" uid="uid://104tnt50jf5g" path="res://Assets/Temp/Soldier/Soldier.png" id="1_v0iea"]
+[ext_resource type="Texture2D" uid="uid://bdndbsb2g2swc" path="res://Assets/Temp/Soldier/Soldier_Walk.png" id="2_cvnsp"]
+[ext_resource type="Texture2D" uid="uid://bddgs4r1rvex1" path="res://Assets/Temp/Soldier/Soldier_Death.png" id="2_fkybt"]
+[ext_resource type="Texture2D" uid="uid://c4ow46kt6ywpb" path="res://Assets/Temp/Soldier/Soldier_Hurt.png" id="3_x3wgy"]
 
 [sub_resource type="CSharpScript" id="CSharpScript_v0iea"]
 script/source = "using Godot;

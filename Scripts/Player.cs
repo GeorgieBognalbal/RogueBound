@@ -17,7 +17,7 @@ public partial class Player : CharacterBody2D
     [Export] public float MaxHealth = 100.0f;
 	[Export] public float DamageInvulnerabilityTime = 0.75f;
 
-	public float health = 100.0f;
+    public float health = 100.0f;
 
 	private float _invulnerabilityTimer = 0.0f;
     private bool _godMode = false;

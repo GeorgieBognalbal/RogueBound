@@ -1,0 +1,12 @@
+[gd_scene format=3 uid="uid://bhy30ph8sl4ju"]
+
+[ext_resource type="Script" uid="uid://cmrgh6si6qojx" path="res://Scripts/GUI/DamageNumber.cs" id="1_vsay2"]
+
+[node name="DamageNumber" type="Node2D" unique_id=1822292358]
+script = ExtResource("1_vsay2")
+
+[node name="Label" type="Label" parent="." unique_id=1886049050]
+offset_right = 22.0
+offset_bottom = 23.0
+scale = Vector2(0.5, 0.5)
+text = "10"

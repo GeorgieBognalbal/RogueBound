@@ -3,241 +3,269 @@ using Godot;
 
 public partial class Enemy : CharacterBody2D
 {
-	[Export] public float Speed = 50.0f;
-	[Export] public float StopDistance = 20.0f;
-	[Export] public float RepathInterval = 0.2f;
+    [Export] public float Speed = 50.0f;
+    [Export] public float StopDistance = 20.0f;
+    [Export] public float RepathInterval = 0.2f;
 
-	[Export] public float MaxHealth = 30.0f;
-	[Export] public float KnockbackForce = 250.0f;
-	[Export] public float HitStunDuration = 0.2f;
+    [Export] public float MaxHealth = 30.0f;
+    [Export] public float KnockbackForce = 250.0f;
+    [Export] public float HitStunDuration = 0.2f;
 
-	[Export] public float AttackDamage = 10.0f;
-	[Export] public float AttackCooldown = 0.8f;
+    [Export] public float AttackDamage = 10.0f;
+    [Export] public float AttackCooldown = 0.8f;
 
-	protected Node2D _player;
-	protected NavigationAgent2D _navAgent;
-	protected AnimatedSprite2D _animatedSprite;
-	protected Area2D _hitbox;
+    // Scene used to display floating damage numbers.
+    [Export] public PackedScene DamageNumberScene;
 
-	protected float _repathTimer;
-	protected float _health;
-	protected float _hitTimer;
-	protected float _attackTimer;
-	protected Vector2 _knockbackVelocity;
+    protected Node2D _player;
+    protected NavigationAgent2D _navAgent;
+    protected AnimatedSprite2D _animatedSprite;
+    protected Area2D _hitbox;
 
-	protected bool _isDead = false;
-	protected bool _isHit = false;
+    protected float _repathTimer;
+    protected float _health;
+    protected float _hitTimer;
+    protected float _attackTimer;
+    protected Vector2 _knockbackVelocity;
 
-	public override void _Ready()
-	{
-		// Added for wave tracking. Keep existing variable names.
-		AddToGroup("enemies");
+    protected bool _isDead = false;
+    protected bool _isHit = false;
 
-		_health = MaxHealth;
+    public override void _Ready()
+    {
+        AddToGroup("enemies");
 
-		_player = GetTree().GetFirstNodeInGroup("player") as Node2D;
+        _health = MaxHealth;
 
-		_navAgent = GetNode<NavigationAgent2D>("EnemyNavigationAgent");
-		_animatedSprite = GetNode<AnimatedSprite2D>("EnemyAnimatedSprite");
-		_hitbox = GetNodeOrNull<Area2D>("DamageArea");
+        _player = GetTree().GetFirstNodeInGroup("player") as Node2D;
 
-		if (_hitbox == null)
-		{
-			GD.PushError($"{Name}: Missing Area2D named DamageArea.");
-		}
+        _navAgent = GetNode<NavigationAgent2D>("EnemyNavigationAgent");
+        _animatedSprite = GetNode<AnimatedSprite2D>("EnemyAnimatedSprite");
+        _hitbox = GetNodeOrNull<Area2D>("DamageArea");
 
-		_navAgent.PathDesiredDistance = 4.0f;
-		_navAgent.TargetDesiredDistance = StopDistance;
+        if (_hitbox == null)
+        {
+            GD.PushError($"{Name}: Missing Area2D named DamageArea.");
+        }
 
-		_animatedSprite.AnimationFinished += OnAnimationFinished;
+        _navAgent.PathDesiredDistance = 4.0f;
+        _navAgent.TargetDesiredDistance = StopDistance;
 
-		SetInitialTarget();
-	}
+        _animatedSprite.AnimationFinished += OnAnimationFinished;
 
-	protected virtual async void SetInitialTarget()
-	{
-		await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
+        SetInitialTarget();
+    }
 
-		if (_player != null && GodotObject.IsInstanceValid(_player))
-		{
-			_navAgent.TargetPosition = _player.GlobalPosition;
-		}
-	}
+    protected virtual async void SetInitialTarget()
+    {
+        await ToSignal(GetTree(), SceneTree.SignalName.PhysicsFrame);
 
-	public override void _PhysicsProcess(double delta)
-	{
-		if (_isDead)
-			return;
+        if (_player != null && GodotObject.IsInstanceValid(_player))
+        {
+            _navAgent.TargetPosition = _player.GlobalPosition;
+        }
+    }
 
-		if (_attackTimer > 0.0f)
-			_attackTimer -= (float)delta;
+    public override void _PhysicsProcess(double delta)
+    {
+        if (_isDead)
+            return;
 
-		if (_hitTimer > 0.0f)
-		{
-			_hitTimer -= (float)delta;
+        if (_attackTimer > 0.0f)
+            _attackTimer -= (float)delta;
 
-			Velocity = _knockbackVelocity;
+        if (_hitTimer > 0.0f)
+        {
+            _hitTimer -= (float)delta;
 
-			_knockbackVelocity = _knockbackVelocity.MoveToward(
-				Vector2.Zero,
-				KnockbackForce * 5.0f * (float)delta
-			);
+            Velocity = _knockbackVelocity;
 
-			MoveAndSlide();
-			return;
-		}
+            _knockbackVelocity = _knockbackVelocity.MoveToward(
+                Vector2.Zero,
+                KnockbackForce * 5.0f * (float)delta
+            );
 
-		if (_player == null || !GodotObject.IsInstanceValid(_player))
-		{
-			_player = GetTree().GetFirstNodeInGroup("player") as Node2D;
+            MoveAndSlide();
+            return;
+        }
 
-			Velocity = Vector2.Zero;
-			MoveAndSlide();
-			return;
-		}
+        if (_player == null || !GodotObject.IsInstanceValid(_player))
+        {
+            _player = GetTree().GetFirstNodeInGroup("player") as Node2D;
 
-		TryAttackPlayer();
+            Velocity = Vector2.Zero;
+            MoveAndSlide();
+            return;
+        }
 
-		_repathTimer -= (float)delta;
+        TryAttackPlayer();
 
-		if (_repathTimer <= 0.0f)
-		{
-			_navAgent.TargetPosition = _player.GlobalPosition;
-			_repathTimer = RepathInterval;
-		}
+        _repathTimer -= (float)delta;
 
-		if (_navAgent.IsNavigationFinished())
-		{
-			Velocity = Vector2.Zero;
-			MoveAndSlide();
+        if (_repathTimer <= 0.0f)
+        {
+            _navAgent.TargetPosition = _player.GlobalPosition;
+            _repathTimer = RepathInterval;
+        }
 
-			FaceDirection(_player.GlobalPosition.X - GlobalPosition.X);
-			return;
-		}
+        if (_navAgent.IsNavigationFinished())
+        {
+            Velocity = Vector2.Zero;
+            MoveAndSlide();
 
-		Vector2 nextPoint = _navAgent.GetNextPathPosition();
-		Vector2 direction = GlobalPosition.DirectionTo(nextPoint);
+            FaceDirection(_player.GlobalPosition.X - GlobalPosition.X);
+            return;
+        }
 
-		Velocity = direction * Speed;
+        Vector2 nextPoint = _navAgent.GetNextPathPosition();
+        Vector2 direction = GlobalPosition.DirectionTo(nextPoint);
 
-		MoveAndSlide();
+        Velocity = direction * Speed;
 
-		if (!_isHit && _animatedSprite.Animation.ToString() != "walk")
-		{
-			_animatedSprite.Play("walk");
-		}
+        MoveAndSlide();
 
-		FaceDirection(direction.X);
-	}
+        if (!_isHit && _animatedSprite.Animation.ToString() != "walk")
+        {
+            _animatedSprite.Play("walk");
+        }
 
-	protected virtual void FaceDirection(float xDirection)
-	{
-		if (Mathf.IsZeroApprox(xDirection))
-			return;
+        FaceDirection(direction.X);
+    }
 
-		bool facingLeft = xDirection < 0.0f;
+    protected virtual void FaceDirection(float xDirection)
+    {
+        if (Mathf.IsZeroApprox(xDirection))
+            return;
 
-		_animatedSprite.FlipH = facingLeft;
+        bool facingLeft = xDirection < 0.0f;
 
-		if (_hitbox != null)
-		{
-			_hitbox.Scale = new Vector2(
-				facingLeft ? -1.0f : 1.0f,
-				1.0f
-			);
-		}
-	}
+        _animatedSprite.FlipH = facingLeft;
 
-	protected virtual void TryAttackPlayer()
-	{
-		if (_attackTimer > 0.0f || _hitbox == null)
-			return;
+        if (_hitbox != null)
+        {
+            _hitbox.Scale = new Vector2(
+                facingLeft ? -1.0f : 1.0f,
+                1.0f
+            );
+        }
+    }
 
-		foreach (Node2D body in _hitbox.GetOverlappingBodies())
-		{
-			if (body is Player player)
-			{
-				player.TakeDamage(AttackDamage);
-				_attackTimer = AttackCooldown;
-				break;
-			}
-		}
-	}
+    protected virtual void TryAttackPlayer()
+    {
+        if (_attackTimer > 0.0f || _hitbox == null)
+            return;
 
-	// Called by the player's attack.
-	public virtual void TakeDamage(float damage, Vector2 attackerPosition)
-	{
-		if (_isDead || _health <= 0.0f || damage <= 0.0f)
-			return;
+        foreach (Node2D body in _hitbox.GetOverlappingBodies())
+        {
+            if (body is Player player)
+            {
+                player.TakeDamage(AttackDamage);
+                _attackTimer = AttackCooldown;
+                break;
+            }
+        }
+    }
 
-		_health -= damage;
+    // Spawns a floating number showing damage dealt to this enemy.
+    protected virtual void SpawnDamageNumber(float damage)
+    {
+        if (DamageNumberScene == null)
+            return;
 
-		GD.Print($"Enemy took {damage} damage! HP: {Mathf.Max(_health, 0.0f)}/{MaxHealth}");
+        Node currentScene = GetTree().CurrentScene;
 
-		if (_health <= 0.0f)
-		{
-			_isDead = true;
-			_isHit = false;
+        if (currentScene == null)
+            return;
 
-			Velocity = Vector2.Zero;
-			_knockbackVelocity = Vector2.Zero;
+        Node2D damageNumber = DamageNumberScene.Instantiate<Node2D>();
+        currentScene.AddChild(damageNumber);
 
-			if (_hitbox != null)
-			{
-				_hitbox.SetDeferred(
-					Area2D.PropertyName.Monitoring,
-					false
-				);
-			}
+        damageNumber.GlobalPosition =
+            GlobalPosition + new Vector2(0.0f, -20.0f);
 
-			_animatedSprite.Play("death");
-			return;
-		}
+        damageNumber.Call("ShowDamage", damage);
+    }
 
-		Vector2 knockbackDirection = GlobalPosition - attackerPosition;
+    // Called by the player's attack.
+    public virtual void TakeDamage(float damage, Vector2 attackerPosition)
+    {
+        if (_isDead || _health <= 0.0f || damage <= 0.0f)
+            return;
 
-		if (knockbackDirection.LengthSquared() > 0.001f)
-			knockbackDirection = knockbackDirection.Normalized();
-		else
-			knockbackDirection = Vector2.Right;
+        _health -= damage;
 
-		_knockbackVelocity = knockbackDirection * KnockbackForce;
-		_hitTimer = HitStunDuration;
-		_isHit = true;
+        // Display the amount of damage dealt.
+        SpawnDamageNumber(damage);
 
-		FaceDirection(attackerPosition.X - GlobalPosition.X);
+        GD.Print(
+            $"Enemy took {damage} damage! " +
+            $"HP: {Mathf.Max(_health, 0.0f)}/{MaxHealth}"
+        );
 
-		_animatedSprite.Play("hit");
-	}
+        if (_health <= 0.0f)
+        {
+            _isDead = true;
+            _isHit = false;
 
-	// Added for WaveManager: identifies enemies that have died.
-	public bool IsDead()
-	{
-		return _isDead;
-	}
+            Velocity = Vector2.Zero;
+            _knockbackVelocity = Vector2.Zero;
 
-	// Added for convenient health checks.
-	public float GetHealth()
-	{
-		return _health;
-	}
+            if (_hitbox != null)
+            {
+                _hitbox.SetDeferred(
+                    Area2D.PropertyName.Monitoring,
+                    false
+                );
+            }
 
-	protected virtual void OnAnimationFinished()
-	{
-		if (_isDead)
-		{
-			if (_animatedSprite.Animation == "death")
-			{
-				QueueFree();
-			}
+            _animatedSprite.Play("death");
+            return;
+        }
 
-			return;
-		}
+        Vector2 knockbackDirection = GlobalPosition - attackerPosition;
 
-		if (_animatedSprite.Animation == "hit")
-		{
-			_isHit = false;
-			_animatedSprite.Play("walk");
-		}
-	}
+        if (knockbackDirection.LengthSquared() > 0.001f)
+            knockbackDirection = knockbackDirection.Normalized();
+        else
+            knockbackDirection = Vector2.Right;
+
+        _knockbackVelocity = knockbackDirection * KnockbackForce;
+        _hitTimer = HitStunDuration;
+        _isHit = true;
+
+        FaceDirection(attackerPosition.X - GlobalPosition.X);
+
+        _animatedSprite.Play("hit");
+    }
+
+    // Added for WaveManager: identifies enemies that have died.
+    public bool IsDead()
+    {
+        return _isDead;
+    }
+
+    // Added for convenient health checks.
+    public float GetHealth()
+    {
+        return _health;
+    }
+
+    protected virtual void OnAnimationFinished()
+    {
+        if (_isDead)
+        {
+            if (_animatedSprite.Animation == "death")
+            {
+                QueueFree();
+            }
+
+            return;
+        }
+
+        if (_animatedSprite.Animation == "hit")
+        {
+            _isHit = false;
+            _animatedSprite.Play("walk");
+        }
+    }
 }

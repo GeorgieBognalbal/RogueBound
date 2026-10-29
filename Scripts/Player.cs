@@ -12,6 +12,7 @@ public partial class Player : CharacterBody2D
     // MOVEMENT & HEALTH
     // =========================
 
+    [Export] public PackedScene DamageNumberScene;
     [Export] public bool Invincible = false;
     [Export] public float Speed = 150.0f;
     [Export] public float MaxHealth = 100.0f;
@@ -185,6 +186,8 @@ public partial class Player : CharacterBody2D
         health = Mathf.Max(health - damage, 0);
         _invulnerabilityTimer = DamageInvulnerabilityTime;
 
+        SpawnDamageNumber(damage);
+
         _animatedSprite.Play("hit");
 
         GD.Print($"Player took {damage} damage! HP: {health}/{MaxHealth}");
@@ -222,11 +225,30 @@ public partial class Player : CharacterBody2D
 		_animatedSprite.Play("death");
 	}
 
-	// =========================
-	// MONEY COLLECTION
-	// =========================
+    private void SpawnDamageNumber(float damage)
+    {
+        if (DamageNumberScene == null)
+            return;
 
-	public void CollectMoney(int amount)
+        Node currentScene = GetTree().CurrentScene;
+
+        if (currentScene == null)
+            return;
+
+        Node2D damageNumber = DamageNumberScene.Instantiate<Node2D>();
+        currentScene.AddChild(damageNumber);
+
+        damageNumber.GlobalPosition =
+            GlobalPosition + new Vector2(0, -20);
+
+        damageNumber.Call("ShowDamage", damage);
+    }
+
+    // =========================
+    // MONEY COLLECTION
+    // =========================
+
+    public void CollectMoney(int amount)
 	{
 		if (amount <= 0)
 			return;

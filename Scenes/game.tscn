@@ -7,8 +7,8 @@
 [ext_resource type="Texture2D" uid="uid://vb41dyguj2iu" path="res://Assets/Temp/TX Tileset Stone Ground.png" id="4_wowpa"]
 [ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/enemy.tscn" id="5_wowpa"]
 [ext_resource type="Script" uid="uid://btf4mvgnq66vi" path="res://Scripts/Logic/EnemySpawner.cs" id="6_i6g32"]
+[ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Menus/DamageNumber.tscn" id="7_h4fw4"]
 [ext_resource type="PackedScene" uid="uid://cubdbosmir2f7" path="res://Scenes/Menus/Upgrade.tscn" id="8_v158k"]
-[ext_resource type="PackedScene" uid="uid://cqyfcaunfryj4" path="res://Scenes/Menus/GameHud.tscn" id="9_h4fw4"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_i6g32"]
 vertices = PackedVector2Array(8, 8, -8, 8, -8, -8, 8, -8)
@@ -835,7 +835,8 @@ navigation_polygon = SubResource("NavigationPolygon_wowpa")
 
 [node name="Player" parent="." unique_id=344648548 instance=ExtResource("1_ebmjs")]
 script = ExtResource("2_3dryh")
-UpgradeScene = null
+UpgradeScene = ExtResource("8_v158k")
+DamageNumberScene = ExtResource("7_h4fw4")
 Invincible = false
 Speed = 150.0
 MaxHealth = 100.0
@@ -857,6 +858,3 @@ NavigationRegion = NodePath("../NavigationRegion2D")
 [node name="WaveManager" type="Node2D" parent="." unique_id=1508826255]
 script = ExtResource("1_1l0tm")
 UpgradeScene = ExtResource("8_v158k")
-
-[node name="HUD" parent="." unique_id=756810312 instance=ExtResource("9_h4fw4")]
-follow_viewport_enabled = true

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cru6tncwgh8ow"
-path="res://.godot/imported/RogueBound.png-3b8c09609e87d14ebefe21137032ecad.ctex"
+uid="uid://bmcfgtgiorc4q"
+path="res://.godot/imported/currency.png-a4df0e5a7ebdfed0d6fc6d804a067ca2.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/RogueBound.png"
-dest_files=["res://.godot/imported/RogueBound.png-3b8c09609e87d14ebefe21137032ecad.ctex"]
+source_file="res://Assets/Temp/Decals/currency.png"
+dest_files=["res://.godot/imported/currency.png-a4df0e5a7ebdfed0d6fc6d804a067ca2.ctex"]
 
 [params]
 

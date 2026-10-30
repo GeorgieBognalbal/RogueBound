@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bmcfgtgiorc4q"
-path="res://.godot/imported/currency.png-4c92d6e6d1dbe88c18bbf1e8287a2161.ctex"
+uid="uid://dikw35a1jy0pr"
+path="res://.godot/imported/Boarder.png-53783375f74142e79636f699282b2f52.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Decals/currency.png"
-dest_files=["res://.godot/imported/currency.png-4c92d6e6d1dbe88c18bbf1e8287a2161.ctex"]
+source_file="res://Assets/Health Bar/Boarder.png"
+dest_files=["res://.godot/imported/Boarder.png-53783375f74142e79636f699282b2f52.ctex"]
 
 [params]
 

@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://b7kiq2v3j4gn2"]
 
 [ext_resource type="Script" uid="uid://bhije8wbqs3q6" path="res://Scripts/GUI/Menu.cs" id="1_v3fht"]
-[ext_resource type="Texture2D" uid="uid://cru6tncwgh8ow" path="res://Assets/RogueBound.png" id="2_b42ut"]
+[ext_resource type="Texture2D" uid="uid://cru6tncwgh8ow" path="res://Assets/Title Screen/RogueBound.png" id="2_b42ut"]
 
 [sub_resource type="ImageTexture" id="ImageTexture_2ntcu"]
 

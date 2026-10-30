@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6h5p6au2peha"
-path="res://.godot/imported/Demo dih.png-872ebc425de8642074375bafd9eb08e3.ctex"
+uid="uid://471ipm6f2dum"
+path="res://.godot/imported/UPGRADE BANNERS.png-7f1f807585605d7d733eecbdab51ff74.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Decals/Demo dih.png"
-dest_files=["res://.godot/imported/Demo dih.png-872ebc425de8642074375bafd9eb08e3.ctex"]
+source_file="res://Assets/Upgrade Scene/UPGRADE BANNERS.png"
+dest_files=["res://.godot/imported/UPGRADE BANNERS.png-7f1f807585605d7d733eecbdab51ff74.ctex"]
 
 [params]
 

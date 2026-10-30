@@ -8,5 +8,6 @@ script = ExtResource("1_vsay2")
 [node name="Label" type="Label" parent="." unique_id=1886049050]
 offset_right = 22.0
 offset_bottom = 23.0
-scale = Vector2(0.5, 0.5)
+scale = Vector2(0.8, 0.8)
+theme_override_colors/font_color = Color(1, 0.3300924, 0.2942779, 1)
 text = "10"

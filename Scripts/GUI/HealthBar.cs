@@ -3,43 +3,47 @@ using Godot;
 
 public partial class HealthBar : Control
 {
-    private Player _player;
-    private ProgressBar _progressBar;
-    private Label _healthLabel;
+	private float _fullHealthWidth;
+	private TextureRect _healthFill;
+	private Label _healthLabel;
+	private Player _player;
 
-    public override void _Ready()
-    {
-        _progressBar = GetNode<ProgressBar>("ProgressBar");
-        _healthLabel = GetNode<Label>("Label");
+	public override void _Ready()
+	{
+		_healthFill = GetNode<TextureRect>("HealthFill");
+		_healthLabel = GetNode<Label>("HealthLabel");
 
-        _player = GetTree().GetFirstNodeInGroup("player") as Player;
+		_fullHealthWidth = _healthFill.Size.X;
 
-        if (_player == null)
-        {
-            GD.PushError("HealthBar: Could not find Player!");
-            return;
-        }
+		_player = GetTree().GetFirstNodeInGroup("player") as Player;
 
-        // Listen for changes in player health.
-        _player.HealthChanged += UpdateHealth;
+		if (_player == null)
+		{
+			GD.PushWarning("HealthBar: Player not found.");
+			return;
+		}
 
-        // Display the initial health.
-        UpdateHealth(_player.health, _player.MaxHealth);
-    }
+		_player.HealthChanged += UpdateHealth;
+		UpdateHealth(_player.health, _player.MaxHealth);
+	}
 
-    private void UpdateHealth(float currentHealth, float maxHealth)
-    {
-        _progressBar.MinValue = 0;
-        _progressBar.MaxValue = maxHealth;
-        _progressBar.Value = currentHealth;
+	private void UpdateHealth(float current, float maximum)
+	{
+		_healthLabel.Text = $"{current:0} / {maximum:0}";
 
-        _healthLabel.Text =
-            $"{currentHealth:0} / {maxHealth:0}";
-    }
+		float ratio = maximum > 0
+			? Mathf.Clamp(current / maximum, 0.0f, 1.0f)
+			: 0.0f;
 
-    public override void _ExitTree()
-    {
-        if (_player != null)
-            _player.HealthChanged -= UpdateHealth;
-    }
+		_healthFill.Size = new Vector2(
+			_fullHealthWidth * ratio,
+			_healthFill.Size.Y
+		);
+	}
+
+	public override void _ExitTree()
+	{
+		if (_player != null)
+			_player.HealthChanged -= UpdateHealth;
+	}
 }

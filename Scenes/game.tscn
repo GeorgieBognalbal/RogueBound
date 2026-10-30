@@ -1,13 +1,14 @@
 [gd_scene format=4 uid="uid://yicge48108e0"]
 
 [ext_resource type="Script" uid="uid://di4gh3rimunul" path="res://Scripts/Logic/WaveManager.cs" id="1_1l0tm"]
-[ext_resource type="PackedScene" uid="uid://fyyoe5vf3xm1" path="res://Scenes/player.tscn" id="1_ebmjs"]
+[ext_resource type="PackedScene" uid="uid://fyyoe5vf3xm1" path="res://Scenes/Player/player.tscn" id="1_ebmjs"]
 [ext_resource type="Script" uid="uid://d3ahxct5gwx52" path="res://Scripts/Player.cs" id="2_3dryh"]
 [ext_resource type="Texture2D" uid="uid://b87gskhvnuyjy" path="res://Assets/Temp/TX Tileset Grass.png" id="3_3dryh"]
 [ext_resource type="Texture2D" uid="uid://vb41dyguj2iu" path="res://Assets/Temp/TX Tileset Stone Ground.png" id="4_wowpa"]
-[ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/enemy.tscn" id="5_wowpa"]
+[ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/Enemies/enemy.tscn" id="5_wowpa"]
 [ext_resource type="Script" uid="uid://btf4mvgnq66vi" path="res://Scripts/Logic/EnemySpawner.cs" id="6_i6g32"]
-[ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Menus/DamageNumber.tscn" id="7_h4fw4"]
+[ext_resource type="PackedScene" uid="uid://cqyfcaunfryj4" path="res://Scenes/Menus/GameHud.tscn" id="6_ldgsr"]
+[ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Effects/DamageNumber.tscn" id="7_h4fw4"]
 [ext_resource type="PackedScene" uid="uid://cubdbosmir2f7" path="res://Scenes/Menus/Upgrade.tscn" id="8_v158k"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_i6g32"]
@@ -835,6 +836,7 @@ navigation_polygon = SubResource("NavigationPolygon_wowpa")
 
 [node name="Player" parent="." unique_id=344648548 instance=ExtResource("1_ebmjs")]
 script = ExtResource("2_3dryh")
+HUDScene = ExtResource("6_ldgsr")
 UpgradeScene = ExtResource("8_v158k")
 DamageNumberScene = ExtResource("7_h4fw4")
 Invincible = false

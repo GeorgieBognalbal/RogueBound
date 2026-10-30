@@ -5,29 +5,29 @@ using System.Collections.Generic;
 
 public partial class Player : CharacterBody2D
 {
-
+	[Export] public PackedScene HUDScene;
 	[Export] public PackedScene UpgradeScene;
 
-    // =========================
-    // MOVEMENT & HEALTH
-    // =========================
+	// =========================
+	// MOVEMENT & HEALTH
+	// =========================
 
-    [Export] public PackedScene DamageNumberScene;
-    [Export] public bool Invincible = false;
-    [Export] public float Speed = 150.0f;
-    [Export] public float MaxHealth = 100.0f;
+	[Export] public PackedScene DamageNumberScene;
+	[Export] public bool Invincible = false;
+	[Export] public float Speed = 150.0f;
+	[Export] public float MaxHealth = 100.0f;
 	[Export] public float DamageInvulnerabilityTime = 0.75f;
 
-    public float health = 100.0f;
+	public float health = 100.0f;
 
 	private float _invulnerabilityTimer = 0.0f;
-    private bool _godMode = false;
+	private bool _godMode = false;
 
-    // =========================
-    // COMBAT
-    // =========================
+	// =========================
+	// COMBAT
+	// =========================
 
-    [Export] public int AttackDamage = 10;
+	[Export] public int AttackDamage = 10;
 
 	private AnimatedSprite2D _animatedSprite;
 	private bool _isAttacking = false;
@@ -66,6 +66,12 @@ public partial class Player : CharacterBody2D
 		AddToGroup("player");
 
 		GD.Print($"Player initialized: {health} HP");
+
+		if (HUDScene != null)
+		{
+			var hud = HUDScene.Instantiate();
+			AddChild(hud);
+		}
 	}
 
 	// =========================
@@ -114,29 +120,29 @@ public partial class Player : CharacterBody2D
 		MoveAndSlide();
 	}
 
-    // =========================
-    // PLAYER ATTACK
-    // =========================
+	// =========================
+	// PLAYER ATTACK
+	// =========================
 
-    public override void _Input(InputEvent @event)
-    {
-        if (@event.IsActionPressed("attack") && !_isAttacking)
-        {
-            GD.Print("ATTACK KEY DETECTED!");
-            Attack();
-        }
+	public override void _Input(InputEvent @event)
+	{
+		if (@event.IsActionPressed("attack") && !_isAttacking)
+		{
+			GD.Print("ATTACK KEY DETECTED!");
+			Attack();
+		}
 
-        if (@event is InputEventKey keyEvent
-            && keyEvent.Pressed
-            && !keyEvent.Echo
-            && keyEvent.Keycode == Key.F1)
-        {
-            _godMode = !_godMode;
-            GD.Print($"GOD MODE: {(_godMode ? "ON" : "OFF")}");
-        }
-    }
+		if (@event is InputEventKey keyEvent
+			&& keyEvent.Pressed
+			&& !keyEvent.Echo
+			&& keyEvent.Keycode == Key.F1)
+		{
+			_godMode = !_godMode;
+			GD.Print($"GOD MODE: {(_godMode ? "ON" : "OFF")}");
+		}
+	}
 
-    private async void Attack()
+	private async void Attack()
 	{
 		_isAttacking = true;
 		_animatedSprite.Play("attack");
@@ -168,36 +174,36 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-    // =========================
-    // PLAYER TAKES DAMAGE
-    // =========================
+	// =========================
+	// PLAYER TAKES DAMAGE
+	// =========================
 
-    public void TakeDamage(float damage)
-    {
-        if (_godMode || Invincible)
-            return;
+	public void TakeDamage(float damage)
+	{
+		if (_godMode || Invincible)
+			return;
 
-        if (damage <= 0 || health <= 0)
-            return;
+		if (damage <= 0 || health <= 0)
+			return;
 
-        if (_invulnerabilityTimer > 0)
-            return;
+		if (_invulnerabilityTimer > 0)
+			return;
 
-        health = Mathf.Max(health - damage, 0);
-        _invulnerabilityTimer = DamageInvulnerabilityTime;
+		health = Mathf.Max(health - damage, 0);
+		_invulnerabilityTimer = DamageInvulnerabilityTime;
 
-        SpawnDamageNumber(damage);
+		SpawnDamageNumber(damage);
 
-        _animatedSprite.Play("hit");
+		_animatedSprite.Play("hit");
 
-        GD.Print($"Player took {damage} damage! HP: {health}/{MaxHealth}");
-        HealthChanged?.Invoke(health, MaxHealth);
+		GD.Print($"Player took {damage} damage! HP: {health}/{MaxHealth}");
+		HealthChanged?.Invoke(health, MaxHealth);
 
-        if (health <= 0)
-            Die();
-    }
+		if (health <= 0)
+			Die();
+	}
 
-    public void Heal(float amount)
+	public void Heal(float amount)
 	{
 		if (amount <= 0 || health <= 0)
 			return;
@@ -225,30 +231,30 @@ public partial class Player : CharacterBody2D
 		_animatedSprite.Play("death");
 	}
 
-    private void SpawnDamageNumber(float damage)
-    {
-        if (DamageNumberScene == null)
-            return;
+	private void SpawnDamageNumber(float damage)
+	{
+		if (DamageNumberScene == null)
+			return;
 
-        Node currentScene = GetTree().CurrentScene;
+		Node currentScene = GetTree().CurrentScene;
 
-        if (currentScene == null)
-            return;
+		if (currentScene == null)
+			return;
 
-        Node2D damageNumber = DamageNumberScene.Instantiate<Node2D>();
-        currentScene.AddChild(damageNumber);
+		Node2D damageNumber = DamageNumberScene.Instantiate<Node2D>();
+		currentScene.AddChild(damageNumber);
 
-        damageNumber.GlobalPosition =
-            GlobalPosition + new Vector2(0, -20);
+		damageNumber.GlobalPosition =
+			GlobalPosition + new Vector2(0, -20);
 
-        damageNumber.Call("ShowDamage", damage);
-    }
+		damageNumber.Call("ShowDamage", damage);
+	}
 
-    // =========================
-    // MONEY COLLECTION
-    // =========================
+	// =========================
+	// MONEY COLLECTION
+	// =========================
 
-    public void CollectMoney(int amount)
+	public void CollectMoney(int amount)
 	{
 		if (amount <= 0)
 			return;

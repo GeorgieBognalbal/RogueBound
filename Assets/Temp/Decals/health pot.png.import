@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dikw35a1jy0pr"
-path="res://.godot/imported/Boarder.png-bada550d353ac19036602ff033822daf.ctex"
+uid="uid://dc0clx8yasqru"
+path="res://.godot/imported/health pot.png-68edb4ba3aa1c232a1458d2184797539.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Boarder.png"
-dest_files=["res://.godot/imported/Boarder.png-bada550d353ac19036602ff033822daf.ctex"]
+source_file="res://Assets/Temp/Decals/health pot.png"
+dest_files=["res://.godot/imported/health pot.png-68edb4ba3aa1c232a1458d2184797539.ctex"]
 
 [params]
 

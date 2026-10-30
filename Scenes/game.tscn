@@ -865,6 +865,7 @@ volume_db = 0.709
 
 [node name="PlayerHurt" type="AudioStreamPlayer2D" parent="Player" unique_id=1361559425]
 stream = ExtResource("8_rfjv2")
+volume_db = 14.084
 
 [node name="EnemySpawner" type="Node2D" parent="." unique_id=1021591405 node_paths=PackedStringArray("NavigationRegion")]
 script = ExtResource("6_i6g32")

@@ -5,6 +5,8 @@
 [ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Effects/DamageNumber.tscn" id="2_0830c"]
 [ext_resource type="Texture2D" uid="uid://cibjul1elbjr7" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Walk.png" id="2_afpow"]
 [ext_resource type="Texture2D" uid="uid://dh7it10ydjsoq" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Hurt.png" id="3_afpow"]
+[ext_resource type="AudioStream" uid="uid://dbf4qujhicqsq" path="res://Sounds/EnemyKill.wav" id="6_ghaa6"]
+[ext_resource type="AudioStream" uid="uid://brfbc8csg0s8w" path="res://Sounds/HitBoxSound.wav" id="7_1dp5w"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_hgeoe"]
 atlas = ExtResource("2_287tu")
@@ -163,3 +165,10 @@ shape = SubResource("CircleShape2D_7quku")
 [node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea" unique_id=100458808]
 position = Vector2(1, 0)
 shape = SubResource("CircleShape2D_hygl4")
+
+[node name="EnemyKill" type="AudioStreamPlayer2D" parent="." unique_id=249367217]
+stream = ExtResource("6_ghaa6")
+volume_db = 10.834
+
+[node name="HitBoxSound" type="AudioStreamPlayer2D" parent="." unique_id=1634344794]
+stream = ExtResource("7_1dp5w")

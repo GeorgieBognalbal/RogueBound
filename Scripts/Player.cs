@@ -130,6 +130,7 @@ public partial class Player : CharacterBody2D
 		{
 			GD.Print("ATTACK KEY DETECTED!");
 			Attack();
+			GetNode<AudioStreamPlayer2D>("HitSound").Play();
 		}
 
 		if (@event is InputEventKey keyEvent
@@ -195,12 +196,16 @@ public partial class Player : CharacterBody2D
 		SpawnDamageNumber(damage);
 
 		_animatedSprite.Play("hit");
+		GetNode<AudioStreamPlayer2D>("PlayerHurt").Play();
 
 		GD.Print($"Player took {damage} damage! HP: {health}/{MaxHealth}");
 		HealthChanged?.Invoke(health, MaxHealth);
 
 		if (health <= 0)
+		{
+			GetNode<AudioStreamPlayer2D>("DeathSound").Play();
 			Die();
+		}
 	}
 
 	public void Heal(float amount)
@@ -364,7 +369,6 @@ public partial class Player : CharacterBody2D
 			GD.PushError("Assign UpgradeScene in the Inspector!");
 			return;
 		}
-
 		GetTree().Paused = true;
 
 		Control menu = UpgradeScene.Instantiate<Control>();

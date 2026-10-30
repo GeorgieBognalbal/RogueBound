@@ -105,7 +105,8 @@ public partial class WaveManager : Node
 
 		CanvasLayer menu = UpgradeScene.Instantiate<CanvasLayer>();
 		GetTree().Root.AddChild(menu);
-
+		
+		GetNode<AudioStreamPlayer2D>("UpgradeSound").Play();
 		menu.ProcessMode = Node.ProcessModeEnum.Always;
 
 		// Find the inner Control that contains UpgradeScene.cs.

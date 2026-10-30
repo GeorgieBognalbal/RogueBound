@@ -194,10 +194,10 @@ public partial class Enemy : CharacterBody2D
 
 		_health -= damage;
 
-		// Play hit sound.
-		GetNode<AudioStreamPlayer2D>("HitBoxSound").Play();
+		// Play hit sound if available.
+		GetNodeOrNull<AudioStreamPlayer2D>("HitBoxSound")?.Play();
 
-		// Display the amount of damage dealt.
+		// Display damage number.
 		SpawnDamageNumber(damage);
 
 		GD.Print(
@@ -205,6 +205,7 @@ public partial class Enemy : CharacterBody2D
 			$"HP: {Mathf.Max(_health, 0.0f)}/{MaxHealth}"
 		);
 
+		// Check if enemy died.
 		if (_health <= 0.0f)
 		{
 			_isDead = true;
@@ -221,13 +222,14 @@ public partial class Enemy : CharacterBody2D
 				);
 			}
 
-			// Play death sound.
-			GetNode<AudioStreamPlayer2D>("EnemyKill").Play();
+			// Play death sound if available.
+			GetNodeOrNull<AudioStreamPlayer2D>("EnemyKill")?.Play();
 
 			_animatedSprite.Play("death");
 			return;
 		}
 
+		// Calculate knockback direction.
 		Vector2 knockbackDirection = GlobalPosition - attackerPosition;
 
 		if (knockbackDirection.LengthSquared() > 0.001f)

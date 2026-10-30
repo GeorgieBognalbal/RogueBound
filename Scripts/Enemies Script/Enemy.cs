@@ -187,91 +187,91 @@ public partial class Enemy : CharacterBody2D
 	}
 
 	// Called by the player's attack.
-    public virtual void TakeDamage(float damage, Vector2 attackerPosition)
-    {
-        if (_isDead || _health <= 0.0f || damage <= 0.0f)
-            return;
+	public virtual void TakeDamage(float damage, Vector2 attackerPosition)
+	{
+		if (_isDead || _health <= 0.0f || damage <= 0.0f)
+			return;
 
-        _health -= damage;
+		_health -= damage;
 
-        // Play hit sound.
-        GetNode<AudioStreamPlayer2D>("HitBoxSound").Play();
+		// Play hit sound.
+		GetNode<AudioStreamPlayer2D>("HitBoxSound").Play();
 
-        // Display the amount of damage dealt.
-        SpawnDamageNumber(damage);
+		// Display the amount of damage dealt.
+		SpawnDamageNumber(damage);
 
-        GD.Print(
-            $"Enemy took {damage} damage! " +
-            $"HP: {Mathf.Max(_health, 0.0f)}/{MaxHealth}"
-        );
+		GD.Print(
+			$"Enemy took {damage} damage! " +
+			$"HP: {Mathf.Max(_health, 0.0f)}/{MaxHealth}"
+		);
 
-        if (_health <= 0.0f)
-        {
-            _isDead = true;
-            _isHit = false;
+		if (_health <= 0.0f)
+		{
+			_isDead = true;
+			_isHit = false;
 
-            Velocity = Vector2.Zero;
-            _knockbackVelocity = Vector2.Zero;
+			Velocity = Vector2.Zero;
+			_knockbackVelocity = Vector2.Zero;
 
-            if (_hitbox != null)
-            {
-                _hitbox.SetDeferred(
-                    Area2D.PropertyName.Monitoring,
-                    false
-                );
-            }
+			if (_hitbox != null)
+			{
+				_hitbox.SetDeferred(
+					Area2D.PropertyName.Monitoring,
+					false
+				);
+			}
 
-            // Play death sound.
-            GetNode<AudioStreamPlayer2D>("EnemyKill").Play();
+			// Play death sound.
+			GetNode<AudioStreamPlayer2D>("EnemyKill").Play();
 
-            _animatedSprite.Play("death");
-            return;
-        }
+			_animatedSprite.Play("death");
+			return;
+		}
 
-        Vector2 knockbackDirection = GlobalPosition - attackerPosition;
+		Vector2 knockbackDirection = GlobalPosition - attackerPosition;
 
-        if (knockbackDirection.LengthSquared() > 0.001f)
-            knockbackDirection = knockbackDirection.Normalized();
-        else
-            knockbackDirection = Vector2.Right;
+		if (knockbackDirection.LengthSquared() > 0.001f)
+			knockbackDirection = knockbackDirection.Normalized();
+		else
+			knockbackDirection = Vector2.Right;
 
-        _knockbackVelocity = knockbackDirection * KnockbackForce;
-        _hitTimer = HitStunDuration;
-        _isHit = true;
+		_knockbackVelocity = knockbackDirection * KnockbackForce;
+		_hitTimer = HitStunDuration;
+		_isHit = true;
 
-        FaceDirection(attackerPosition.X - GlobalPosition.X);
+		FaceDirection(attackerPosition.X - GlobalPosition.X);
 
-        _animatedSprite.Play("hit");
-    }
+		_animatedSprite.Play("hit");
+	}
 
-    // Added for WaveManager: identifies enemies that have died.
-    public bool IsDead()
-    {
-        return _isDead;
-    }
+	// Added for WaveManager: identifies enemies that have died.
+	public bool IsDead()
+	{
+		return _isDead;
+	}
 
-    // Added for convenient health checks.
-    public float GetHealth()
-    {
-        return _health;
-    }
+	// Added for convenient health checks.
+	public float GetHealth()
+	{
+		return _health;
+	}
 
-    protected virtual void OnAnimationFinished()
-    {
-        if (_isDead)
-        {
-            if (_animatedSprite.Animation == "death")
-            {
-                QueueFree();
-            }
+	protected virtual void OnAnimationFinished()
+	{
+		if (_isDead)
+		{
+			if (_animatedSprite.Animation == "death")
+			{
+				QueueFree();
+			}
 
-            return;
-        }
+			return;
+		}
 
-        if (_animatedSprite.Animation == "hit")
-        {
-            _isHit = false;
-            _animatedSprite.Play("walk");
-        }
-    }
+		if (_animatedSprite.Animation == "hit")
+		{
+			_isHit = false;
+			_animatedSprite.Play("walk");
+		}
+	}
 }

@@ -194,6 +194,9 @@ public partial class Enemy : CharacterBody2D
 
         _health -= damage;
 
+        // Play hit sound.
+        GetNode<AudioStreamPlayer2D>("HitBoxSound").Play();
+
         // Display the amount of damage dealt.
         SpawnDamageNumber(damage);
 
@@ -217,6 +220,9 @@ public partial class Enemy : CharacterBody2D
                     false
                 );
             }
+
+            // Play death sound.
+            GetNode<AudioStreamPlayer2D>("EnemyKill").Play();
 
             _animatedSprite.Play("death");
             return;

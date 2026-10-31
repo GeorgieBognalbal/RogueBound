@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cru6tncwgh8ow"
-path="res://.godot/imported/RogueBound.png-3b8c09609e87d14ebefe21137032ecad.ctex"
+uid="uid://dikw35a1jy0pr"
+path="res://.godot/imported/Boarder.png-53783375f74142e79636f699282b2f52.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/RogueBound.png"
-dest_files=["res://.godot/imported/RogueBound.png-3b8c09609e87d14ebefe21137032ecad.ctex"]
+source_file="res://Assets/Health Bar/Boarder.png"
+dest_files=["res://.godot/imported/Boarder.png-53783375f74142e79636f699282b2f52.ctex"]
 
 [params]
 

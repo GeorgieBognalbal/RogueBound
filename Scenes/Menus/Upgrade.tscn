@@ -1,6 +1,213 @@
 [gd_scene format=3 uid="uid://cubdbosmir2f7"]
 
 [ext_resource type="Script" uid="uid://6v1ps8uvx83c" path="res://Scripts/GUI/UpgradeScene.cs" id="1_wmfxw"]
+[ext_resource type="Texture2D" uid="uid://471ipm6f2dum" path="res://Assets/Upgrade Scene/UPGRADE BANNERS.png" id="2_kmee3"]
+[ext_resource type="Texture2D" uid="uid://cm3iuxsakbldk" path="res://Assets/Upgrade Scene/Upgrade scroll.png" id="3_0v45e"]
+
+[sub_resource type="Animation" id="Animation_kmee3"]
+resource_name = "Bobbing"
+length = 2.0
+loop_mode = 2
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 2),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(20, -92), Vector2(20, -68)]
+}
+
+[sub_resource type="Animation" id="Animation_0v45e"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath(".:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(20, -92)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_cg0jr"]
+_data = {
+&"Bobbing": SubResource("Animation_kmee3"),
+&"RESET": SubResource("Animation_0v45e")
+}
+
+[sub_resource type="Animation" id="Animation_6hsul"]
+resource_name = "Popup"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TextureButton:size")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.36),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(262, 0), Vector2(262, 328)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TextureButton:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.36),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-484, 28), Vector2(-484, 28)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("TextureButton/Label:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.28),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+
+[sub_resource type="Animation" id="Animation_16irx"]
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TextureButton:size")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.36),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(262, 0), Vector2(262, 328)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TextureButton:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.36),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(-128, 28), Vector2(-128, 28)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("TextureButton/Label:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.28),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_ax34m"]
+_data = {
+&"Popup": SubResource("Animation_6hsul"),
+&"RESET": SubResource("Animation_16irx")
+}
+
+[sub_resource type="Animation" id="Animation_akwkj"]
+resource_name = "Popup"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TextureButton:size")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.36),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(262, 0), Vector2(262, 328)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TextureButton:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0, 0.36),
+"transitions": PackedFloat32Array(1, 1),
+"update": 0,
+"values": [Vector2(244, 28), Vector2(244, 28)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("TextureButton/Label:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0, 0.28),
+"transitions": PackedFloat32Array(1, 1),
+"update": 1,
+"values": [false, true]
+}
+
+[sub_resource type="Animation" id="Animation_5tljv"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("TextureButton:size")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(262, 0)]
+}
+tracks/1/type = "value"
+tracks/1/imported = false
+tracks/1/enabled = true
+tracks/1/path = NodePath("TextureButton:position")
+tracks/1/interp = 1
+tracks/1/loop_wrap = true
+tracks/1/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(244, 28)]
+}
+tracks/2/type = "value"
+tracks/2/imported = false
+tracks/2/enabled = true
+tracks/2/path = NodePath("TextureButton/Label:visible")
+tracks/2/interp = 1
+tracks/2/loop_wrap = true
+tracks/2/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 1,
+"values": [false]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_wpqd3"]
+_data = {
+&"Popup": SubResource("Animation_akwkj"),
+&"RESET": SubResource("Animation_5tljv")
+}
 
 [node name="CanvasLayer" type="CanvasLayer" unique_id=1343296661]
 
@@ -44,9 +251,14 @@ grow_vertical = 2
 [node name="VBoxContainer" type="VBoxContainer" parent="UpgradeScene/CenterContainer" unique_id=1794334968]
 layout_mode = 2
 
-[node name="Title" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer" unique_id=1679712599]
-layout_mode = 2
-text = "SELECT UPGRADE"
+[node name="Sprite2D" type="Sprite2D" parent="UpgradeScene/CenterContainer/VBoxContainer" unique_id=540688224]
+position = Vector2(20, -92)
+scale = Vector2(3, 3)
+texture = ExtResource("2_kmee3")
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="UpgradeScene/CenterContainer/VBoxContainer/Sprite2D" unique_id=661555383]
+libraries/ = SubResource("AnimationLibrary_cg0jr")
+autoplay = &"Bobbing"
 
 [node name="Cards" type="HBoxContainer" parent="UpgradeScene/CenterContainer/VBoxContainer" unique_id=471572198]
 layout_mode = 2
@@ -61,27 +273,36 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -236.0
-offset_top = 15.0
-offset_right = -86.0
-offset_bottom = 255.0
+offset_left = -128.0
+offset_top = 28.0
+offset_right = 134.0
+offset_bottom = 28.0
 grow_horizontal = 2
 grow_vertical = 2
+texture_normal = ExtResource("3_0v45e")
+ignore_texture_size = true
+stretch_mode = 5
 
-[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card1" unique_id=1111161793]
+[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card1/TextureButton" unique_id=1111161793]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -188.0
-offset_top = 55.0
-offset_right = -132.0
-offset_bottom = 78.0
+offset_left = -232.0
+offset_top = -248.0
+offset_right = -131.0
+offset_bottom = -207.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(2, 2)
 text = "CARD 1"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card1" unique_id=685727728]
+libraries/ = SubResource("AnimationLibrary_ax34m")
+autoplay = &"Popup"
 
 [node name="Card2" type="Control" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=1055259121]
 layout_mode = 2
@@ -91,27 +312,36 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -72.0
-offset_top = 15.0
-offset_right = 78.0
-offset_bottom = 255.0
+offset_left = -128.0
+offset_top = 28.0
+offset_right = 134.0
+offset_bottom = 28.0
 grow_horizontal = 2
 grow_vertical = 2
+texture_normal = ExtResource("3_0v45e")
+ignore_texture_size = true
+stretch_mode = 5
 
-[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card2" unique_id=961989854]
+[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card2/TextureButton" unique_id=961989854]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -32.0
-offset_top = 55.0
-offset_right = 24.0
-offset_bottom = 78.0
+offset_left = -184.0
+offset_top = -232.0
+offset_right = -128.0
+offset_bottom = -209.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(2, 2)
 text = "CARD 2"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card2" unique_id=956360190]
+libraries/ = SubResource("AnimationLibrary_ax34m")
+autoplay = &"RESET"
 
 [node name="Card3" type="Control" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=886884067]
 layout_mode = 2
@@ -121,24 +351,33 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 92.0
-offset_top = 15.0
-offset_right = 242.0
-offset_bottom = 255.0
+offset_left = 244.0
+offset_top = 28.0
+offset_right = 506.0
+offset_bottom = 28.0
 grow_horizontal = 2
 grow_vertical = 2
+texture_normal = ExtResource("3_0v45e")
+ignore_texture_size = true
+stretch_mode = 5
 
-[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card3" unique_id=473381005]
+[node name="Label" type="Label" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card3/TextureButton" unique_id=473381005]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 132.0
-offset_top = 55.0
-offset_right = 188.0
-offset_bottom = 78.0
+offset_left = -184.0
+offset_top = -232.0
+offset_right = -128.0
+offset_bottom = -209.0
 grow_horizontal = 2
 grow_vertical = 2
+scale = Vector2(2, 2)
 text = "CARD 3"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="AnimationPlayer" type="AnimationPlayer" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card3" unique_id=1307265238]
+libraries/ = SubResource("AnimationLibrary_wpqd3")
+autoplay = &"Popup"

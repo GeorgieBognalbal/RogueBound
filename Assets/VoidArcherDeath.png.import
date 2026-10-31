@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bmcfgtgiorc4q"
-path="res://.godot/imported/currency.png-4c92d6e6d1dbe88c18bbf1e8287a2161.ctex"
+uid="uid://donuo2b24kcl7"
+path="res://.godot/imported/VoidArcherDeath.png-bdabe262fe982aa0cfe36c3b8c5c702c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Decals/currency.png"
-dest_files=["res://.godot/imported/currency.png-4c92d6e6d1dbe88c18bbf1e8287a2161.ctex"]
+source_file="res://Assets/VoidArcherDeath.png"
+dest_files=["res://.godot/imported/VoidArcherDeath.png-bdabe262fe982aa0cfe36c3b8c5c702c.ctex"]
 
 [params]
 

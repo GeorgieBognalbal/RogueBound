@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dc0clx8yasqru"
-path="res://.godot/imported/health pot.png-df1cd515793d801a94cbdd364d68a2cd.ctex"
+path="res://.godot/imported/health pot.png-68edb4ba3aa1c232a1458d2184797539.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Decals/health pot.png"
-dest_files=["res://.godot/imported/health pot.png-df1cd515793d801a94cbdd364d68a2cd.ctex"]
+source_file="res://Assets/Temp/Decals/health pot.png"
+dest_files=["res://.godot/imported/health pot.png-68edb4ba3aa1c232a1458d2184797539.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dv3oic2kwmpij"
-path="res://.godot/imported/bar.png-169e264e68141d8aaa7037f252397d13.ctex"
+uid="uid://deoe552yxxftw"
+path="res://.godot/imported/VoidArcherShoot.png-77ddd9d297bc2634d2faa327394addb6.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/bar.png"
-dest_files=["res://.godot/imported/bar.png-169e264e68141d8aaa7037f252397d13.ctex"]
+source_file="res://Assets/VoidArcherShoot.png"
+dest_files=["res://.godot/imported/VoidArcherShoot.png-77ddd9d297bc2634d2faa327394addb6.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dikw35a1jy0pr"
-path="res://.godot/imported/Boarder.png-bada550d353ac19036602ff033822daf.ctex"
+uid="uid://wtwnbcu12stw"
+path="res://.godot/imported/mana pot.png-f109b3bb3fa61d0dd5a0c283bee482af.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Assets/Boarder.png"
-dest_files=["res://.godot/imported/Boarder.png-bada550d353ac19036602ff033822daf.ctex"]
+source_file="res://Assets/Temp/Decals/mana pot.png"
+dest_files=["res://.godot/imported/mana pot.png-f109b3bb3fa61d0dd5a0c283bee482af.ctex"]
 
 [params]
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://wtwnbcu12stw"
-path="res://.godot/imported/mana pot.png-81b81ef08c9697291bace220f69dc9a8.ctex"
+uid="uid://cru6tncwgh8ow"
+path="res://.godot/imported/RogueBound.png-4e7d23a8c3f85092e06dda08af41fdd9.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Decals/mana pot.png"
-dest_files=["res://.godot/imported/mana pot.png-81b81ef08c9697291bace220f69dc9a8.ctex"]
+source_file="res://Assets/Title Screen/RogueBound.png"
+dest_files=["res://.godot/imported/RogueBound.png-4e7d23a8c3f85092e06dda08af41fdd9.ctex"]
 
 [params]
 

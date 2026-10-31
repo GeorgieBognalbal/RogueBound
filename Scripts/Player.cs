@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public partial class Player : CharacterBody2D
 {
-
+	[Export] public PackedScene HUDScene;
 	[Export] public PackedScene UpgradeScene;
 
 	// =========================
@@ -66,6 +66,12 @@ public partial class Player : CharacterBody2D
 		AddToGroup("player");
 
 		GD.Print($"Player initialized: {health} HP");
+
+		if (HUDScene != null)
+		{
+			var hud = HUDScene.Instantiate();
+			AddChild(hud);
+		}
 	}
 
 	// =========================
@@ -140,7 +146,6 @@ public partial class Player : CharacterBody2D
 
 	public override void _Input(InputEvent @event)
 	{
-		
 		if (@event.IsActionPressed("attack") && !_isAttacking)
 		{
 			GD.Print("ATTACK KEY DETECTED!");
@@ -211,7 +216,6 @@ public partial class Player : CharacterBody2D
 		SpawnDamageNumber(damage);
 
 		_animatedSprite.Play("hit");
-		
 		GetNode<AudioStreamPlayer2D>("PlayerHurt").Play();
 
 		GD.Print($"Player took {damage} damage! HP: {health}/{MaxHealth}");
@@ -219,8 +223,8 @@ public partial class Player : CharacterBody2D
 
 		if (health <= 0)
 		{
-		GetNode<AudioStreamPlayer2D>("DeathSound").Play();
-		Die();
+			GetNode<AudioStreamPlayer2D>("DeathSound").Play();
+			Die();
 		}
 	}
 

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://y60jw1wwgfrl"
-path="res://.godot/imported/wooden dull sword.png-3ff7e2e4a4e3751a7be407de2c01522f.ctex"
+uid="uid://dv3oic2kwmpij"
+path="res://.godot/imported/bar.png-39fef906b83566f7d8f27ae823bd3345.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Decals/wooden dull sword.png"
-dest_files=["res://.godot/imported/wooden dull sword.png-3ff7e2e4a4e3751a7be407de2c01522f.ctex"]
+source_file="res://Assets/Health Bar/bar.png"
+dest_files=["res://.godot/imported/bar.png-39fef906b83566f7d8f27ae823bd3345.ctex"]
 
 [params]
 

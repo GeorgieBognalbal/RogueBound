@@ -86,7 +86,7 @@ public partial class UpgradeScene : Control
 				card.GetNodeOrNull<TextureButton>("TextureButton");
 
 			Label cardText =
-				card.GetNodeOrNull<Label>("Label");
+				card.GetNodeOrNull<Label>("TextureButton/Label");
 
 			if (button == null || cardText == null)
 			{

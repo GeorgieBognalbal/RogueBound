@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="RogueBound"
-run/main_scene="res://Scenes/player.tscn"
+run/main_scene="res://Scenes/Player/player.tscn"
 config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 
 [display]
@@ -22,6 +22,10 @@ window/stretch/aspect="expand"
 [dotnet]
 
 project/assembly_name="New Game Project"
+
+[gui]
+
+theme/custom_font="uid://dc0ccnhp3y6u"
 
 [input]
 

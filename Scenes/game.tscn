@@ -1,12 +1,14 @@
 [gd_scene format=4 uid="uid://yicge48108e0"]
 
 [ext_resource type="Script" uid="uid://di4gh3rimunul" path="res://Scripts/Logic/WaveManager.cs" id="1_1l0tm"]
-[ext_resource type="PackedScene" uid="uid://fyyoe5vf3xm1" path="res://Scenes/player.tscn" id="1_ebmjs"]
+[ext_resource type="PackedScene" uid="uid://fyyoe5vf3xm1" path="res://Scenes/Player/player.tscn" id="1_ebmjs"]
 [ext_resource type="Script" uid="uid://d3ahxct5gwx52" path="res://Scripts/Player.cs" id="2_3dryh"]
 [ext_resource type="Texture2D" uid="uid://b87gskhvnuyjy" path="res://Assets/Temp/TX Tileset Grass.png" id="3_3dryh"]
 [ext_resource type="Texture2D" uid="uid://vb41dyguj2iu" path="res://Assets/Temp/TX Tileset Stone Ground.png" id="4_wowpa"]
-[ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/enemy.tscn" id="5_wowpa"]
+[ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/Enemies/enemy.tscn" id="5_wowpa"]
 [ext_resource type="Script" uid="uid://btf4mvgnq66vi" path="res://Scripts/Logic/EnemySpawner.cs" id="6_i6g32"]
+[ext_resource type="PackedScene" uid="uid://cqyfcaunfryj4" path="res://Scenes/Menus/GameHud.tscn" id="6_ldgsr"]
+[ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Effects/DamageNumber.tscn" id="7_h4fw4"]
 [ext_resource type="AudioStream" uid="uid://jnlfmqeee21w" path="res://Sounds/Death (1).wav" id="7_rku1e"]
 [ext_resource type="AudioStream" uid="uid://doce7rdfbnqy" path="res://Sounds/PlayerHurt.wav" id="8_rfjv2"]
 [ext_resource type="PackedScene" uid="uid://cubdbosmir2f7" path="res://Scenes/Menus/Upgrade.tscn" id="8_v158k"]
@@ -14,6 +16,7 @@
 [ext_resource type="AudioStream" uid="uid://rjet7ahl5cnu" path="res://Sounds/background music.ogg" id="9_h4fw4"]
 [ext_resource type="AudioStream" uid="uid://bj2cbjph56g1m" path="res://Sounds/hit sound.wav" id="10_ldgsr"]
 [ext_resource type="AudioStream" uid="uid://dokvxyaw7aum6" path="res://Sounds/Upgrade.wav" id="11_rku1e"]
+[ext_resource type="PackedScene" uid="uid://887f0e4xdelm" path="res://Scenes/Enemies/ArcherEnemy.tscn" id="14_nnt18"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_i6g32"]
 vertices = PackedVector2Array(8, 8, -8, 8, -8, -8, 8, -8)
@@ -840,8 +843,9 @@ navigation_polygon = SubResource("NavigationPolygon_wowpa")
 
 [node name="Player" parent="." unique_id=344648548 instance=ExtResource("1_ebmjs")]
 script = ExtResource("2_3dryh")
-UpgradeScene = null
-DamageNumberScene = null
+HUDScene = ExtResource("6_ldgsr")
+UpgradeScene = ExtResource("8_v158k")
+DamageNumberScene = ExtResource("7_h4fw4")
 Invincible = false
 Speed = 150.0
 MaxHealth = 100.0
@@ -874,7 +878,7 @@ volume_db = 24.0
 
 [node name="EnemySpawner" type="Node2D" parent="." unique_id=1021591405 node_paths=PackedStringArray("NavigationRegion")]
 script = ExtResource("6_i6g32")
-EnemyScenes = Array[PackedScene]([ExtResource("5_wowpa")])
+EnemyScenes = Array[PackedScene]([ExtResource("5_wowpa"), ExtResource("14_nnt18")])
 NavigationRegion = NodePath("../NavigationRegion2D")
 
 [node name="WaveManager" type="Node2D" parent="." unique_id=1508826255]

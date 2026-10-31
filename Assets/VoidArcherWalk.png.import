@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://6h5p6au2peha"
-path="res://.godot/imported/Demo dih.png-872ebc425de8642074375bafd9eb08e3.ctex"
+uid="uid://bbyk0siqxhoha"
+path="res://.godot/imported/VoidArcherWalk.png-2a508ff9c2e1fd5185a393fbebda0248.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Decals/Demo dih.png"
-dest_files=["res://.godot/imported/Demo dih.png-872ebc425de8642074375bafd9eb08e3.ctex"]
+source_file="res://Assets/VoidArcherWalk.png"
+dest_files=["res://.godot/imported/VoidArcherWalk.png-2a508ff9c2e1fd5185a393fbebda0248.ctex"]
 
 [params]
 

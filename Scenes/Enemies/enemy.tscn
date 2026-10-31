@@ -1,8 +1,8 @@
 [gd_scene format=3 uid="uid://cohiqpndtgam"]
 
-[ext_resource type="Script" uid="uid://cupdwsd6o563m" path="res://Scripts/Enemy.cs" id="1_1f0kj"]
+[ext_resource type="Script" uid="uid://cupdwsd6o563m" path="res://Scripts/Enemies Script/Enemy.cs" id="1_miwey"]
 [ext_resource type="Texture2D" uid="uid://cybaleqol36in" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Death.png" id="2_287tu"]
-[ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Menus/DamageNumber.tscn" id="2_0830c"]
+[ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Effects/DamageNumber.tscn" id="2_0830c"]
 [ext_resource type="Texture2D" uid="uid://cibjul1elbjr7" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Walk.png" id="2_afpow"]
 [ext_resource type="Texture2D" uid="uid://dh7it10ydjsoq" path="res://Assets/Temp/Orc/Orc with shadows/Orc_Hurt.png" id="3_afpow"]
 [ext_resource type="AudioStream" uid="uid://dbf4qujhicqsq" path="res://Sounds/EnemyKill.wav" id="6_ghaa6"]
@@ -145,7 +145,7 @@ radius = 8.0
 radius = 13.0
 
 [node name="Enemy" type="CharacterBody2D" unique_id=217838147]
-script = ExtResource("1_1f0kj")
+script = ExtResource("1_miwey")
 DamageNumberScene = ExtResource("2_0830c")
 
 [node name="EnemyAnimatedSprite" type="AnimatedSprite2D" parent="." unique_id=1317629923]

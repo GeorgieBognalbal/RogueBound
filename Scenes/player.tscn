@@ -23,6 +23,10 @@ public partial class Player : CharacterBody2D
 		// Fetch the node when the player enters the scene tree
 		_animatedSprite = GetNode<AnimatedSprite2D>(\"AnimatedSprite2D\");
 	}
+	
+	
+	private float _footstepTimer = 0.0f;
+	private float _footstepInterval = 0.35f;
 
 	public override void _PhysicsProcess(double delta)
 	{
@@ -30,6 +34,8 @@ public partial class Player : CharacterBody2D
 
 		// Get the input direction for all 4 directions (X and Y axes)
 		Vector2 direction = Input.GetVector(\"ui_left\", \"ui_right\", \"ui_up\", \"ui_down\");
+		
+		
 
 		// Handle movement, animations, and flipping
 		if (direction != Vector2.Zero)
@@ -37,6 +43,13 @@ public partial class Player : CharacterBody2D
 			velocity = direction * Speed;
 			_animatedSprite.Play(\"walk\");
 
+			_footstepTimer -= (float)delta;
+			
+			if (_footstepTimer <= 0.0f)
+			{
+			GetNode<AudioStreamPlayer2D>(\"PlayerFootstep\").Play();
+			_footstepTimer = _footstepInterval;
+			}
 			// Flip horizontally only if there is horizontal movement
 			if (direction.X != 0)
 			{
@@ -49,6 +62,8 @@ public partial class Player : CharacterBody2D
 			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
 			velocity.Y = Mathf.MoveToward(Velocity.Y, 0, Speed);
 			_animatedSprite.Play(\"idle\");
+			
+			_footstepTimer = 0.0f;
 		}
 
 		Velocity = velocity;

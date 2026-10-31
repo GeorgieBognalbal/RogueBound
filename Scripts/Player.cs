@@ -71,7 +71,12 @@ public partial class Player : CharacterBody2D
 	// =========================
 	// MOVEMENT & TIMERS
 	// =========================
-
+	
+	
+	private float _footstepTimer = 0.0f;
+	private float _footstepInterval = 0.35f;
+	  
+	
 	public override void _PhysicsProcess(double delta)
 	{
 		if (_invulnerabilityTimer > 0)
@@ -105,11 +110,26 @@ public partial class Player : CharacterBody2D
 
 		if (!_isAttacking)
 		{
-			if (direction != Vector2.Zero)
-				_animatedSprite.Play("walk");
-			else
-				_animatedSprite.Play("idle");
+		if (direction != Vector2.Zero)
+		{
+		_animatedSprite.Play("walk");
+
+		// Footstep Timer Countdown
+		_footstepTimer -= (float)delta;
+		if (_footstepTimer <= 0.0f)
+		{
+			AudioStreamPlayer2D footstepNode = GetNode<AudioStreamPlayer2D>("PlayerFootstep");
+			footstepNode.Stop();
+			footstepNode.Play();
+			_footstepTimer = _footstepInterval; // Resets countdown for next step
 		}
+	}
+	else
+	{
+		_animatedSprite.Play("idle");
+		_footstepTimer = 0.0f; // Reset instantly when standing still
+	}
+}
 
 		MoveAndSlide();
 	}

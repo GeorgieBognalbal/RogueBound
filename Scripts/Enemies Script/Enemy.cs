@@ -3,6 +3,7 @@ using Godot;
 
 public partial class Enemy : CharacterBody2D
 {
+
 	[Export] public float Speed = 50.0f;
 	[Export] public float StopDistance = 20.0f;
 	[Export] public float RepathInterval = 0.2f;
@@ -37,8 +38,8 @@ public partial class Enemy : CharacterBody2D
 
 		_health = MaxHealth;
 
+		// this is how to get the objects in the tree
 		_player = GetTree().GetFirstNodeInGroup("player") as Node2D;
-
 		_navAgent = GetNode<NavigationAgent2D>("EnemyNavigationAgent");
 		_animatedSprite = GetNode<AnimatedSprite2D>("EnemyAnimatedSprite");
 		_hitbox = GetNodeOrNull<Area2D>("DamageArea");
@@ -225,6 +226,7 @@ public partial class Enemy : CharacterBody2D
 			// Play death sound if available.
 			GetNodeOrNull<AudioStreamPlayer2D>("EnemyKill")?.Play();
 
+			
 			_animatedSprite.Play("death");
 			return;
 		}

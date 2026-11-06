@@ -255,6 +255,7 @@ radius = 13.0
 [node name="Archer" type="CharacterBody2D" unique_id=21573287]
 script = ExtResource("1_jyx16")
 ProjectileScene = ExtResource("2_750kb")
+ShootCooldown = 3.0
 
 [node name="EnemyAnimatedSprite" type="AnimatedSprite2D" parent="." unique_id=1876228369]
 position = Vector2(-1, -2.3841858e-07)

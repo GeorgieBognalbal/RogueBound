@@ -24,6 +24,7 @@ public partial class ArcherEnemy : Enemy
 		if (_attackTimer > 0.0f || _isHit || _isDead)
 			return;
 
+
 		float distance = GlobalPosition.DistanceTo(_player.GlobalPosition);
 
 		// Only attack when the player is within range.

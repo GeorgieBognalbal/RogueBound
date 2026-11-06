@@ -1,8 +1,15 @@
 [gd_scene format=3 uid="uid://bm58unwsnenug"]
 
 [ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/Enemies/enemy.tscn" id="1_jm0yk"]
+[ext_resource type="Script" uid="uid://dpgtr8nka7o3" path="res://Scripts/Enemies Script/SlimeEnemy.cs" id="2_g6d16"]
 
-[node name="Enemy" unique_id=217838147 instance=ExtResource("1_jm0yk")]
+[node name="Slime" unique_id=217838147 instance=ExtResource("1_jm0yk")]
+script = ExtResource("2_g6d16")
+ChargeRange = 180.0
+ChargeDuration = 0.8
+DashSpeed = 250.0
+DashDuration = 0.45
+DashCooldown = 2.0
 
 [node name="EnemyAnimatedSprite" parent="." index="0" unique_id=1317629923]
-animation = &"hit"
+animation = &"walk"

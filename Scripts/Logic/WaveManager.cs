@@ -14,6 +14,11 @@ public partial class WaveManager : Node
 
 	public override void _Ready()
 	{
+		DatabaseManager database =
+			GetNode<DatabaseManager>("/root/DatabaseManager");
+
+		database.StartRun();
+
 		StartNextWave();
 	}
 
@@ -90,8 +95,13 @@ public partial class WaveManager : Node
 
 		GD.Print($"Wave {_currentWave} cleared!");
 
+		DatabaseManager database =
+			GetNode<DatabaseManager>("/root/DatabaseManager");
+
+		database.UpdateWaveProgress(_currentWave, _currentWave);
+
 		ShowUpgradeMenu();
-	}
+	}	
 
 	private void ShowUpgradeMenu()
 	{

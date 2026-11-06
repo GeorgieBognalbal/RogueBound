@@ -161,6 +161,28 @@ public partial class Player : CharacterBody2D
 			_godMode = !_godMode;
 			GD.Print($"GOD MODE: {(_godMode ? "ON" : "OFF")}");
 		}
+
+		if (@event is InputEventKey dbKey
+			&& dbKey.Pressed
+			&& !dbKey.Echo
+			&& dbKey.Keycode == Key.F2)
+		{
+			DatabaseManager database =
+				GetNode<DatabaseManager>("/root/DatabaseManager");
+
+			database.PrintDatabaseContents();
+		}
+
+		if (@event is InputEventKey key
+			&& key.Pressed
+			&& !key.Echo
+			&& key.Keycode == Key.F3)
+		{
+			DatabaseManager database =
+				GetNode<DatabaseManager>("/root/DatabaseManager");
+
+			database.ClearDatabase();
+		}
 	}
 
 	private async void Attack()

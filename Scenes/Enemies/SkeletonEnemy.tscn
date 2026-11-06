@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://cua4e3y2obra0"]
 
 [ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/Enemies/enemy.tscn" id="1_1fi8w"]
+[ext_resource type="Script" uid="uid://b3nv3j06yqxmp" path="res://Scripts/Enemies Script/SkeletonEnemy.cs" id="2_aqkkx"]
 [ext_resource type="Texture2D" uid="uid://byoy8prb3jgv3" path="res://Decals/Skeleteon_death.png" id="2_k4h8j"]
 [ext_resource type="Texture2D" uid="uid://8qb3ew3g6t0w" path="res://Decals/Skeleton_move.png" id="2_nlt1x"]
 [ext_resource type="Texture2D" uid="uid://xaudmynlad7p" path="res://Decals/Skeleteon_hit.png" id="3_aqkkx"]
@@ -128,7 +129,10 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Enemy" unique_id=217838147 instance=ExtResource("1_1fi8w")]
+[node name="Skeleton" unique_id=217838147 instance=ExtResource("1_1fi8w")]
+script = ExtResource("2_aqkkx")
+BlockChance = 0.5
+BlockDamageReduction = 0.0
 
 [node name="EnemyAnimatedSprite" parent="." index="0" unique_id=1317629923]
 scale = Vector2(0.75, 0.75)

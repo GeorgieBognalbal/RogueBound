@@ -1,9 +1,8 @@
 
 using Godot;
 
-public partial class Enemy : CharacterBody2D
+public abstract partial class Enemy : CharacterBody2D
 {
-
 	[Export] public float Speed = 50.0f;
 	[Export] public float StopDistance = 20.0f;
 	[Export] public float RepathInterval = 0.2f;
@@ -38,7 +37,7 @@ public partial class Enemy : CharacterBody2D
 
 		_health = MaxHealth;
 
-		// this is how to get the objects in the tree
+		// Get the objects in the scene tree.
 		_player = GetTree().GetFirstNodeInGroup("player") as Node2D;
 		_navAgent = GetNode<NavigationAgent2D>("EnemyNavigationAgent");
 		_animatedSprite = GetNode<AnimatedSprite2D>("EnemyAnimatedSprite");
@@ -210,6 +209,17 @@ public partial class Enemy : CharacterBody2D
 		if (_health <= 0.0f)
 		{
 			_isDead = true;
+
+			// RECORD ENEMY KILL IN SQLITE DATABASE.
+			DatabaseManager database =
+				GetNode<DatabaseManager>("/root/DatabaseManager");
+
+			string enemyType = GetType().Name.Replace("Enemy", "");
+
+			database.RecordEnemyKill(enemyType);
+
+			GD.Print($"Database recorded kill: {enemyType}");
+
 			_isHit = false;
 
 			Velocity = Vector2.Zero;
@@ -226,7 +236,6 @@ public partial class Enemy : CharacterBody2D
 			// Play death sound if available.
 			GetNodeOrNull<AudioStreamPlayer2D>("EnemyKill")?.Play();
 
-			
 			_animatedSprite.Play("death");
 			return;
 		}

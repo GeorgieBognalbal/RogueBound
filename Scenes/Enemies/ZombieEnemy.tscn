@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://b8tdj6kdvv4je"]
 
 [ext_resource type="PackedScene" uid="uid://cohiqpndtgam" path="res://Scenes/Enemies/enemy.tscn" id="1_me7d2"]
+[ext_resource type="Script" uid="uid://qyoix7ymju0m" path="res://Scripts/Enemies Script/ZombieEnemy.cs" id="2_iok38"]
 [ext_resource type="Texture2D" uid="uid://b4woa8yshly8x" path="res://Decals/zombie_deatht.png" id="3_ipsjv"]
 [ext_resource type="Texture2D" uid="uid://da6g3xhorkxtw" path="res://Decals/zombie_hit-sheet.png" id="4_fsdr8"]
 [ext_resource type="Texture2D" uid="uid://cdtlkvr42xyvv" path="res://Decals/zombie_move.png" id="5_7jw7u"]
@@ -121,9 +122,10 @@ animations = [{
 "speed": 5.0
 }]
 
-[node name="Enemy" unique_id=217838147 instance=ExtResource("1_me7d2")]
+[node name="Zombie" unique_id=217838147 instance=ExtResource("1_me7d2")]
 scale = Vector2(1.5, 1.5)
+script = ExtResource("2_iok38")
 
 [node name="EnemyAnimatedSprite" parent="." index="0" unique_id=1317629923]
 sprite_frames = SubResource("SpriteFrames_54lnv")
-animation = &"walk"
+animation = &"hit"

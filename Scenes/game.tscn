@@ -19,6 +19,7 @@
 [ext_resource type="PackedScene" uid="uid://bm58unwsnenug" path="res://Scenes/Enemies/SlimeEnemy.tscn" id="14_85qyi"]
 [ext_resource type="PackedScene" uid="uid://887f0e4xdelm" path="res://Scenes/Enemies/ArcherEnemy.tscn" id="14_nnt18"]
 [ext_resource type="PackedScene" uid="uid://b8tdj6kdvv4je" path="res://Scenes/Enemies/ZombieEnemy.tscn" id="16_iivbl"]
+[ext_resource type="PackedScene" uid="uid://cua4e3y2obra0" path="res://Scenes/Enemies/SkeletonEnemy.tscn" id="18_7nbq1"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_i6g32"]
 vertices = PackedVector2Array(8, 8, -8, 8, -8, -8, 8, -8)
@@ -880,7 +881,7 @@ volume_db = 24.0
 
 [node name="EnemySpawner" type="Node2D" parent="." unique_id=1021591405 node_paths=PackedStringArray("NavigationRegion")]
 script = ExtResource("6_i6g32")
-EnemyScenes = Array[PackedScene]([ExtResource("5_wowpa"), ExtResource("14_nnt18"), ExtResource("14_85qyi"), ExtResource("16_iivbl")])
+EnemyScenes = Array[PackedScene]([ExtResource("5_wowpa"), ExtResource("14_nnt18"), ExtResource("14_85qyi"), ExtResource("16_iivbl"), ExtResource("18_7nbq1")])
 NavigationRegion = NodePath("../NavigationRegion2D")
 
 [node name="WaveManager" type="Node2D" parent="." unique_id=1508826255]

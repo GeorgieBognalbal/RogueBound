@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://b488t1qw1tkr8"
+path="res://.godot/imported/background imusic ingame.wav-6738684fa325601be9f7931445659bae.sample"
+
+[deps]
+
+source_file="res://Sounds/background imusic ingame.wav"
+dest_files=["res://.godot/imported/background imusic ingame.wav-6738684fa325601be9f7931445659bae.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

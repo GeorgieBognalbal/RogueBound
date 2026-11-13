@@ -2,13 +2,13 @@
 
 importer="wav"
 type="AudioStreamWAV"
-uid="uid://doce7rdfbnqy"
-path="res://.godot/imported/PlayerHurt.wav-243fcb46fb54567e5b4136e2631233a2.sample"
+uid="uid://beymhek4bdf6q"
+path="res://.godot/imported/Slime Dash.wav-68e2ab87fc4d6e2d78b0f6011a1a7dd0.sample"
 
 [deps]
 
-source_file="res://Sounds/PlayerHurt.wav"
-dest_files=["res://.godot/imported/PlayerHurt.wav-243fcb46fb54567e5b4136e2631233a2.sample"]
+source_file="res://Sounds/Slime Dash.wav"
+dest_files=["res://.godot/imported/Slime Dash.wav-68e2ab87fc4d6e2d78b0f6011a1a7dd0.sample"]
 
 [params]
 

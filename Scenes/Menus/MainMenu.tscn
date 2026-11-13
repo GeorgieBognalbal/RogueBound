@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bhije8wbqs3q6" path="res://Scripts/GUI/Menu.cs" id="1_v3fht"]
 [ext_resource type="Texture2D" uid="uid://cru6tncwgh8ow" path="res://Assets/Title Screen/RogueBound.png" id="2_b42ut"]
+[ext_resource type="AudioStream" uid="uid://rjet7ahl5cnu" path="res://Sounds/background music main menu.ogg" id="3_hqtmt"]
 
 [sub_resource type="ImageTexture" id="ImageTexture_2ntcu"]
 
@@ -225,6 +226,11 @@ frame_progress = 0.6321315
 root_node = NodePath("../CenterContainer/AnimatedSprite2D")
 libraries/ = SubResource("AnimationLibrary_tfrft")
 autoplay = &"Bobbing"
+
+[node name="AudioStreamPlayer" type="AudioStreamPlayer" parent="." unique_id=1490807612]
+stream = ExtResource("3_hqtmt")
+volume_db = -8.0
+autoplay = true
 
 [connection signal="pressed" from="MainMenu/VBoxContainer/PlayButton" to="MainMenu" method="OnPlayPressed"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/SettingsButton" to="MainMenu" method="OnSettingsPressed"]

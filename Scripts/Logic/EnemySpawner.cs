@@ -8,7 +8,7 @@ public partial class EnemySpawner : Node2D
 
 	[Export] public float SpawnInterval = 3.0f;
 	[Export] public int MaxEnemies = 20;
-	[Export] public float MinDistanceFromPlayer = 250.0f;
+	[Export] public float MinDistanceFromPlayer = 120.0f;
 
 	private Node2D _player;
 	private float _timer;

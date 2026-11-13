@@ -1,4 +1,3 @@
-
 using Godot;
 
 public partial class SlimeEnemy : Enemy
@@ -113,7 +112,10 @@ public partial class SlimeEnemy : Enemy
 			MoveAndSlide();
 
 			FaceDirection(_player.GlobalPosition.X - GlobalPosition.X);
-			_animatedSprite.Play("idle");
+			if (_animatedSprite.SpriteFrames.HasAnimation("idle"))
+				_animatedSprite.Play("idle");
+			else
+				_animatedSprite.Play("walk");
 			return;
 		}
 
@@ -126,7 +128,7 @@ public partial class SlimeEnemy : Enemy
 
 		FaceDirection(direction.X);
 
-		if (_animatedSprite.Animation.ToString() != "walk")
+		if (!_isHit && _animatedSprite.Animation.ToString() != "walk")
 			_animatedSprite.Play("walk");
 	}
 
@@ -136,15 +138,14 @@ public partial class SlimeEnemy : Enemy
 		_stateTimer = ChargeDuration;
 
 		// Remember the player's position when charging begins.
-		_dashDirection = GlobalPosition.DirectionTo(
-			_player.GlobalPosition
-		);
+		_dashDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
 
 		FaceDirection(_dashDirection.X);
 
 		Velocity = Vector2.Zero;
 
-		//_animatedSprite.Play("charge");
+		if (_animatedSprite.SpriteFrames.HasAnimation("charge"))
+			_animatedSprite.Play("charge");
 	}
 
 	private void ChargePlayer(float delta)
@@ -172,7 +173,10 @@ public partial class SlimeEnemy : Enemy
 
 		Velocity = _dashDirection * DashSpeed;
 
-		//_animatedSprite.Play("dash");
+		if (_animatedSprite.SpriteFrames.HasAnimation("dash"))
+			_animatedSprite.Play("dash");
+
+		GetNodeOrNull<AudioStreamPlayer2D>("DashSound")?.Play();
 	}
 
 	private void DashPlayer(float delta)
@@ -199,10 +203,45 @@ public partial class SlimeEnemy : Enemy
 
 		Velocity = Vector2.Zero;
 
-		_animatedSprite.Play("idle");
+		if (_animatedSprite.SpriteFrames.HasAnimation("idle"))
+			_animatedSprite.Play("idle");
+		else
+			_animatedSprite.Play("walk");
 
 		// Update navigation after the dash.
 		if (_player != null && GodotObject.IsInstanceValid(_player))
 			_navAgent.TargetPosition = _player.GlobalPosition;
+	}
+
+	public override void TakeDamage(float damage, Vector2 attackerPosition)
+	{
+		_state = SlimeState.Chasing;
+		base.TakeDamage(damage, attackerPosition);
+	}
+
+	protected override void OnAnimationFinished()
+	{
+		if (_isDead)
+		{
+			base.OnAnimationFinished();
+			return;
+		}
+
+		if (_animatedSprite.Animation == "hit")
+		{
+			_isHit = false;
+			if (_state == SlimeState.Chasing)
+			{
+				if (Velocity.LengthSquared() > 0.1f)
+					_animatedSprite.Play("walk");
+				else if (_animatedSprite.SpriteFrames.HasAnimation("idle"))
+					_animatedSprite.Play("idle");
+				else
+					_animatedSprite.Play("walk");
+			}
+			return;
+		}
+
+		base.OnAnimationFinished();
 	}
 }

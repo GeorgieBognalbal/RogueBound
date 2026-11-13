@@ -341,7 +341,7 @@ vertical_alignment = 1
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards/Card2" unique_id=956360190]
 libraries/ = SubResource("AnimationLibrary_ax34m")
-autoplay = &"RESET"
+autoplay = &"Popup"
 
 [node name="Card3" type="Control" parent="UpgradeScene/CenterContainer/VBoxContainer/Cards" unique_id=886884067]
 layout_mode = 2

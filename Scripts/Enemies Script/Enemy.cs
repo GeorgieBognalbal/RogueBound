@@ -17,6 +17,10 @@ public abstract partial class Enemy : CharacterBody2D
 	// Scene used to display floating damage numbers.
 	[Export] public PackedScene DamageNumberScene;
 
+	[Export] public PackedScene CoinDropScene;
+	[Export] public PackedScene HealthDropScene;
+	[Export] public float HealthDropChance = 0.25f;
+
 	protected Node2D _player;
 	protected NavigationAgent2D _navAgent;
 	protected AnimatedSprite2D _animatedSprite;
@@ -236,6 +240,8 @@ public abstract partial class Enemy : CharacterBody2D
 			// Play death sound if available.
 			GetNodeOrNull<AudioStreamPlayer2D>("EnemyKill")?.Play();
 
+			SpawnDrops();
+
 			_animatedSprite.Play("death");
 			return;
 		}
@@ -267,6 +273,31 @@ public abstract partial class Enemy : CharacterBody2D
 	public float GetHealth()
 	{
 		return _health;
+	}
+
+	protected virtual void SpawnDrops()
+	{
+		var coinScene = CoinDropScene ?? GD.Load<PackedScene>("res://Scenes/Items/CoinPickup.tscn");
+		if (coinScene != null && GetTree()?.CurrentScene != null)
+		{
+			Node2D coin = coinScene.Instantiate<Node2D>();
+			coin.GlobalPosition = GlobalPosition;
+			GetTree().CurrentScene.CallDeferred("add_child", coin);
+		}
+
+		if (GD.Randf() < HealthDropChance)
+		{
+			var potScene = HealthDropScene ?? GD.Load<PackedScene>("res://Scenes/Items/HealthPickup.tscn");
+			if (potScene != null && GetTree()?.CurrentScene != null)
+			{
+				Node2D pot = potScene.Instantiate<Node2D>();
+				pot.GlobalPosition = GlobalPosition + new Vector2(
+					(float)GD.RandRange(-10.0, 10.0),
+					(float)GD.RandRange(-10.0, 10.0)
+				);
+				GetTree().CurrentScene.CallDeferred("add_child", pot);
+			}
+		}
 	}
 
 	protected virtual void OnAnimationFinished()

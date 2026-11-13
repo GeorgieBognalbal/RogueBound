@@ -44,7 +44,10 @@ public partial class SkeletonEnemy : Enemy
 
 			_hitTimer = BlockHitStunDuration;
 
-			_animatedSprite.Play("block");
+			if (_animatedSprite.SpriteFrames.HasAnimation("block"))
+				_animatedSprite.Play("block");
+			else
+				_animatedSprite.Play("hit");
 
 			if (blockedDamage <= 0.0f)
 				return;

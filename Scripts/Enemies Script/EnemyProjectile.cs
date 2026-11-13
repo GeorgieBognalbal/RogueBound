@@ -52,5 +52,10 @@ public partial class EnemyProjectile : Area2D
 
 			QueueFree();
 		}
+		else if (body is TileMapLayer || body is StaticBody2D)
+		{
+			_hasHit = true;
+			QueueFree();
+		}
 	}
 }

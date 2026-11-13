@@ -1,8 +1,11 @@
 [gd_scene format=3 uid="uid://cqyfcaunfryj4"]
 
+[ext_resource type="Script" path="res://Scripts/GUI/GameHud.cs" id="1_hud"]
 [ext_resource type="Script" uid="uid://bnlbe51ohi5xw" path="res://Scripts/GUI/HealthBar.cs" id="1_xyfjw"]
 [ext_resource type="Texture2D" uid="uid://dikw35a1jy0pr" path="res://Assets/Health Bar/Boarder.png" id="2_tyktn"]
 [ext_resource type="Texture2D" uid="uid://dv3oic2kwmpij" path="res://Assets/Health Bar/bar.png" id="3_y1wbl"]
+[ext_resource type="Texture2D" uid="uid://bmcfgtgiorc4q" path="res://Assets/Temp/Decals/currency.png" id="4_coin"]
+[ext_resource type="PackedScene" uid="uid://df58y1128xwa" path="res://Scenes/Menus/PauseMenu.tscn" id="5_pause"]
 
 [node name="HUD" type="CanvasLayer" unique_id=756810312]
 
@@ -13,14 +16,15 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+script = ExtResource("1_hud")
 
 [node name="HealthBar" type="Control" parent="HUDControl" unique_id=1373374216]
 layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
+anchors_preset = 0
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 272.0
+offset_bottom = 96.0
 script = ExtResource("1_xyfjw")
 
 [node name="HealthFill" type="TextureRect" parent="HUDControl/HealthBar" unique_id=961352865]
@@ -39,16 +43,82 @@ offset_bottom = 40.5
 scale = Vector2(2, 2)
 texture = ExtResource("2_tyktn")
 
-[node name="HeartIcon" type="TextureRect" parent="HUDControl/HealthBar" unique_id=1246760119]
-layout_mode = 0
-offset_right = 40.0
-offset_bottom = 40.0
-
 [node name="HealthLabel" type="Label" parent="HUDControl/HealthBar" unique_id=1969762121]
 layout_mode = 0
 offset_left = 22.0
 offset_top = 33.0
-offset_right = 62.0
+offset_right = 80.0
 offset_bottom = 56.0
 scale = Vector2(1.5, 1.5)
-text = "100"
+text = "100 / 100"
+
+[node name="TopCenter" type="Control" parent="HUDControl" unique_id=957844208]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -150.0
+offset_top = 16.0
+offset_right = 150.0
+offset_bottom = 80.0
+grow_horizontal = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="HUDControl/TopCenter" unique_id=957844209]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="WaveLabel" type="Label" parent="HUDControl/TopCenter/VBoxContainer" unique_id=957844210]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 28
+text = "WAVE 1 / 10"
+horizontal_alignment = 1
+
+[node name="EnemiesLabel" type="Label" parent="HUDControl/TopCenter/VBoxContainer" unique_id=957844211]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "Enemies: 0"
+horizontal_alignment = 1
+
+[node name="TopRight" type="Control" parent="HUDControl" unique_id=957844212]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -160.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 60.0
+grow_horizontal = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="HUDControl/TopRight" unique_id=957844213]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+alignment = 2
+
+[node name="CoinIcon" type="TextureRect" parent="HUDControl/TopRight/HBoxContainer" unique_id=957844214]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+texture = ExtResource("4_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinLabel" type="Label" parent="HUDControl/TopRight/HBoxContainer" unique_id=957844215]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 24
+text = "0"
+
+[node name="PauseMenu" parent="." instance=ExtResource("5_pause")]

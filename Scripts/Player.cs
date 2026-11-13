@@ -67,11 +67,19 @@ public partial class Player : CharacterBody2D
 
 		GD.Print($"Player initialized: {health} HP");
 
+		if (HUDScene == null)
+		{
+			HUDScene = GD.Load<PackedScene>("res://Scenes/Menus/GameHud.tscn");
+		}
+
 		if (HUDScene != null)
 		{
 			var hud = HUDScene.Instantiate();
 			AddChild(hud);
 		}
+
+		HealthChanged?.Invoke(health, MaxHealth);
+		MoneyChanged?.Invoke(Money);
 	}
 
 	// =========================
@@ -148,7 +156,12 @@ public partial class Player : CharacterBody2D
 	{
 		if (@event.IsActionPressed("attack") && !_isAttacking)
 		{
-			GD.Print("ATTACK KEY DETECTED!");
+			Vector2 mousePos = GetGlobalMousePosition();
+			bool facingLeft = mousePos.X < GlobalPosition.X;
+			_animatedSprite.FlipH = facingLeft;
+			_attackArea.Scale = new Vector2(facingLeft ? -1 : 1, 1);
+
+			GD.Print("ATTACK DETECTED!");
 			Attack();
 			GetNode<AudioStreamPlayer2D>("HitSound").Play();
 		}
@@ -378,15 +391,15 @@ public partial class Player : CharacterBody2D
 				break;
 
 			case "speed_up":
-				Speed += 15.0f;
+				Speed += 20.0f;
 				SpeedUpgradeLevel++;
 
 				GD.Print($"Movement speed increased to {Speed}");
 				break;
 
 			case "max_health_up":
-				MaxHealth += 20.0f;
-				health += 20.0f;
+				MaxHealth += 25.0f;
+				health += 25.0f;
 				HealthUpgradeLevel++;
 
 				GD.Print($"Max health increased to {MaxHealth}");

@@ -1,0 +1,73 @@
+[gd_scene format=3 uid="uid://c67y00223mwa"]
+
+[ext_resource type="Script" path="res://Scripts/GUI/SettingsMenu.cs" id="1_set"]
+
+[node name="SettingsMenu" type="CanvasLayer" unique_id=9871301]
+process_mode = 3
+layer = 10
+script = ExtResource("1_set")
+
+[node name="Control" type="Control" parent="." unique_id=9871302]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="ColorRect" type="ColorRect" parent="Control" unique_id=9871303]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.7)
+
+[node name="CenterContainer" type="CenterContainer" parent="Control" unique_id=9871304]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="Control/CenterContainer" unique_id=9871305]
+custom_minimum_size = Vector2(300, 200)
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="TitleLabel" type="Label" parent="Control/CenterContainer/VBoxContainer" unique_id=9871306]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="VolumeRow" type="HBoxContainer" parent="Control/CenterContainer/VBoxContainer" unique_id=9871307]
+layout_mode = 2
+
+[node name="Label" type="Label" parent="Control/CenterContainer/VBoxContainer/VolumeRow" unique_id=9871308]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Master Volume: "
+
+[node name="VolumeSlider" type="HSlider" parent="Control/CenterContainer/VBoxContainer/VolumeRow" unique_id=9871309]
+custom_minimum_size = Vector2(150, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+max_value = 1.0
+step = 0.05
+value = 0.8
+
+[node name="FullscreenCheck" type="CheckBox" parent="Control/CenterContainer/VBoxContainer" unique_id=9871310]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Fullscreen"
+
+[node name="CloseButton" type="Button" parent="Control/CenterContainer/VBoxContainer" unique_id=9871311]
+custom_minimum_size = Vector2(120, 40)
+layout_mode = 2
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 20
+text = "Back"

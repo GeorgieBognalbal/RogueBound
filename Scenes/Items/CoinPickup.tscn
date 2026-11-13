@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://c67f81o8v0m8n"]
+
+[ext_resource type="Script" path="res://Scripts/Items/Pickup.cs" id="1_pickup"]
+[ext_resource type="Texture2D" uid="uid://bmcfgtgiorc4q" path="res://Assets/Temp/Decals/currency.png" id="2_coin"]
+[ext_resource type="AudioStream" uid="uid://brfbc8csg0s8w" path="res://Sounds/HitBoxSound.wav" id="3_sfx"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_coin"]
+radius = 10.0
+
+[node name="CoinPickup" type="Area2D" unique_id=7124901]
+script = ExtResource("1_pickup")
+Type = 0
+Value = 5
+MagnetRange = 65.0
+MagnetSpeed = 190.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=7124902]
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("2_coin")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=7124903]
+shape = SubResource("CircleShape2D_coin")
+
+[node name="PickupSound" type="AudioStreamPlayer2D" parent="." unique_id=7124904]
+stream = ExtResource("3_sfx")
+pitch_scale = 1.6
+volume_db = -3.0

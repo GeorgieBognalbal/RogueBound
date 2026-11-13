@@ -1,0 +1,244 @@
+[gd_scene format=3 uid="uid://bq77o8x3yrcwa"]
+
+[ext_resource type="Script" path="res://Scripts/Enemies Script/OrcEnemy.cs" id="1_orc01"]
+[ext_resource type="PackedScene" uid="uid://bhy30ph8sl4ju" path="res://Scenes/Effects/DamageNumber.tscn" id="2_dmg01"]
+[ext_resource type="Texture2D" path="res://Decals/orc_32_idle.png" id="3_idle"]
+[ext_resource type="Texture2D" path="res://Decals/orc_32_walk.png" id="4_walk"]
+[ext_resource type="Texture2D" path="res://Decals/orc_32_attack.png" id="5_atk"]
+[ext_resource type="Texture2D" path="res://Decals/orc_32_hit.png" id="6_hit"]
+[ext_resource type="Texture2D" path="res://Decals/orc_32_death.png" id="7_death"]
+[ext_resource type="AudioStream" uid="uid://dbf4qujhicqsq" path="res://Sounds/EnemyKill.wav" id="8_kill"]
+[ext_resource type="AudioStream" uid="uid://brfbc8csg0s8w" path="res://Sounds/HitBoxSound.wav" id="9_hit"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle0"]
+atlas = ExtResource("3_idle")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle1"]
+atlas = ExtResource("3_idle")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle2"]
+atlas = ExtResource("3_idle")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_idle3"]
+atlas = ExtResource("3_idle")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk0"]
+atlas = ExtResource("4_walk")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk1"]
+atlas = ExtResource("4_walk")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk2"]
+atlas = ExtResource("4_walk")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_walk3"]
+atlas = ExtResource("4_walk")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk0"]
+atlas = ExtResource("5_atk")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk1"]
+atlas = ExtResource("5_atk")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk2"]
+atlas = ExtResource("5_atk")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk3"]
+atlas = ExtResource("5_atk")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk4"]
+atlas = ExtResource("5_atk")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_atk5"]
+atlas = ExtResource("5_atk")
+region = Rect2(160, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hit0"]
+atlas = ExtResource("6_hit")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hit1"]
+atlas = ExtResource("6_hit")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hit2"]
+atlas = ExtResource("6_hit")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_hit3"]
+atlas = ExtResource("6_hit")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dth0"]
+atlas = ExtResource("7_death")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dth1"]
+atlas = ExtResource("7_death")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dth2"]
+atlas = ExtResource("7_death")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dth3"]
+atlas = ExtResource("7_death")
+region = Rect2(96, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_dth4"]
+atlas = ExtResource("7_death")
+region = Rect2(128, 0, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_orc32"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk4")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_atk5")
+}],
+"loop": false,
+"name": &"attack",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dth0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dth1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dth2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dth3")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_dth4")
+}],
+"loop": false,
+"name": &"death",
+"speed": 6.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hit0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hit1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hit2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_hit3")
+}],
+"loop": false,
+"name": &"hit",
+"speed": 8.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idle0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idle1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idle2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_idle3")
+}],
+"loop": true,
+"name": &"idle",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk0")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk1")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk2")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_walk3")
+}],
+"loop": true,
+"name": &"walk",
+"speed": 6.0
+}]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orcBody"]
+radius = 9.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_orcAtk"]
+radius = 16.0
+
+[node name="Orc" type="CharacterBody2D" unique_id=9812401]
+script = ExtResource("1_orc01")
+Speed = 42.0
+StopDistance = 28.0
+MaxHealth = 80.0
+KnockbackForce = 120.0
+AttackDamage = 22.0
+AttackCooldown = 1.2
+DamageNumberScene = ExtResource("2_dmg01")
+
+[node name="EnemyAnimatedSprite" type="AnimatedSprite2D" parent="." unique_id=9812402]
+position = Vector2(0, 0)
+scale = Vector2(1, 1)
+sprite_frames = SubResource("SpriteFrames_orc32")
+animation = &"walk"
+autoplay = "walk"
+
+[node name="EnemyNavigationAgent" type="NavigationAgent2D" parent="." unique_id=9812403]
+simplify_path = true
+
+[node name="EnemyCollisionShape" type="CollisionShape2D" parent="." unique_id=9812404]
+position = Vector2(0, 2)
+shape = SubResource("CircleShape2D_orcBody")
+
+[node name="DamageArea" type="Area2D" parent="." unique_id=9812405]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="DamageArea" unique_id=9812406]
+position = Vector2(0, 2)
+shape = SubResource("CircleShape2D_orcAtk")
+
+[node name="EnemyKill" type="AudioStreamPlayer2D" parent="." unique_id=9812407]
+stream = ExtResource("8_kill")
+volume_db = 8.0
+
+[node name="HitBoxSound" type="AudioStreamPlayer2D" parent="." unique_id=9812408]
+stream = ExtResource("9_hit")
+volume_db = 0.0

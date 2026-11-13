@@ -5,72 +5,11 @@
 [ext_resource type="Texture2D" uid="uid://bdndbsb2g2swc" path="res://Assets/Temp/Soldier/Soldier_Walk.png" id="2_cvnsp"]
 [ext_resource type="Texture2D" uid="uid://bddgs4r1rvex1" path="res://Assets/Temp/Soldier/Soldier_Death.png" id="2_fkybt"]
 [ext_resource type="Texture2D" uid="uid://c4ow46kt6ywpb" path="res://Assets/Temp/Soldier/Soldier_Hurt.png" id="3_x3wgy"]
-
-[sub_resource type="CSharpScript" id="CSharpScript_v0iea"]
-script/source = "using Godot;
-using System;
-
-public partial class Player : CharacterBody2D
-{
-	public float Speed = 150.0f;
-	public float health = 100.0f;
-
-	// Reference to the AnimatedSprite2D node
-	private AnimatedSprite2D _animatedSprite;
-
-	public override void _Ready()
-	{
-		// Fetch the node when the player enters the scene tree
-		_animatedSprite = GetNode<AnimatedSprite2D>(\"AnimatedSprite2D\");
-	}
-	
-	
-	private float _footstepTimer = 0.0f;
-	private float _footstepInterval = 0.35f;
-
-	public override void _PhysicsProcess(double delta)
-	{
-		Vector2 velocity = Velocity;
-
-		// Get the input direction for all 4 directions (X and Y axes)
-		Vector2 direction = Input.GetVector(\"ui_left\", \"ui_right\", \"ui_up\", \"ui_down\");
-		
-		
-
-		// Handle movement, animations, and flipping
-		if (direction != Vector2.Zero)
-		{
-			velocity = direction * Speed;
-			_animatedSprite.Play(\"walk\");
-
-			_footstepTimer -= (float)delta;
-			
-			if (_footstepTimer <= 0.0f)
-			{
-			GetNode<AudioStreamPlayer2D>(\"PlayerFootstep\").Play();
-			_footstepTimer = _footstepInterval;
-			}
-			// Flip horizontally only if there is horizontal movement
-			if (direction.X != 0)
-			{
-				// true if moving left (negative X), false if moving right (positive X)
-				_animatedSprite.FlipH = direction.X < 0;
-			}
-		}
-		else
-		{
-			velocity.X = Mathf.MoveToward(Velocity.X, 0, Speed);
-			velocity.Y = Mathf.MoveToward(Velocity.Y, 0, Speed);
-			_animatedSprite.Play(\"idle\");
-			
-			_footstepTimer = 0.0f;
-		}
-
-		Velocity = velocity;
-		MoveAndSlide();
-	}
-}
-"
+[ext_resource type="Script" uid="uid://d3ahxct5gwx52" path="res://Scripts/Player.cs" id="4_player"]
+[ext_resource type="AudioStream" uid="uid://bj2cbjph56g1m" path="res://Sounds/Attack Sound.wav" id="5_atk"]
+[ext_resource type="AudioStream" uid="uid://jnlfmqeee21w" path="res://Sounds/Death (1).wav" id="6_dth"]
+[ext_resource type="AudioStream" uid="uid://cgewbcgx0dh36" path="res://Sounds/Player Hurt.wav" id="7_hurt"]
+[ext_resource type="AudioStream" uid="uid://b5v06j2fxl8rl" path="res://Sounds/PlayerFootstep.wav" id="8_foot"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_qqcod"]
 atlas = ExtResource("1_6t5aa")
@@ -304,7 +243,7 @@ radius = 9.0
 
 [node name="Player" type="CharacterBody2D" unique_id=344648548]
 z_index = 5
-script = SubResource("CSharpScript_v0iea")
+script = ExtResource("4_player")
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="." unique_id=836303376]
 position = Vector2(1, 1)
@@ -321,3 +260,20 @@ shape = SubResource("CircleShape2D_7quku")
 [node name="Body" type="CollisionShape2D" parent="." unique_id=1218664532]
 position = Vector2(1, 0)
 shape = SubResource("CircleShape2D_hygl4")
+
+[node name="HitSound" type="AudioStreamPlayer2D" parent="." unique_id=1776750594]
+stream = ExtResource("5_atk")
+volume_db = -1.458
+
+[node name="DeathSound" type="AudioStreamPlayer2D" parent="." unique_id=450515104]
+position = Vector2(-1, 0)
+stream = ExtResource("6_dth")
+volume_db = 0.709
+
+[node name="PlayerHurt" type="AudioStreamPlayer2D" parent="." unique_id=1361559425]
+stream = ExtResource("7_hurt")
+volume_db = 14.084
+
+[node name="PlayerFootstep" type="AudioStreamPlayer2D" parent="." unique_id=475591830]
+stream = ExtResource("8_foot")
+volume_db = 0.476

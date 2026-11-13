@@ -18,6 +18,7 @@
 [ext_resource type="PackedScene" uid="uid://887f0e4xdelm" path="res://Scenes/Enemies/ArcherEnemy.tscn" id="14_nnt18"]
 [ext_resource type="PackedScene" uid="uid://b8tdj6kdvv4je" path="res://Scenes/Enemies/ZombieEnemy.tscn" id="16_iivbl"]
 [ext_resource type="PackedScene" uid="uid://cua4e3y2obra0" path="res://Scenes/Enemies/SkeletonEnemy.tscn" id="18_7nbq1"]
+[ext_resource type="PackedScene" uid="uid://bq77o8x3yrcwa" path="res://Scenes/Enemies/OrcEnemy.tscn" id="20_orc"]
 [ext_resource type="AudioStream" uid="uid://b488t1qw1tkr8" path="res://Sounds/background imusic ingame.wav" id="19_iivbl"]
 
 [sub_resource type="NavigationPolygon" id="NavigationPolygon_i6g32"]
@@ -828,7 +829,6 @@ polygons = Array[PackedInt32Array]([PackedInt32Array(0, 1, 2, 3)])
 outlines = Array[PackedVector2Array]([PackedVector2Array(-192, -176, 192, -176, 193, 208, -191, 207)])
 
 [node name="Game" type="Node2D" unique_id=1205139238]
-script = ExtResource("1_1l0tm")
 
 [node name="TileMap" type="TileMap" parent="." unique_id=801600958]
 tile_set = SubResource("TileSet_capk0")
@@ -880,8 +880,9 @@ volume_db = 0.476
 
 [node name="EnemySpawner" type="Node2D" parent="." unique_id=1021591405 node_paths=PackedStringArray("NavigationRegion")]
 script = ExtResource("6_i6g32")
-EnemyScenes = Array[PackedScene]([ExtResource("14_nnt18"), ExtResource("14_85qyi"), ExtResource("16_iivbl"), ExtResource("18_7nbq1")])
+EnemyScenes = Array[PackedScene]([ExtResource("14_nnt18"), ExtResource("14_85qyi"), ExtResource("16_iivbl"), ExtResource("18_7nbq1"), ExtResource("20_orc")])
 NavigationRegion = NodePath("../NavigationRegion2D")
+MinDistanceFromPlayer = 120.0
 
 [node name="WaveManager" type="Node2D" parent="." unique_id=1508826255]
 script = ExtResource("1_1l0tm")

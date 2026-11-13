@@ -1,0 +1,27 @@
+[gd_scene format=3 uid="uid://dp61y38e821v8"]
+
+[ext_resource type="Script" path="res://Scripts/Items/Pickup.cs" id="1_pickup"]
+[ext_resource type="Texture2D" uid="uid://dc0clx8yasqru" path="res://Assets/Temp/Decals/health pot.png" id="2_pot"]
+[ext_resource type="AudioStream" uid="uid://dokvxyaw7aum6" path="res://Sounds/Upgrade.wav" id="3_sfx"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_pot"]
+radius = 10.0
+
+[node name="HealthPickup" type="Area2D" unique_id=7124911]
+script = ExtResource("1_pickup")
+Type = 1
+Value = 25
+MagnetRange = 65.0
+MagnetSpeed = 190.0
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=7124912]
+scale = Vector2(0.12, 0.12)
+texture = ExtResource("2_pot")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=7124913]
+shape = SubResource("CircleShape2D_pot")
+
+[node name="PickupSound" type="AudioStreamPlayer2D" parent="." unique_id=7124914]
+stream = ExtResource("3_sfx")
+pitch_scale = 1.3
+volume_db = -4.0

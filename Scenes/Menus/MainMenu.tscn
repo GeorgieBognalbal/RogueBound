@@ -194,6 +194,12 @@ size_flags_vertical = 3
 theme_override_font_sizes/font_size = 30
 text = "Start"
 
+[node name="StatsButton" type="Button" parent="MainMenu/VBoxContainer" unique_id=1513715916]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 30
+text = "Stats"
+
 [node name="SettingsButton" type="Button" parent="MainMenu/VBoxContainer" unique_id=2068957008]
 layout_mode = 2
 size_flags_vertical = 3
@@ -233,5 +239,6 @@ volume_db = -8.0
 autoplay = true
 
 [connection signal="pressed" from="MainMenu/VBoxContainer/PlayButton" to="MainMenu" method="OnPlayPressed"]
+[connection signal="pressed" from="MainMenu/VBoxContainer/StatsButton" to="MainMenu" method="OnStatsPressed"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/SettingsButton" to="MainMenu" method="OnSettingsPressed"]
 [connection signal="pressed" from="MainMenu/VBoxContainer/QuitButton" to="MainMenu" method="OnQuitPressed"]

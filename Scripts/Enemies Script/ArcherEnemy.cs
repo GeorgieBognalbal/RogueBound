@@ -9,11 +9,28 @@ public partial class ArcherEnemy : Enemy
 	[Export] public float ProjectileDamage = 10.0f;
 	[Export] public float ProjectileSpeed = 250.0f;
 
+	private bool _isShooting = false;
+
 	public override void _Ready()
 	{
 		base._Ready();
 
+		MaxHealth = 35.0f;
+		_health = MaxHealth;
+		Speed = 45.0f;
 		_navAgent.TargetDesiredDistance = AttackRange;
+	}
+
+	public override void _PhysicsProcess(double delta)
+	{
+		if (_isShooting && !_isDead && !_isHit)
+		{
+			Velocity = Vector2.Zero;
+			MoveAndSlide();
+			return;
+		}
+
+		base._PhysicsProcess(delta);
 	}
 
 	protected override void TryAttackPlayer()
@@ -21,9 +38,8 @@ public partial class ArcherEnemy : Enemy
 		if (_player == null || ProjectileScene == null)
 			return;
 
-		if (_attackTimer > 0.0f || _isHit || _isDead)
+		if (_attackTimer > 0.0f || _isHit || _isDead || _isShooting)
 			return;
-
 
 		float distance = GlobalPosition.DistanceTo(_player.GlobalPosition);
 
@@ -33,6 +49,9 @@ public partial class ArcherEnemy : Enemy
 
 		// Face the player.
 		FaceDirection(_player.GlobalPosition.X - GlobalPosition.X);
+
+		_isShooting = true;
+		Velocity = Vector2.Zero;
 
 		// Play shooting animation.
 		_animatedSprite.Play("shoot");
@@ -62,6 +81,8 @@ public partial class ArcherEnemy : Enemy
 
 		GetTree().CurrentScene.AddChild(projectile);
 		projectile.GlobalPosition = GlobalPosition;
+
+		GetNodeOrNull<AudioStreamPlayer2D>("HitBoxSound")?.Play();
 	}
 
 	protected override void OnAnimationFinished()
@@ -74,6 +95,7 @@ public partial class ArcherEnemy : Enemy
 
 		if (_animatedSprite.Animation == "shoot")
 		{
+			_isShooting = false;
 			_animatedSprite.Play("idle");
 			return;
 		}

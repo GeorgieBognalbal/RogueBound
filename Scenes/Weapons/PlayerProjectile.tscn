@@ -1,0 +1,21 @@
+[gd_scene format=3 uid="uid://player_projectile_1"]
+
+[ext_resource type="Script" path="res://Scripts/Weapons/PlayerProjectile.cs" id="1_projcs"]
+[ext_resource type="Texture2D" path="res://Assets/arrow.png" id="2_arrtex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_proj"]
+radius = 5.0
+
+[node name="PlayerProjectile" type="Area2D" unique_id=1700000001]
+collision_layer = 8
+collision_mask = 1
+script = ExtResource("1_projcs")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1700000002]
+position = Vector2(0, 0)
+scale = Vector2(0.20238093, 0.20454548)
+texture = ExtResource("2_arrtex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1700000003]
+position = Vector2(0, -2)
+shape = SubResource("CircleShape2D_proj")

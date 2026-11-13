@@ -1,0 +1,23 @@
+[gd_scene format=3 uid="uid://dchest1982736"]
+
+[ext_resource type="Script" path="res://Scripts/Dungeon/DungeonChest.cs" id="1_chest"]
+[ext_resource type="Texture2D" path="res://Decals/dungeon_chest.png" id="2_spr"]
+[ext_resource type="AudioStream" path="res://Sounds/Upgrade.wav" id="3_sfx"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_chest"]
+radius = 18.0
+
+[node name="DungeonChest" type="Area2D"]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_chest")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_spr")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("CircleShape2D_chest")
+
+[node name="OpenAudio" type="AudioStreamPlayer2D" parent="."]
+stream = ExtResource("3_sfx")
+volume_db = 6.0

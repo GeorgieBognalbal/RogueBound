@@ -2,6 +2,7 @@
 using Godot;
 using System;
 using System.Collections.Generic;
+using RogueBound.Weapons;
 
 public partial class Player : CharacterBody2D
 {
@@ -44,6 +45,9 @@ public partial class Player : CharacterBody2D
 	public List<string> OwnedWeapons { get; private set; }
 		= new List<string> { "Basic" };
 
+	// WeaponComponent child node (added in _Ready)
+	private WeaponComponent _weaponComponent;
+
 	public event Action<float, float> HealthChanged;
 	public event Action<int> MoneyChanged;
 	public event Action Died;
@@ -66,6 +70,14 @@ public partial class Player : CharacterBody2D
 		AddToGroup("player");
 
 		GD.Print($"Player initialized: {health} HP");
+
+		// ── WeaponComponent ──────────────────────────────────────────
+		_weaponComponent = GetNodeOrNull<WeaponComponent>("WeaponComponent");
+		if (_weaponComponent == null)
+		{
+			_weaponComponent = new WeaponComponent { Name = "WeaponComponent" };
+			AddChild(_weaponComponent);
+		}
 
 		if (HUDScene == null)
 		{
@@ -154,16 +166,37 @@ public partial class Player : CharacterBody2D
 
 	public override void _Input(InputEvent @event)
 	{
-		if (@event.IsActionPressed("attack") && !_isAttacking)
+		// ── Weapon swap (Q key) ──────────────────────────────────────
+		if (@event is InputEventKey swapKey
+			&& swapKey.Pressed
+			&& !swapKey.Echo
+			&& swapKey.Keycode == Key.Q)
 		{
-			Vector2 mousePos = GetGlobalMousePosition();
-			bool facingLeft = mousePos.X < GlobalPosition.X;
-			_animatedSprite.FlipH = facingLeft;
-			_attackArea.Scale = new Vector2(facingLeft ? -1 : 1, 1);
+			_weaponComponent?.SwapWeapon();
+		}
 
-			GD.Print("ATTACK DETECTED!");
-			Attack();
-			GetNode<AudioStreamPlayer2D>("HitSound").Play();
+		// ── Attack ───────────────────────────────────────────────────
+		if (@event.IsActionPressed("attack"))
+		{
+			Vector2 mousePos   = GetGlobalMousePosition();
+			Vector2 aimDir     = (mousePos - GlobalPosition).Normalized();
+			bool    facingLeft = mousePos.X < GlobalPosition.X;
+
+			_animatedSprite.FlipH = facingLeft;
+			_attackArea.Scale     = new Vector2(facingLeft ? -1 : 1, 1);
+
+			if (_weaponComponent != null && _weaponComponent.CanAttack())
+			{
+				_weaponComponent.PerformAttack(aimDir);
+				GetNode<AudioStreamPlayer2D>("HitSound").Play();
+			}
+			else if (_weaponComponent == null && !_isAttacking)
+			{
+				// Fallback: legacy melee
+				GD.Print("ATTACK DETECTED!");
+				Attack();
+				GetNode<AudioStreamPlayer2D>("HitSound").Play();
+			}
 		}
 
 		if (@event is InputEventKey keyEvent
@@ -325,6 +358,8 @@ public partial class Player : CharacterBody2D
 
 		MoneyChanged?.Invoke(Money);
 	}
+
+	public void AddGold(int amount) => CollectMoney(amount);
 
 	public bool SpendMoney(int amount)
 	{

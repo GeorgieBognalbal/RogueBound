@@ -1,0 +1,33 @@
+[gd_scene format=3 uid="uid://shop_pedestal_1"]
+
+[ext_resource type="Script" path="res://Scripts/Dungeon/ShopPedestal.cs" id="1_pedcs"]
+[ext_resource type="Texture2D" path="res://Decals/challenge_pedestal.png" id="2_pedtex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_ped"]
+radius = 22.0
+
+[node name="ShopPedestal" type="Area2D" unique_id=1800000001]
+collision_layer = 0
+collision_mask = 2
+script = ExtResource("1_pedcs")
+
+[node name="PedestalSprite" type="Sprite2D" parent="." unique_id=1800000002]
+scale = Vector2(1, 1)
+texture = ExtResource("2_pedtex")
+
+[node name="ItemIcon" type="Sprite2D" parent="." unique_id=1800000003]
+position = Vector2(0, -20)
+scale = Vector2(0.5, 0.5)
+
+[node name="PromptLabel" type="Label" parent="." unique_id=1800000004]
+offset_left = -48.0
+offset_top = 18.0
+offset_right = 48.0
+offset_bottom = 48.0
+text = "?? Gold"
+horizontal_alignment = 1
+vertical_alignment = 0
+autowrap_mode = 2
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1800000005]
+shape = SubResource("CircleShape2D_ped")

@@ -4,6 +4,7 @@
 
 [node name="PauseMenu" type="CanvasLayer" unique_id=9871201]
 process_mode = 3
+layer = 100
 script = ExtResource("1_pause")
 
 [node name="PauseControl" type="Control" parent="." unique_id=9871202]
@@ -21,6 +22,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 color = Color(0, 0, 0, 0.55)
 
 [node name="CenterContainer" type="CenterContainer" parent="PauseControl" unique_id=9871204]

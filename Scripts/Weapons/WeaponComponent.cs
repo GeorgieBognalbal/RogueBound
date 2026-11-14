@@ -22,12 +22,30 @@ public partial class WeaponComponent : Node
 	// ─── Internal ────────────────────────────────────────────────────────────
 	private float _cooldownTimer = 0.0f;
 	private Player _player;
+	private bool _isBowCharging = false;
+	private float _bowChargeTime = 0.0f;
+	[Export] public float BowMaxChargeSeconds = 1.5f;
+	[Export] public float BowMaxSpeedMultiplier = 2.5f;
+	private ProgressBar _bowChargeBar;
 
 	[Export] public PackedScene PlayerProjectileScene;
 
 	public override void _Ready()
 	{
 		_player = GetParent<Player>();
+
+		_bowChargeBar = new ProgressBar
+		{
+			Name = "BowChargeBar",
+			Position = new Vector2(-30.0f, -42.0f),
+			Size = new Vector2(60.0f, 8.0f),
+			MinValue = 0.0f,
+			MaxValue = 1.0f,
+			ShowPercentage = false,
+			Visible = false,
+			MouseFilter = Control.MouseFilterEnum.Ignore,
+		};
+		_player.AddChild(_bowChargeBar);
 
 		// Default loadout: Iron Sword in slot 0
 		PrimaryWeapon   = WeaponData.Sword;
@@ -40,6 +58,14 @@ public partial class WeaponComponent : Node
 	{
 		if (_cooldownTimer > 0)
 			_cooldownTimer -= (float)delta;
+
+		if (_isBowCharging)
+		{
+			float maxCharge = Mathf.Max(0.01f, BowMaxChargeSeconds);
+			_bowChargeTime = Mathf.Min(maxCharge, _bowChargeTime + (float)delta);
+			if (_bowChargeBar != null)
+				_bowChargeBar.Value = _bowChargeTime / maxCharge;
+		}
 	}
 
 	// ─── Equip ───────────────────────────────────────────────────────────────
@@ -84,24 +110,48 @@ public partial class WeaponComponent : Node
 	/// <summary>
 	/// Perform an attack in the given world direction.
 	/// </summary>
-	public void PerformAttack(Vector2 aimDirection)
+	public void BeginAttack(Vector2 aimDirection)
 	{
 		if (!CanAttack()) return;
 		var weapon = Current;
-		_cooldownTimer = weapon.Cooldown;
+		if (weapon.Id == "bow")
+		{
+			_isBowCharging = true;
+			_bowChargeTime = 0.0f;
+			if (_bowChargeBar != null)
+			{
+				_bowChargeBar.Value = 0.0f;
+				_bowChargeBar.Visible = true;
+			}
+			return;
+		}
 
+		_cooldownTimer = weapon.Cooldown;
 		if (weapon.Type == WeaponType.Melee)
-		{
-			// Let Player's existing melee routine handle animation + area
 			_player.DoMeleeAttack(weapon.Damage);
-		}
 		else
-		{
-			FireProjectile(aimDirection, weapon);
-		}
+			FireProjectile(aimDirection, weapon, weapon.ProjectileSpeed);
 	}
 
-	private void FireProjectile(Vector2 direction, WeaponData weapon)
+	public void ReleaseAttack(Vector2 aimDirection)
+	{
+		if (!_isBowCharging) return;
+
+		_isBowCharging = false;
+		if (_bowChargeBar != null)
+			_bowChargeBar.Visible = false;
+
+		var weapon = Current;
+		if (weapon == null || weapon.Id != "bow")
+			return;
+
+		float chargeRatio = Mathf.Clamp(_bowChargeTime / Mathf.Max(0.01f, BowMaxChargeSeconds), 0.0f, 1.0f);
+		float speedMultiplier = Mathf.Lerp(1.0f, BowMaxSpeedMultiplier, chargeRatio);
+		_cooldownTimer = weapon.Cooldown;
+		FireProjectile(aimDirection, weapon, weapon.ProjectileSpeed * speedMultiplier);
+	}
+
+	private void FireProjectile(Vector2 direction, WeaponData weapon, float projectileSpeed)
 	{
 		if (PlayerProjectileScene == null)
 		{
@@ -124,7 +174,7 @@ public partial class WeaponComponent : Node
 
 		GetTree().CurrentScene.AddChild(proj);
 		proj.GlobalPosition = _player.GlobalPosition;
-		proj.Setup(direction, weapon.Damage, weapon.ProjectileSpeed);
+		proj.Setup(direction, weapon.Damage, projectileSpeed);
 
 		GD.Print($"[Weapon] Fired {weapon.Name} projectile → {direction}");
 	}

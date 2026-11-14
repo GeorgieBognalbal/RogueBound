@@ -21,6 +21,7 @@ namespace RogueBound.Dungeon
 		private Player _player;
 		private Label  _promptLabel;
 		private Sprite2D _itemIcon;
+		private string _feedback = "";
 
 		public override void _Ready()
 		{
@@ -40,7 +41,13 @@ namespace RogueBound.Dungeon
 						: "res://Assets/Temp/Decals/mana pot.png");
 
 				var tex = GD.Load<Texture2D>(iconPath);
-				if (tex != null) _itemIcon.Texture = tex;
+				if (tex != null)
+				{
+					_itemIcon.Texture = tex;
+					Vector2 textureSize = tex.GetSize();
+					float iconScale = 24.0f / Mathf.Max(textureSize.X, textureSize.Y);
+					_itemIcon.Scale = Vector2.One * iconScale;
+				}
 			}
 
 			// Update price label
@@ -51,7 +58,7 @@ namespace RogueBound.Dungeon
 		{
 			if (_sold || !_playerNear) return;
 
-			if (Input.IsActionJustPressed("ui_accept"))
+			if (Input.IsActionJustPressed("interact"))
 				TryPurchase();
 		}
 
@@ -62,6 +69,7 @@ namespace RogueBound.Dungeon
 			{
 				_player    = p;
 				_playerNear = true;
+				_feedback = "";
 				UpdatePrompt(true);
 			}
 		}
@@ -71,6 +79,7 @@ namespace RogueBound.Dungeon
 			if (body is Player)
 			{
 				_playerNear = false;
+				_feedback = "";
 				UpdatePrompt(false);
 			}
 		}
@@ -85,6 +94,14 @@ namespace RogueBound.Dungeon
 				_promptLabel.Visible = true;
 				return;
 			}
+			if (visible && !string.IsNullOrEmpty(_feedback))
+			{
+				_promptLabel.Text = _feedback;
+				_promptLabel.Modulate = new Color(1.0f, 0.55f, 0.42f);
+				_promptLabel.Visible = true;
+				return;
+			}
+			_promptLabel.Modulate = Colors.White;
 
 			string itemName = Weapon != null
 				? Weapon.Name
@@ -100,7 +117,9 @@ namespace RogueBound.Dungeon
 
 			if (!_player.SpendMoney(Price))
 			{
-				GD.Print("[Shop] Not enough gold!");
+				_feedback = $"NEED {Mathf.Max(0, Price - _player.Money)} MORE GOLD";
+				UpdatePrompt(true);
+				GD.Print($"[Shop] Not enough gold for {Weapon?.Name ?? PotionType}: need {Price - _player.Money} more.");
 				return;
 			}
 
@@ -126,9 +145,8 @@ namespace RogueBound.Dungeon
 			}
 			else if (PotionType == "speed")
 			{
-				// Temporary speed boost applied to Player
-				_player.ApplyUpgrade("speed_up");
-				GD.Print("[Shop] Used Speed Potion (+20 Speed)");
+				_player.ApplySpeedPotion(20.0f, 10.0f);
+				GD.Print("[Shop] Used Speed Potion (+20 Speed for 10 seconds)");
 			}
 
 			UpdatePrompt(false);

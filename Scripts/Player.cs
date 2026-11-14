@@ -23,6 +23,11 @@ public partial class Player : CharacterBody2D
 
 	private float _invulnerabilityTimer = 0.0f;
 	private bool _godMode = false;
+	private float _speedPotionTimeRemaining = 0.0f;
+	private float _speedPotionBonus = 0.0f;
+
+	public string ActivePotionName => _speedPotionTimeRemaining > 0.0f ? "Swift Potion" : "";
+	public float ActivePotionTimeRemaining => _speedPotionTimeRemaining;
 
 	// =========================
 	// COMBAT
@@ -111,6 +116,16 @@ public partial class Player : CharacterBody2D
 		if (_invulnerabilityTimer > 0)
 			_invulnerabilityTimer -= (float)delta;
 
+		if (_speedPotionTimeRemaining > 0.0f)
+		{
+			_speedPotionTimeRemaining = Mathf.Max(0.0f, _speedPotionTimeRemaining - (float)delta);
+			if (_speedPotionTimeRemaining <= 0.0f)
+			{
+				Speed = Mathf.Max(0.0f, Speed - _speedPotionBonus);
+				_speedPotionBonus = 0.0f;
+			}
+		}
+
 		Vector2 direction = Input.GetVector(
 			"ui_left",
 			"ui_right",
@@ -181,25 +196,30 @@ public partial class Player : CharacterBody2D
 		// ── Attack ───────────────────────────────────────────────────
 		if (@event.IsActionPressed("attack"))
 		{
-			Vector2 mousePos   = GetGlobalMousePosition();
-			Vector2 aimDir     = (mousePos - GlobalPosition).Normalized();
-			bool    facingLeft = mousePos.X < GlobalPosition.X;
+			Vector2 mousePos = GetGlobalMousePosition();
+			Vector2 aimDir = (mousePos - GlobalPosition).Normalized();
+			bool facingLeft = mousePos.X < GlobalPosition.X;
 
 			_animatedSprite.FlipH = facingLeft;
-			_attackArea.Scale     = new Vector2(facingLeft ? -1 : 1, 1);
+			_attackArea.Scale = new Vector2(facingLeft ? -1 : 1, 1);
 
 			if (_weaponComponent != null && _weaponComponent.CanAttack())
 			{
-				_weaponComponent.PerformAttack(aimDir);
+				_weaponComponent.BeginAttack(aimDir);
 				GetNode<AudioStreamPlayer2D>("HitSound").Play();
 			}
 			else if (_weaponComponent == null && !_isAttacking)
 			{
-				// Fallback: legacy melee
 				GD.Print("ATTACK DETECTED!");
 				Attack();
 				GetNode<AudioStreamPlayer2D>("HitSound").Play();
 			}
+		}
+
+		if (@event.IsActionReleased("attack"))
+		{
+			Vector2 aimDir = (GetGlobalMousePosition() - GlobalPosition).Normalized();
+			_weaponComponent?.ReleaseAttack(aimDir);
 		}
 
 		if (@event is InputEventKey keyEvent
@@ -310,6 +330,21 @@ public partial class Player : CharacterBody2D
 			GetNode<AudioStreamPlayer2D>("DeathSound").Play();
 			Die();
 		}
+	}
+
+	public void ApplySpeedPotion(float bonus, float durationSeconds)
+	{
+		if (bonus <= 0.0f || durationSeconds <= 0.0f)
+			return;
+
+		if (_speedPotionTimeRemaining <= 0.0f)
+		{
+			_speedPotionBonus = bonus;
+			Speed += bonus;
+		}
+
+		// Refreshing the potion renews its duration without stacking its bonus.
+		_speedPotionTimeRemaining = durationSeconds;
 	}
 
 	public void Heal(float amount)

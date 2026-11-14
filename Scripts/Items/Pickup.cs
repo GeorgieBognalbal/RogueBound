@@ -20,6 +20,9 @@ public partial class Pickup : Area2D
 
 	public override void _Ready()
 	{
+		// Pickup areas must monitor the player's collision layer so magnetized
+		// items are collected and removed when they reach the player.
+		CollisionMask |= 2;
 		_initialPosition = Position;
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
 
@@ -65,6 +68,8 @@ public partial class Pickup : Area2D
 		if (body is Player player)
 		{
 			_collected = true;
+			Visible = false;
+			SetDeferred(Area2D.PropertyName.Monitoring, false);
 
 			if (Type == PickupType.Coin)
 			{

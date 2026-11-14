@@ -204,7 +204,7 @@ DamageNumberScene = ExtResource("2_dmg")
 
 [node name="EnemyAnimatedSprite" parent="." index="0" unique_id=1317629923]
 position = Vector2(0, 0)
-scale = Vector2(1, 1)
+scale = Vector2(0.75, 0.75)
 sprite_frames = SubResource("SpriteFrames_zombie32")
 animation = &"walk"
 autoplay = "walk"

@@ -234,19 +234,19 @@ namespace RogueBound.Dungeon
 					// Labyrinth wall patterns with clear navigable corridors
 					for (int x = startX + 3; x < startX + w - 5; x++)
 					{
-						if (x != startX + 7 && x != startX + 8) // Corridor gap
+						if (x < startX + 7 || x > startX + 9) // Keep a three-tile passage
 							layer.SetCell(new Vector2I(x, startY + 4), WallSourceId, WallAtlasCoord);
 					}
 
 					for (int y = startY + 4; y < startY + h - 4; y++)
 					{
-						if (y != startY + 8) // Corridor gap
+						if (y < startY + 7 || y > startY + 9) // Keep a three-tile passage
 							layer.SetCell(new Vector2I(startX + 10, y), WallSourceId, WallAtlasCoord);
 					}
 
 					for (int x = startX + 5; x < startX + w - 3; x++)
 					{
-						if (x != startX + 13 && x != startX + 14) // Corridor gap
+						if (x < startX + 13 || x > startX + 15) // Keep a three-tile passage
 							layer.SetCell(new Vector2I(x, startY + 11), WallSourceId, WallAtlasCoord);
 					}
 				}

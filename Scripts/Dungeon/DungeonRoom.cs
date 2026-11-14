@@ -25,6 +25,9 @@ namespace RogueBound.Dungeon
 		private bool _challengeActive = false;
 		private bool _challengeCompleted = false;
 		private float _challengeTimer = 35.0f;
+		private Player _playerEntering;
+		private DungeonDoor _entryDoor;
+		private bool _pendingDoorLock;
 
 		public static readonly string[] EnemyScenePaths = new[]
 		{
@@ -168,12 +171,12 @@ namespace RogueBound.Dungeon
 
 				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit)
 				{
-					LockDoors();
+					LockDoorsAfterEntry(player);
 					SpawnWave();
 				}
 				else if (Data.Type == RoomType.Challenge)
 				{
-					LockDoors();
+					LockDoorsAfterEntry(player);
 					StartChallenge();
 				}
 				else if (Data.Type == RoomType.Maze)
@@ -212,6 +215,28 @@ namespace RogueBound.Dungeon
 
 			ChallengeTimerUpdated?.Invoke(0.0f, false);
 			RoomCleared?.Invoke(this);
+		}
+
+		private void LockDoorsAfterEntry(Player player)
+		{
+			_playerEntering = player;
+			_entryDoor = null;
+			float nearestDistance = float.MaxValue;
+			foreach (var door in Doors)
+			{
+				float distance = player.GlobalPosition.DistanceSquaredTo(door.GlobalPosition);
+				if (distance < nearestDistance)
+				{
+					nearestDistance = distance;
+					_entryDoor = door;
+				}
+			}
+
+			// The trigger begins just inside the room while the player may still overlap the doorway.
+			// Keep all doors open until the player has moved clear of the entrance.
+			_pendingDoorLock = _entryDoor != null && nearestDistance < 64.0f * 64.0f;
+			if (!_pendingDoorLock)
+				LockDoors();
 		}
 
 		public void LockDoors()
@@ -313,6 +338,16 @@ namespace RogueBound.Dungeon
 
 			if (Data == null)
 				return;
+
+			if (_pendingDoorLock)
+			{
+				if (!GodotObject.IsInstanceValid(_playerEntering) || !GodotObject.IsInstanceValid(_entryDoor) ||
+					_playerEntering.GlobalPosition.DistanceSquaredTo(_entryDoor.GlobalPosition) >= 48.0f * 48.0f)
+				{
+					_pendingDoorLock = false;
+					LockDoors();
+				}
+			}
 
 			// Handle Challenge Room Timer
 			if (Data.Type == RoomType.Challenge && _challengeActive && !_challengeCompleted)

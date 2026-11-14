@@ -48,8 +48,11 @@ namespace RogueBound.Dungeon
 		{
 			_bobTimer += (float)delta * 3.5f;
 			Position = new Vector2(_initialPos.X, _initialPos.Y + Mathf.Sin(_bobTimer) * 3.0f);
+		}
 
-			if (_playerNear && Input.IsActionJustPressed("ui_accept"))
+		public override void _Process(double delta)
+		{
+			if (_playerNear && Input.IsActionJustPressed("interact"))
 			{
 				CollectWeapon();
 			}

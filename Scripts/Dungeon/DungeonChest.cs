@@ -1,4 +1,5 @@
 using Godot;
+using RogueBound.Weapons;
 
 namespace RogueBound.Dungeon
 {
@@ -6,6 +7,7 @@ namespace RogueBound.Dungeon
 	{
 		[Export] public int GoldAmount = 25;
 		[Export] public bool IsOpened { get; private set; } = false;
+		[Export] public float WeaponDropChance = 0.35f;
 
 		private Sprite2D _sprite;
 		private AudioStreamPlayer2D _audio;
@@ -53,14 +55,27 @@ namespace RogueBound.Dungeon
 			}
 
 			// Spawn occasional health pickup
-			if (GD.Randf() < 0.5f)
+			if (GD.Randf() < 0.6f)
 			{
 				var potScene = GD.Load<PackedScene>("res://Scenes/Items/HealthPickup.tscn");
 				if (potScene != null && GetTree().CurrentScene != null)
 				{
 					Node2D pot = potScene.Instantiate<Node2D>();
-					pot.GlobalPosition = GlobalPosition + new Vector2((float)GD.RandRange(-16, 16), (float)GD.RandRange(-16, 16));
+					pot.GlobalPosition = GlobalPosition + new Vector2((float)GD.RandRange(-20, 20), (float)GD.RandRange(-20, 20));
 					GetTree().CurrentScene.CallDeferred("add_child", pot);
+				}
+			}
+
+			// Chance to drop a random weapon
+			if (GD.Randf() < WeaponDropChance)
+			{
+				var wpScene = GD.Load<PackedScene>("res://Scenes/Dungeon/WeaponPickup.tscn");
+				if (wpScene != null && GetTree().CurrentScene != null)
+				{
+					var wp = wpScene.Instantiate<WeaponPickup>();
+					wp.Weapon = WeaponData.GetRandomShopWeapon();
+					wp.GlobalPosition = GlobalPosition + new Vector2((float)GD.RandRange(-24, 24), 22);
+					GetTree().CurrentScene.CallDeferred("add_child", wp);
 				}
 			}
 

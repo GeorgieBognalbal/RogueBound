@@ -242,6 +242,8 @@ radius = 27.073973
 radius = 9.0
 
 [node name="Player" type="CharacterBody2D" unique_id=344648548]
+collision_layer = 2
+collision_mask = 5
 z_index = 5
 script = ExtResource("4_player")
 

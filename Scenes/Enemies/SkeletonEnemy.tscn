@@ -131,14 +131,12 @@ animations = [{
 
 [node name="Skeleton" unique_id=217838147 instance=ExtResource("1_1fi8w")]
 script = ExtResource("2_aqkkx")
-BlockChance = 0.5
-BlockDamageReduction = 0.0
+DamageNumberScene = null
 
 [node name="EnemyAnimatedSprite" parent="." index="0" unique_id=1317629923]
 scale = Vector2(0.75, 0.75)
 sprite_frames = SubResource("SpriteFrames_ht873")
-frame = 5
-frame_progress = 1.0
+animation = &"walk"
 
 [node name="CollisionShape2D" parent="DamageArea" parent_id_path=PackedInt32Array(621515511) index="0" unique_id=100458808]
 position = Vector2(0, 0)

@@ -7,6 +7,7 @@ namespace RogueBound.Dungeon
 	public partial class DungeonManager : Node
 	{
 		[Export] public int FloorNumber = 1;
+		[Export] public int MaxFloors = 3;
 		[Export] public PackedScene UpgradeScene;
 
 		public event Action<int, int> ProgressChanged;
@@ -156,6 +157,48 @@ namespace RogueBound.Dungeon
 				GetTree().CurrentScene.AddChild(menu);
 				menu.Setup(false, _clearedRoomsCount, _totalCombatRooms, 0, _player?.Money ?? 0);
 			}
+		}
+
+		public void NextFloor()
+		{
+			if (FloorNumber >= MaxFloors)
+			{
+				// Victory achieved!
+				DatabaseManager db = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
+				db?.FinishRun("Victory");
+
+				var victoryScene = GD.Load<PackedScene>("res://Scenes/Menus/GameOverMenu.tscn");
+				if (victoryScene != null && GetTree()?.CurrentScene != null)
+				{
+					GameOverMenu menu = victoryScene.Instantiate<GameOverMenu>();
+					GetTree().CurrentScene.AddChild(menu);
+					menu.Setup(true, _clearedRoomsCount, _totalCombatRooms, 0, _player?.Money ?? 0);
+				}
+				return;
+			}
+
+			FloorNumber++;
+			GD.Print($"[DungeonManager] Advancing to Floor {FloorNumber}!");
+
+			// Clean up previous rooms & doors
+			foreach (var room in _generator.InstantiatedRooms)
+			{
+				if (GodotObject.IsInstanceValid(room))
+				{
+					foreach (var door in room.Doors)
+					{
+						if (GodotObject.IsInstanceValid(door))
+							door.QueueFree();
+					}
+					room.QueueFree();
+				}
+			}
+
+			var minimapLayer = GetNodeOrNull<CanvasLayer>("MinimapLayer");
+			minimapLayer?.QueueFree();
+
+			_clearedRoomsCount = 0;
+			InitializeDungeon();
 		}
 
 		public override void _Process(double delta)

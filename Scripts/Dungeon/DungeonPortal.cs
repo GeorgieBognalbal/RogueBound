@@ -34,6 +34,14 @@ namespace RogueBound.Dungeon
 			if (!IsActive || !(body is Player player))
 				return;
 
+			// Check if we have a DungeonManager in scene to advance floor
+			var dm = GetTree().CurrentScene?.GetNodeOrNull<DungeonManager>("DungeonManager");
+			if (dm != null)
+			{
+				dm.NextFloor();
+				return;
+			}
+
 			// Trigger Victory via GameOverScene or DatabaseManager
 			DatabaseManager db = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
 			if (db != null)

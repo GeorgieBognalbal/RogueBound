@@ -238,7 +238,12 @@ namespace RogueBound.Dungeon
 			_waveSpawned = true;
 			ActiveEnemies.Clear();
 
-			int count = Data.Type == RoomType.BossExit ? 7 : (int)GD.RandRange(4, 6);
+			var dm = GetTree().CurrentScene?.GetNodeOrNull<DungeonManager>("DungeonManager");
+			int floor = dm != null ? dm.CurrentFloor : 1;
+			float hpMult = 1.0f + (floor - 1) * 0.35f;
+			float dmgMult = 1.0f + (floor - 1) * 0.20f;
+
+			int count = Data.Type == RoomType.BossExit ? (6 + floor) : (int)GD.RandRange(3 + floor, 5 + floor);
 			var rng = new Random();
 
 			for (int i = 0; i < count; i++)
@@ -260,6 +265,17 @@ namespace RogueBound.Dungeon
 
 				Enemy enemy = packed.Instantiate<Enemy>();
 				GetTree().CurrentScene.AddChild(enemy);
+
+				// Apply floor scaling
+				enemy.MaxHealth *= hpMult;
+				enemy.AttackDamage *= dmgMult;
+				if (Data.Type == RoomType.BossExit && i == 0)
+				{
+					// Boss buff
+					enemy.MaxHealth *= 2.0f;
+					enemy.AttackDamage *= 1.3f;
+					enemy.Scale = new Vector2(1.4f, 1.4f);
+				}
 
 				float halfW = (Data.WorldBounds.Size.X * 0.35f);
 				float halfH = (Data.WorldBounds.Size.Y * 0.35f);

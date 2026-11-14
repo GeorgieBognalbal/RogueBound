@@ -1,0 +1,30 @@
+[gd_scene format=3 uid="uid://weapon_pickup_1"]
+
+[ext_resource type="Script" path="res://Scripts/Dungeon/WeaponPickup.cs" id="1_wppickup"]
+[ext_resource type="Texture2D" path="res://Decals/weapon_bow.png" id="2_wptex"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_wp"]
+radius = 20.0
+
+[node name="WeaponPickup" type="Area2D" unique_id=1900000001]
+collision_layer = 4
+collision_mask = 2
+script = ExtResource("1_wppickup")
+
+[node name="Sprite2D" type="Sprite2D" parent="." unique_id=1900000002]
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_wptex")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="." unique_id=1900000003]
+shape = SubResource("CircleShape2D_wp")
+
+[node name="Label" type="Label" parent="." unique_id=1900000004]
+offset_left = -60.0
+offset_top = 12.0
+offset_right = 60.0
+offset_bottom = 35.0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 12
+text = "Weapon"
+horizontal_alignment = 1

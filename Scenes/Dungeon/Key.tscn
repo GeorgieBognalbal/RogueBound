@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dkey12398471"]
+[gd_scene format=3 uid="uid://dkey124a8471"]
 
 [ext_resource type="Script" path="res://Scripts/Dungeon/DungeonKey.cs" id="1_key"]
 [ext_resource type="Texture2D" path="res://Decals/dungeon_key.png" id="2_spr"]

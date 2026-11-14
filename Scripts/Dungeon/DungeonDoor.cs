@@ -22,10 +22,18 @@ namespace RogueBound.Dungeon
 			_collision = GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
 			_audio = GetNodeOrNull<AudioStreamPlayer2D>("DoorAudio");
 
+			CollisionLayer = 1; // Wall / obstacle
+			CollisionMask = 3;  // Player and enemies
+
 			_texClosedH = GD.Load<Texture2D>("res://Decals/dungeon_door_closed_h.png");
 			_texOpenH = GD.Load<Texture2D>("res://Decals/dungeon_door_open_h.png");
 			_texClosedV = GD.Load<Texture2D>("res://Decals/dungeon_door_closed_v.png");
 			_texOpenV = GD.Load<Texture2D>("res://Decals/dungeon_door_open_v.png");
+
+			if (_collision != null)
+			{
+				_collision.Disabled = IsOpen;
+			}
 
 			UpdateVisuals();
 		}
@@ -70,10 +78,18 @@ namespace RogueBound.Dungeon
 			if (isHorizontal)
 			{
 				_sprite.Texture = IsOpen ? _texOpenH : _texClosedH;
+				if (_collision?.Shape is RectangleShape2D rect)
+				{
+					rect.Size = new Vector2(48, 16);
+				}
 			}
 			else
 			{
 				_sprite.Texture = IsOpen ? _texOpenV : _texClosedV;
+				if (_collision?.Shape is RectangleShape2D rect)
+				{
+					rect.Size = new Vector2(16, 48);
+				}
 			}
 		}
 	}

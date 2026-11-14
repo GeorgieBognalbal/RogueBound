@@ -62,6 +62,9 @@ public partial class Player : CharacterBody2D
 
 	public override void _Ready()
 	{
+		CollisionLayer = 2; // Layer 2: Player
+		CollisionMask = 5;  // Mask 1: World + Mask 3: Items/Doors
+
 		_attackArea = GetNode<Area2D>("AttackArea");
 		_animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
 
@@ -244,6 +247,19 @@ public partial class Player : CharacterBody2D
 		);
 
 		_isAttacking = false;
+	}
+
+	/// <summary>
+	/// Perform a melee attack using a custom damage value.
+	/// This is used by WeaponComponent for melee weapons.
+	/// </summary>
+	public void DoMeleeAttack(int damage)
+	{
+		// Temporarily override base AttackDamage for this swing.
+		int previous = AttackDamage;
+		AttackDamage = damage;
+		Attack();
+		AttackDamage = previous;
 	}
 
 	private async void DealDamage()

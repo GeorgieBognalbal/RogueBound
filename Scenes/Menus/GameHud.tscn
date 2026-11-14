@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cqyfcaunfryj4"]
 
-[ext_resource type="Script" path="res://Scripts/GUI/GameHud.cs" id="1_hud"]
+[ext_resource type="Script" uid="uid://7dasxq03f53u" path="res://Scripts/GUI/GameHud.cs" id="1_hud"]
 [ext_resource type="Script" uid="uid://bnlbe51ohi5xw" path="res://Scripts/GUI/HealthBar.cs" id="1_xyfjw"]
 [ext_resource type="Texture2D" uid="uid://dikw35a1jy0pr" path="res://Assets/Health Bar/Boarder.png" id="2_tyktn"]
 [ext_resource type="Texture2D" uid="uid://dv3oic2kwmpij" path="res://Assets/Health Bar/bar.png" id="3_y1wbl"]
@@ -94,9 +94,9 @@ anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -160.0
-offset_top = 16.0
+offset_top = 160.0
 offset_right = -16.0
-offset_bottom = 60.0
+offset_bottom = 204.0
 grow_horizontal = 0
 
 [node name="HBoxContainer" type="HBoxContainer" parent="HUDControl/TopRight" unique_id=957844213]
@@ -122,4 +122,84 @@ theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 24
 text = "0"
 
-[node name="PauseMenu" parent="." instance=ExtResource("5_pause")]
+[node name="BottomCenter" type="Control" parent="HUDControl" unique_id=957844216]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -70.0
+offset_top = -65.0
+offset_right = 70.0
+offset_bottom = -10.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="WeaponSlots" type="HBoxContainer" parent="HUDControl/BottomCenter" unique_id=957844217]
+layout_mode = 1
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -50.0
+offset_right = 50.0
+offset_bottom = 36.0
+grow_horizontal = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Slot0" type="Panel" parent="HUDControl/BottomCenter/WeaponSlots" unique_id=957844218]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="HUDControl/BottomCenter/WeaponSlots/Slot0" unique_id=957844219]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Slot1" type="Panel" parent="HUDControl/BottomCenter/WeaponSlots" unique_id=957844220]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="HUDControl/BottomCenter/WeaponSlots/Slot1" unique_id=957844221]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SwapHint" type="Label" parent="HUDControl/BottomCenter" unique_id=957844222]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -40.0
+offset_top = -18.0
+offset_right = 40.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 11
+text = "[Q] Swap"
+horizontal_alignment = 1
+
+[node name="PauseMenu" parent="." unique_id=1234567433 instance=ExtResource("5_pause")]

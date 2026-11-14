@@ -231,14 +231,23 @@ namespace RogueBound.Dungeon
 				// If Maze room, carve labyrinth partitions
 				if (roomData.Type == RoomType.Maze)
 				{
+					// Labyrinth wall patterns with clear navigable corridors
 					for (int x = startX + 3; x < startX + w - 5; x++)
 					{
-						layer.SetCell(new Vector2I(x, startY + 5), WallSourceId, WallAtlasCoord);
+						if (x != startX + 7 && x != startX + 8) // Corridor gap
+							layer.SetCell(new Vector2I(x, startY + 4), WallSourceId, WallAtlasCoord);
+					}
+
+					for (int y = startY + 4; y < startY + h - 4; y++)
+					{
+						if (y != startY + 8) // Corridor gap
+							layer.SetCell(new Vector2I(startX + 10, y), WallSourceId, WallAtlasCoord);
 					}
 
 					for (int x = startX + 5; x < startX + w - 3; x++)
 					{
-						layer.SetCell(new Vector2I(x, startY + 10), WallSourceId, WallAtlasCoord);
+						if (x != startX + 13 && x != startX + 14) // Corridor gap
+							layer.SetCell(new Vector2I(x, startY + 11), WallSourceId, WallAtlasCoord);
 					}
 				}
 				// If Challenge room, place obstacle pillars for cover

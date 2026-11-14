@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dgas8172901"]
+[gd_scene format=3 uid="uid://dgas8173a01"]
 
 [ext_resource type="Script" path="res://Scripts/Dungeon/PoisonGas.cs" id="1_gas"]
 

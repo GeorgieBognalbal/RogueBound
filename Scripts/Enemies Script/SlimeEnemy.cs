@@ -21,6 +21,7 @@ public partial class SlimeEnemy : Enemy
 	private float _dashCooldownTimer = 0.0f;
 
 	private Vector2 _dashDirection = Vector2.Zero;
+	private ProgressBar _chargeBar;
 
 	public override void _Ready()
 	{
@@ -28,6 +29,19 @@ public partial class SlimeEnemy : Enemy
 
 		// The slime can navigate until it gets close enough to charge.
 		_navAgent.TargetDesiredDistance = ChargeRange;
+
+		_chargeBar = new ProgressBar
+		{
+			Name = "SlimeChargeBar",
+			Position = new Vector2(-16.0f, -30.0f),
+			Size = new Vector2(32.0f, 4.0f),
+			MinValue = 0.0f,
+			MaxValue = 1.0f,
+			ShowPercentage = false,
+			Visible = false,
+			MouseFilter = Control.MouseFilterEnum.Ignore,
+		};
+		AddChild(_chargeBar);
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -108,9 +122,19 @@ public partial class SlimeEnemy : Enemy
 
 		if (_navAgent.IsNavigationFinished())
 		{
+			if (distance > ChargeRange + _navAgent.PathDesiredDistance)
+			{
+				Vector2 fallbackDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
+				Velocity = fallbackDirection * Speed;
+				MoveAndSlide();
+				FaceDirection(fallbackDirection.X);
+				if (!_isHit && _animatedSprite.Animation.ToString() != "walk")
+					_animatedSprite.Play("walk");
+				return;
+			}
+
 			Velocity = Vector2.Zero;
 			MoveAndSlide();
-
 			FaceDirection(_player.GlobalPosition.X - GlobalPosition.X);
 			if (_animatedSprite.SpriteFrames.HasAnimation("idle"))
 				_animatedSprite.Play("idle");
@@ -136,6 +160,11 @@ public partial class SlimeEnemy : Enemy
 	{
 		_state = SlimeState.Charging;
 		_stateTimer = ChargeDuration;
+		if (_chargeBar != null)
+		{
+			_chargeBar.Value = 0.0f;
+			_chargeBar.Visible = true;
+		}
 
 		// Remember the player's position when charging begins.
 		_dashDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
@@ -158,6 +187,9 @@ public partial class SlimeEnemy : Enemy
 		if (_player != null && GodotObject.IsInstanceValid(_player))
 			FaceDirection(_dashDirection.X);
 
+		if (_chargeBar != null)
+			_chargeBar.Value = 1.0f - Mathf.Clamp(_stateTimer / Mathf.Max(0.01f, ChargeDuration), 0.0f, 1.0f);
+
 		if (_stateTimer <= 0.0f)
 		{
 			StartDashing();
@@ -168,6 +200,8 @@ public partial class SlimeEnemy : Enemy
 	{
 		_state = SlimeState.Dashing;
 		_stateTimer = DashDuration;
+		if (_chargeBar != null)
+			_chargeBar.Visible = false;
 
 		_dashCooldownTimer = DashCooldown;
 
@@ -216,6 +250,8 @@ public partial class SlimeEnemy : Enemy
 	public override void TakeDamage(float damage, Vector2 attackerPosition)
 	{
 		_state = SlimeState.Chasing;
+		if (_chargeBar != null)
+			_chargeBar.Visible = false;
 		base.TakeDamage(damage, attackerPosition);
 	}
 

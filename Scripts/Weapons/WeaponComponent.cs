@@ -24,9 +24,15 @@ public partial class WeaponComponent : Node
 	private Player _player;
 	private bool _isBowCharging = false;
 	private float _bowChargeTime = 0.0f;
+	private bool _isStaffCharging = false;
+	private float _staffChargeTime = 0.0f;
 	[Export] public float BowMaxChargeSeconds = 1.5f;
 	[Export] public float BowMaxSpeedMultiplier = 2.5f;
-	private ProgressBar _bowChargeBar;
+	[Export] public float StaffMaxChargeSeconds = 2.5f;
+	[Export] public float StaffMinChargeRadius = 45.0f;
+	[Export] public float StaffChargeRadius = 115.0f;
+	[Export] public float StaffMaxDamageMultiplier = 2.0f;
+	private ProgressBar _chargeBar;
 
 	[Export] public PackedScene PlayerProjectileScene;
 
@@ -34,18 +40,18 @@ public partial class WeaponComponent : Node
 	{
 		_player = GetParent<Player>();
 
-		_bowChargeBar = new ProgressBar
+		_chargeBar = new ProgressBar
 		{
-			Name = "BowChargeBar",
-			Position = new Vector2(-30.0f, -42.0f),
-			Size = new Vector2(60.0f, 8.0f),
+			Name = "WeaponChargeBar",
+			Position = new Vector2(-16.0f, -30.0f),
+			Size = new Vector2(32.0f, 4.0f),
 			MinValue = 0.0f,
 			MaxValue = 1.0f,
 			ShowPercentage = false,
 			Visible = false,
 			MouseFilter = Control.MouseFilterEnum.Ignore,
 		};
-		_player.AddChild(_bowChargeBar);
+		_player.AddChild(_chargeBar);
 
 		// Default loadout: Iron Sword in slot 0
 		PrimaryWeapon   = WeaponData.Sword;
@@ -63,8 +69,16 @@ public partial class WeaponComponent : Node
 		{
 			float maxCharge = Mathf.Max(0.01f, BowMaxChargeSeconds);
 			_bowChargeTime = Mathf.Min(maxCharge, _bowChargeTime + (float)delta);
-			if (_bowChargeBar != null)
-				_bowChargeBar.Value = _bowChargeTime / maxCharge;
+			if (_chargeBar != null)
+				_chargeBar.Value = _bowChargeTime / maxCharge;
+		}
+
+		if (_isStaffCharging)
+		{
+			float maxCharge = Mathf.Max(0.01f, StaffMaxChargeSeconds);
+			_staffChargeTime = Mathf.Min(maxCharge, _staffChargeTime + (float)delta);
+			if (_chargeBar != null)
+				_chargeBar.Value = _staffChargeTime / maxCharge;
 		}
 	}
 
@@ -118,11 +132,15 @@ public partial class WeaponComponent : Node
 		{
 			_isBowCharging = true;
 			_bowChargeTime = 0.0f;
-			if (_bowChargeBar != null)
-			{
-				_bowChargeBar.Value = 0.0f;
-				_bowChargeBar.Visible = true;
-			}
+			ShowChargeBar();
+			return;
+		}
+
+		if (weapon.Id == "staff")
+		{
+			_isStaffCharging = true;
+			_staffChargeTime = 0.0f;
+			ShowChargeBar();
 			return;
 		}
 
@@ -135,20 +153,67 @@ public partial class WeaponComponent : Node
 
 	public void ReleaseAttack(Vector2 aimDirection)
 	{
+		if (_isStaffCharging)
+		{
+			_isStaffCharging = false;
+			HideChargeBar();
+
+			var staff = Current;
+			if (staff == null || staff.Id != "staff")
+				return;
+
+			float staffChargeRatio = Mathf.Clamp(
+				_staffChargeTime / Mathf.Max(0.01f, StaffMaxChargeSeconds), 0.0f, 1.0f);
+			float damage = staff.Damage * Mathf.Lerp(1.0f, StaffMaxDamageMultiplier, staffChargeRatio);
+			float radius = Mathf.Lerp(StaffMinChargeRadius, StaffChargeRadius, staffChargeRatio);
+			_cooldownTimer = staff.Cooldown;
+			DischargeStaff(damage, radius);
+			return;
+		}
+
 		if (!_isBowCharging) return;
 
 		_isBowCharging = false;
-		if (_bowChargeBar != null)
-			_bowChargeBar.Visible = false;
+		HideChargeBar();
 
 		var weapon = Current;
 		if (weapon == null || weapon.Id != "bow")
 			return;
 
-		float chargeRatio = Mathf.Clamp(_bowChargeTime / Mathf.Max(0.01f, BowMaxChargeSeconds), 0.0f, 1.0f);
-		float speedMultiplier = Mathf.Lerp(1.0f, BowMaxSpeedMultiplier, chargeRatio);
+		float bowChargeRatio = Mathf.Clamp(_bowChargeTime / Mathf.Max(0.01f, BowMaxChargeSeconds), 0.0f, 1.0f);
+		float speedMultiplier = Mathf.Lerp(1.0f, BowMaxSpeedMultiplier, bowChargeRatio);
 		_cooldownTimer = weapon.Cooldown;
 		FireProjectile(aimDirection, weapon, weapon.ProjectileSpeed * speedMultiplier);
+	}
+
+	private void ShowChargeBar()
+	{
+		if (_chargeBar == null) return;
+		_chargeBar.Value = 0.0f;
+		_chargeBar.Visible = true;
+	}
+
+	private void HideChargeBar()
+	{
+		if (_chargeBar != null)
+			_chargeBar.Visible = false;
+	}
+
+	private void DischargeStaff(float damage, float radius)
+	{
+		var lightning = new LightningBurst { Radius = radius };
+		GetTree().CurrentScene.AddChild(lightning);
+		lightning.GlobalPosition = _player.GlobalPosition;
+
+		foreach (Node node in GetTree().GetNodesInGroup("enemies"))
+		{
+			if (node is Enemy enemy
+				&& !enemy.IsDead()
+				&& enemy.GlobalPosition.DistanceTo(_player.GlobalPosition) <= radius)
+			{
+				enemy.TakeDamage(damage, _player.GlobalPosition);
+			}
+		}
 	}
 
 	private void FireProjectile(Vector2 direction, WeaponData weapon, float projectileSpeed)

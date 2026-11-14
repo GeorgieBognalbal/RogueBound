@@ -51,6 +51,13 @@ public abstract partial class Enemy : CharacterBody2D
 		{
 			GD.PushError($"{Name}: Missing Area2D named DamageArea.");
 		}
+		else
+		{
+			// Players use collision layer 2. Set this explicitly instead of relying
+			// on Area2D's default mask (layer 1), which never sees the player.
+			_hitbox.CollisionLayer = 0;
+			_hitbox.CollisionMask = 1u << 1;
+		}
 
 		_navAgent.PathDesiredDistance = 4.0f;
 		_navAgent.TargetDesiredDistance = StopDistance;
@@ -114,9 +121,23 @@ public abstract partial class Enemy : CharacterBody2D
 
 		if (_navAgent.IsNavigationFinished())
 		{
+			// A navigation query can briefly report a finished path before the
+			// server has produced a path, or when the target is just off the map.
+			// Keep pursuing until the enemy reaches its own stopping distance.
+			float distanceToPlayer = GlobalPosition.DistanceTo(_player.GlobalPosition);
+			if (distanceToPlayer > _navAgent.TargetDesiredDistance + _navAgent.PathDesiredDistance)
+			{
+				Vector2 fallbackDirection = GlobalPosition.DirectionTo(_player.GlobalPosition);
+				Velocity = fallbackDirection * Speed;
+				MoveAndSlide();
+				FaceDirection(fallbackDirection.X);
+				if (!_isHit && _animatedSprite.Animation.ToString() != "walk")
+					_animatedSprite.Play("walk");
+				return;
+			}
+
 			Velocity = Vector2.Zero;
 			MoveAndSlide();
-
 			FaceDirection(_player.GlobalPosition.X - GlobalPosition.X);
 			return;
 		}
@@ -145,13 +166,6 @@ public abstract partial class Enemy : CharacterBody2D
 
 		_animatedSprite.FlipH = facingLeft;
 
-		if (_hitbox != null)
-		{
-			_hitbox.Scale = new Vector2(
-				facingLeft ? -1.0f : 1.0f,
-				1.0f
-			);
-		}
 	}
 
 	protected virtual void TryAttackPlayer()
@@ -173,7 +187,9 @@ public abstract partial class Enemy : CharacterBody2D
 	// Spawns a floating number showing damage dealt to this enemy.
 	protected virtual void SpawnDamageNumber(float damage)
 	{
-		if (DamageNumberScene == null)
+		PackedScene damageScene = DamageNumberScene
+			?? GD.Load<PackedScene>("res://Scenes/Effects/DamageNumber.tscn");
+		if (damageScene == null)
 			return;
 
 		Node currentScene = GetTree().CurrentScene;
@@ -181,7 +197,7 @@ public abstract partial class Enemy : CharacterBody2D
 		if (currentScene == null)
 			return;
 
-		Node2D damageNumber = DamageNumberScene.Instantiate<Node2D>();
+		Node2D damageNumber = damageScene.Instantiate<Node2D>();
 		currentScene.AddChild(damageNumber);
 
 		damageNumber.GlobalPosition =

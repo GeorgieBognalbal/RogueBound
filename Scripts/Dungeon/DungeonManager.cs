@@ -18,10 +18,12 @@ namespace RogueBound.Dungeon
 		private TileMapLayer _tileMapLayer;
 		private Player _player;
 		private DungeonMinimap _minimap;
+		private CanvasLayer _minimapLayer;
 		private DungeonRoom _currentRoom;
 
 		private int _clearedRoomsCount = 0;
 		private int _totalCombatRooms = 0;
+		private readonly HashSet<ulong> _countedClearedRooms = new();
 
 		public int CurrentFloor => FloorNumber;
 		public int ClearedRooms => _clearedRoomsCount;
@@ -96,8 +98,14 @@ namespace RogueBound.Dungeon
 
 		private void AttachMinimap()
 		{
-			var canvasLayer = new CanvasLayer { Name = "MinimapLayer" };
-			AddChild(canvasLayer);
+			// Replace the previous floor's map before adding the new one. QueueFree()
+			// leaves the old CanvasLayer visible until the end of the frame, so a
+			// floor transition can briefly show both maps in the same position.
+			if (GodotObject.IsInstanceValid(_minimapLayer))
+				_minimapLayer.Free();
+
+			_minimapLayer = new CanvasLayer { Name = "MinimapLayer" };
+			AddChild(_minimapLayer);
 
 			var container = new MarginContainer();
 			container.SetAnchorsPreset(Control.LayoutPreset.TopRight);
@@ -105,7 +113,7 @@ namespace RogueBound.Dungeon
 			container.OffsetTop = 15;
 			container.OffsetRight = -15;
 			container.OffsetBottom = 150;
-			canvasLayer.AddChild(container);
+			_minimapLayer.AddChild(container);
 
 			_minimap = new DungeonMinimap();
 			container.AddChild(_minimap);
@@ -129,16 +137,10 @@ namespace RogueBound.Dungeon
 
 		private void OnRoomCleared(DungeonRoom room)
 		{
-			if (room.Data.Type == RoomType.Combat || room.Data.Type == RoomType.BossExit)
+			if ((room.Data.Type == RoomType.Combat || room.Data.Type == RoomType.BossExit) &&
+				_countedClearedRooms.Add(room.GetInstanceId()))
 			{
 				_clearedRoomsCount++;
-
-				// Offer upgrade card selection on every 2 cleared combat rooms
-				if (_clearedRoomsCount % 2 == 0 && UpgradeScene != null && GetTree()?.CurrentScene != null)
-				{
-					var upgrade = UpgradeScene.Instantiate<Control>();
-					GetTree().CurrentScene.AddChild(upgrade);
-				}
 			}
 
 			ProgressChanged?.Invoke(_clearedRoomsCount, _totalCombatRooms);
@@ -148,6 +150,7 @@ namespace RogueBound.Dungeon
 		private void OnPlayerDied()
 		{
 			DatabaseManager database = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
+			int kills = database?.GetCurrentRunKillCount() ?? 0;
 			database?.FinishRun("Defeated");
 
 			var gameOverScene = GD.Load<PackedScene>("res://Scenes/Menus/GameOverMenu.tscn");
@@ -155,7 +158,7 @@ namespace RogueBound.Dungeon
 			{
 				GameOverMenu menu = gameOverScene.Instantiate<GameOverMenu>();
 				GetTree().CurrentScene.AddChild(menu);
-				menu.Setup(false, _clearedRoomsCount, _totalCombatRooms, 0, _player?.Money ?? 0);
+				menu.Setup(false, _clearedRoomsCount, _totalCombatRooms, kills, _player?.Money ?? 0);
 			}
 		}
 
@@ -165,6 +168,7 @@ namespace RogueBound.Dungeon
 			{
 				// Victory achieved!
 				DatabaseManager db = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
+				int kills = db?.GetCurrentRunKillCount() ?? 0;
 				db?.FinishRun("Victory");
 
 				var victoryScene = GD.Load<PackedScene>("res://Scenes/Menus/GameOverMenu.tscn");
@@ -172,11 +176,54 @@ namespace RogueBound.Dungeon
 				{
 					GameOverMenu menu = victoryScene.Instantiate<GameOverMenu>();
 					GetTree().CurrentScene.AddChild(menu);
-					menu.Setup(true, _clearedRoomsCount, _totalCombatRooms, 0, _player?.Money ?? 0);
+					menu.Setup(true, _clearedRoomsCount, _totalCombatRooms, kills, _player?.Money ?? 0);
 				}
 				return;
 			}
 
+			var summary = new FloorSummaryMenu();
+			GetTree().CurrentScene.AddChild(summary);
+			summary.Setup(FloorNumber, _clearedRoomsCount, _totalCombatRooms,
+				GetNodeOrNull<DatabaseManager>("/root/DatabaseManager")?.GetCurrentRunKillCount() ?? 0,
+				_player?.Money ?? 0);
+			summary.ContinueRequested += OnFloorSummaryContinue;
+			GetTree().Paused = true;
+		}
+
+		private void OnFloorSummaryContinue()
+		{
+			if (UpgradeScene != null && GetTree()?.CurrentScene != null)
+			{
+				var upgradeLayer = UpgradeScene.Instantiate<CanvasLayer>();
+				Control upgradeControl = upgradeLayer.GetNodeOrNull<Control>("UpgradeScene");
+				if (upgradeControl != null)
+				{
+					upgradeLayer.ProcessMode = Node.ProcessModeEnum.Always;
+					upgradeControl.TreeExiting += () =>
+					{
+						upgradeLayer.QueueFree();
+						OnUpgradeSelectionFinished();
+					};
+					GetTree().CurrentScene.AddChild(upgradeLayer);
+					return;
+				}
+
+				GD.PushError("DungeonManager: UpgradeScene does not contain an UpgradeScene Control!");
+				upgradeLayer.QueueFree();
+			}
+
+			GetTree().Paused = false;
+			AdvanceFloor();
+		}
+
+		private void OnUpgradeSelectionFinished()
+		{
+			GetTree().Paused = false;
+			AdvanceFloor();
+		}
+
+		private void AdvanceFloor()
+		{
 			FloorNumber++;
 			GD.Print($"[DungeonManager] Advancing to Floor {FloorNumber}!");
 
@@ -194,10 +241,13 @@ namespace RogueBound.Dungeon
 				}
 			}
 
-			var minimapLayer = GetNodeOrNull<CanvasLayer>("MinimapLayer");
-			minimapLayer?.QueueFree();
+			if (GodotObject.IsInstanceValid(_minimapLayer))
+				_minimapLayer.Free();
+			_minimapLayer = null;
+			_minimap = null;
 
 			_clearedRoomsCount = 0;
+			_countedClearedRooms.Clear();
 			InitializeDungeon();
 		}
 

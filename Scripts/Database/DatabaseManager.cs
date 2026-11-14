@@ -92,6 +92,23 @@ public partial class DatabaseManager : Node
 		return _currentRunId;
 	}
 
+	public int GetCurrentRunKillCount()
+	{
+		if (_currentRunId == -1 || _connection == null)
+			return 0;
+
+		const string sql = @"
+        SELECT TotalEnemiesKilled
+        FROM Runs
+        WHERE RunId = @runId AND IsFinalized = 0;
+		";
+
+		using var command = new SqliteCommand(sql, _connection);
+		command.Parameters.AddWithValue("@runId", _currentRunId);
+		object result = command.ExecuteScalar();
+		return result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+	}
+
 	public void RecordEnemyKill(string enemyType)
 	{
 		if (_currentRunId == -1 ||

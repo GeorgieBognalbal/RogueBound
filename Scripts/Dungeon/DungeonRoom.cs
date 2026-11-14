@@ -18,6 +18,7 @@ namespace RogueBound.Dungeon
 		private CollisionShape2D _triggerCollision;
 		private DungeonPortal _portal;
 		private DungeonChest _challengeChest;
+		private readonly List<DungeonChest> _roomClearLockedChests = new();
 		private DungeonKey _dungeonKey;
 		private PoisonGas _poisonGas;
 
@@ -114,6 +115,7 @@ namespace RogueBound.Dungeon
 			{
 				_challengeChest = chestScene.Instantiate<DungeonChest>();
 				_challengeChest.GoldAmount = 50; // High value reward!
+				LockChestUntilRoomCleared(_challengeChest);
 				AddChild(_challengeChest);
 				_challengeChest.Position = Vector2.Zero;
 				_challengeChest.Visible = true;
@@ -143,6 +145,7 @@ namespace RogueBound.Dungeon
 			{
 				var chest = chestScene.Instantiate<DungeonChest>();
 				chest.GoldAmount = 30;
+				LockChestUntilRoomCleared(chest);
 				AddChild(chest);
 				chest.Position = new Vector2(data.WorldBounds.Size.X * 0.3f, data.WorldBounds.Size.Y * 0.3f);
 			}
@@ -154,6 +157,12 @@ namespace RogueBound.Dungeon
 			AddChild(shop);
 			shop.Position = Vector2.Zero;
 			shop.Setup(data.WorldBounds.Size);
+		}
+
+		private void LockChestUntilRoomCleared(DungeonChest chest)
+		{
+			chest.LockUntilRoomCleared();
+			_roomClearLockedChests.Add(chest);
 		}
 
 		private void OnTriggerBodyEntered(Node2D body)
@@ -212,6 +221,11 @@ namespace RogueBound.Dungeon
 
 			Data.State = RoomState.Cleared;
 			UnlockDoors();
+			foreach (var chest in _roomClearLockedChests)
+			{
+				if (GodotObject.IsInstanceValid(chest))
+					chest.MarkRoomCleared();
+			}
 
 			ChallengeTimerUpdated?.Invoke(0.0f, false);
 			RoomCleared?.Invoke(this);
@@ -385,6 +399,11 @@ namespace RogueBound.Dungeon
 		{
 			Data.State = RoomState.Cleared;
 			UnlockDoors();
+			foreach (var chest in _roomClearLockedChests)
+			{
+				if (GodotObject.IsInstanceValid(chest))
+					chest.MarkRoomCleared();
+			}
 
 			if (Data.Type == RoomType.Combat)
 			{

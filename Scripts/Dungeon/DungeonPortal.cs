@@ -7,6 +7,7 @@ namespace RogueBound.Dungeon
 		[Export] public bool IsActive { get; set; } = false;
 
 		private Sprite2D _sprite;
+		private bool _hasTriggered;
 
 		public override void _Ready()
 		{
@@ -31,8 +32,10 @@ namespace RogueBound.Dungeon
 
 		private void OnBodyEntered(Node2D body)
 		{
-			if (!IsActive || !(body is Player player))
+			if (!IsActive || _hasTriggered || !(body is Player player))
 				return;
+
+			_hasTriggered = true;
 
 			// Check if we have a DungeonManager in scene to advance floor
 			var dm = GetTree().CurrentScene?.GetNodeOrNull<DungeonManager>("DungeonManager");

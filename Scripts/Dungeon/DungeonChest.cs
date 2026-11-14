@@ -11,6 +11,7 @@ namespace RogueBound.Dungeon
 
 		private Sprite2D _sprite;
 		private AudioStreamPlayer2D _audio;
+		private bool _roomCleared = true;
 
 		public override void _Ready()
 		{
@@ -21,14 +22,37 @@ namespace RogueBound.Dungeon
 
 		private void OnBodyEntered(Node2D body)
 		{
-			if (IsOpened || !(body is Player player))
+			if (IsOpened || !_roomCleared || !(body is Player player))
 				return;
 
 			OpenChest(player);
 		}
 
+		public void LockUntilRoomCleared()
+		{
+			_roomCleared = false;
+		}
+
+		public void MarkRoomCleared()
+		{
+			_roomCleared = true;
+
+			// The player may already be standing on the chest when the last enemy dies.
+			foreach (Node2D body in GetOverlappingBodies())
+			{
+				if (body is Player player)
+				{
+					OpenChest(player);
+					break;
+				}
+			}
+		}
+
 		public void OpenChest(Player player)
 		{
+			if (IsOpened || !_roomCleared)
+				return;
+
 			IsOpened = true;
 
 			// Add gold to player

@@ -4,7 +4,7 @@
 
 [node name="SettingsMenu" type="CanvasLayer" unique_id=9871301]
 process_mode = 3
-layer = 10
+layer = 110
 script = ExtResource("1_set")
 
 [node name="Control" type="Control" parent="." unique_id=9871302]

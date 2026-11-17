@@ -65,35 +65,25 @@ namespace RogueBound.Dungeon
 				(weaponStock[i], weaponStock[swapIndex]) = (weaponStock[swapIndex], weaponStock[i]);
 			}
 
-			// Build item list: 2 different weapons + 1 health potion + 1 speed potion.
-			var items = new List<(WeaponData weapon, string potion, int price)>
+			var items = new (WeaponData weapon, ShopConsumable consumable, int price)[]
 			{
-				(weaponStock[0], null, 0),
-				(weaponStock[1], null, 0),
-				(null, "health", 15),
-				(null, "speed",  20),
+				(weaponStock[0], ShopConsumable.None, weaponStock[0].Price),
+				(weaponStock[1], ShopConsumable.None, weaponStock[1].Price),
+				(null, ShopConsumable.Shield, 25),
+				(null, ShopConsumable.Regeneration, 15),
+				(null, ShopConsumable.Speed, 20),
+				(null, ShopConsumable.Strength, 25),
 			};
 
-			// Assign prices for weapons
-			for (int i = 0; i < items.Count; i++)
+			float spacing = Mathf.Min(76f, roomSize.X / 4f);
+			for (int i = 0; i < items.Length; i++)
 			{
-				var (w, p, pr) = items[i];
-				items[i] = (w, p, w != null ? w.Price : pr);
-			}
-
-			// Space pedestals in a horizontal row
-			float spacing = 70.0f;
-			float startX  = -spacing * (items.Count - 1) / 2.0f;
-			float rowY    = roomSize.Y * 0.1f;
-
-			for (int i = 0; i < items.Count; i++)
-			{
-				var (weapon, potion, price) = items[i];
+				var (weapon, consumable, price) = items[i];
 
 				var pedestal = PedestalScene.Instantiate<ShopPedestal>();
-				pedestal.Position  = new Vector2(startX + i * spacing, rowY);
+				pedestal.Position  = new Vector2((i % 3 - 1) * spacing, -12f + i / 3 * 72f);
 				pedestal.Weapon    = weapon;
-				pedestal.PotionType = potion;
+				pedestal.Consumable = consumable;
 				pedestal.Price     = price;
 				AddChild(pedestal);
 			}

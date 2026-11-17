@@ -12,7 +12,7 @@ namespace RogueBound.Dungeon
 	{
 		// ─── Item definition ─────────────────────────────────────────────────
 		public WeaponData Weapon    { get; set; }
-		public string     PotionType { get; set; }  // "health" | "speed" | null
+		public ShopConsumable Consumable { get; set; }
 		public int        Price      { get; set; }
 
 		// ─── State ───────────────────────────────────────────────────────────
@@ -39,16 +39,14 @@ namespace RogueBound.Dungeon
 			// Populate icon
 			if (_itemIcon != null)
 			{
-				string iconPath = Weapon != null
-					? Weapon.IconPath
-					: (PotionType == "health"
-						? "res://Assets/Temp/Decals/health pot.png"
-						: "res://Assets/Temp/Decals/mana pot.png");
+				var item = ConsumableInfo.Get(Consumable);
+				string iconPath = Weapon?.IconPath ?? item.IconPath;
 
 				var tex = GD.Load<Texture2D>(iconPath);
 				if (tex != null)
 				{
 					_itemIcon.Texture = tex;
+					_itemIcon.Modulate = item.Tint;
 					Vector2 textureSize = tex.GetSize();
 					float iconScale = 24.0f / Mathf.Max(textureSize.X, textureSize.Y);
 					_itemIcon.Scale = Vector2.One * iconScale;
@@ -108,9 +106,7 @@ namespace RogueBound.Dungeon
 			}
 			_promptLabel.Modulate = Colors.White;
 
-			string itemName = Weapon != null
-				? Weapon.Name
-				: (PotionType == "health" ? "Health Potion" : "Speed Potion");
+			string itemName = Weapon?.Name ?? ConsumableInfo.Get(Consumable).Name;
 
 			_promptLabel.Text = $"[E] Buy {itemName}\n{Price} Gold";
 		}
@@ -119,11 +115,18 @@ namespace RogueBound.Dungeon
 		{
 			if (_player == null || _sold) return;
 
+			if (Consumable == ShopConsumable.Shield && _player.HasShield)
+			{
+				_feedback = "SHIELD ALREADY ACTIVE";
+				UpdatePrompt(true);
+				return;
+			}
+
 			if (!_player.SpendMoney(Price))
 			{
 				_feedback = $"NEED {Mathf.Max(0, Price - _player.Money)} MORE GOLD";
 				UpdatePrompt(true);
-				GD.Print($"[Shop] Not enough gold for {Weapon?.Name ?? PotionType}: need {Price - _player.Money} more.");
+				GD.Print($"[Shop] Not enough gold for {Weapon?.Name ?? ConsumableInfo.Get(Consumable).Name}.");
 				return;
 			}
 
@@ -142,15 +145,9 @@ namespace RogueBound.Dungeon
 
 				GD.Print($"[Shop] Bought weapon: {Weapon.Name}");
 			}
-			else if (PotionType == "health")
+			else
 			{
-				_player.Heal(30.0f);
-				GD.Print("[Shop] Used Health Potion (+30 HP)");
-			}
-			else if (PotionType == "speed")
-			{
-				_player.ApplySpeedPotion(20.0f, 10.0f);
-				GD.Print("[Shop] Used Speed Potion (+20 Speed for 10 seconds)");
+				_player.UseConsumable(Consumable);
 			}
 
 			UpdatePrompt(_playerNear);

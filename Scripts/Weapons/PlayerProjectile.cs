@@ -61,6 +61,7 @@ public partial class PlayerProjectile : Area2D
 		else if (body is TileMapLayer || body is StaticBody2D)
 		{
 			_hasHit = true;
+			CombatEffects.Burst(this, CombatEffects.Impact, direction: -_direction);
 			QueueFree();
 		}
 	}

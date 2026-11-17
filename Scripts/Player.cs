@@ -3,6 +3,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using RogueBound.Weapons;
+using RogueBound.Dungeon;
 
 public partial class Player : CharacterBody2D
 {
@@ -23,15 +24,11 @@ public partial class Player : CharacterBody2D
 
 	private float _invulnerabilityTimer = 0.0f;
 	private bool _godMode = false;
-	private float _speedPotionTimeRemaining = 0.0f;
-	private float _speedPotionBonus = 0.0f;
 	private Vector2 _weaponDashDirection;
 	private float _weaponDashDistanceRemaining;
 	private float _weaponDashSpeed;
 	private float _weaponDashTimeRemaining;
 
-	public string ActivePotionName => _speedPotionTimeRemaining > 0.0f ? "Swift Potion" : "";
-	public float ActivePotionTimeRemaining => _speedPotionTimeRemaining;
 
 	// =========================
 	// COMBAT
@@ -76,6 +73,7 @@ public partial class Player : CharacterBody2D
 
 		_attackArea = GetNode<Area2D>("AttackArea");
 		_animatedSprite = GetNode<AnimatedSprite2D>("AnimatedSprite2D");
+		SetupCombatPolish();
 
 		health = MaxHealth;
 
@@ -120,15 +118,8 @@ public partial class Player : CharacterBody2D
 		if (_invulnerabilityTimer > 0)
 			_invulnerabilityTimer -= (float)delta;
 
-		if (_speedPotionTimeRemaining > 0.0f)
-		{
-			_speedPotionTimeRemaining = Mathf.Max(0.0f, _speedPotionTimeRemaining - (float)delta);
-			if (_speedPotionTimeRemaining <= 0.0f)
-			{
-				Speed = Mathf.Max(0.0f, Speed - _speedPotionBonus);
-				_speedPotionBonus = 0.0f;
-			}
-		}
+		UpdatePotion((float)delta);
+		UpdateCameraShake((float)delta);
 
 		if (_weaponDashDistanceRemaining > 0.0f)
 		{
@@ -165,7 +156,7 @@ public partial class Player : CharacterBody2D
             "ui_down"
 		);
 
-		if (direction.X != 0)
+		if (!_isAttacking && direction.X != 0)
 		{
 			bool facingLeft = direction.X < 0;
 			_animatedSprite.FlipH = facingLeft;
@@ -174,10 +165,8 @@ public partial class Player : CharacterBody2D
 
 		if (direction != Vector2.Zero)
 		{
-			Velocity = direction.Normalized() * Speed;
-
-			if (direction.X != 0)
-				_animatedSprite.FlipH = direction.X < 0;
+			float moveSpeed = Speed + (ActivePotion == ShopConsumable.Speed ? 20f : 0f);
+			Velocity = direction.Normalized() * moveSpeed;
 		}
 		else
 		{
@@ -216,6 +205,12 @@ public partial class Player : CharacterBody2D
 
 	public override void _Input(InputEvent @event)
 	{
+		if (@event is InputEventKey dropKey && dropKey.Pressed && !dropKey.Echo && dropKey.Keycode == Key.G)
+		{
+			_weaponComponent?.DropCurrentWeapon();
+			return;
+		}
+
 		// ── Weapon swap (Q key) ──────────────────────────────────────
 		if (@event is InputEventKey swapKey
 			&& swapKey.Pressed
@@ -230,11 +225,6 @@ public partial class Player : CharacterBody2D
 		{
 			Vector2 mousePos = GetGlobalMousePosition();
 			Vector2 aimDir = (mousePos - GlobalPosition).Normalized();
-			bool facingLeft = mousePos.X < GlobalPosition.X;
-
-			_animatedSprite.FlipH = facingLeft;
-			_attackArea.Scale = new Vector2(facingLeft ? -1 : 1, 1);
-
 			if (_weaponComponent != null && _weaponComponent.CanAttack())
 			{
 				_weaponComponent.BeginAttack(aimDir);
@@ -243,7 +233,7 @@ public partial class Player : CharacterBody2D
 			else if (_weaponComponent == null && !_isAttacking)
 			{
 				GD.Print("ATTACK DETECTED!");
-				Attack();
+				DoMeleeAttack(AttackDamage, null, aimDir);
 				GetNode<AudioStreamPlayer2D>("HitSound").Play();
 			}
 		}
@@ -286,30 +276,10 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-	private async void Attack() => await Attack(AttackDamage);
-
-	private async System.Threading.Tasks.Task Attack(int damage)
+	public void DoMeleeAttack(float damage, WeaponData weapon, Vector2 direction)
 	{
-		_isAttacking = true;
-		_animatedSprite.Play("attack");
-
-		DealDamage(damage);
-
-		await ToSignal(
-			_animatedSprite,
-			AnimatedSprite2D.SignalName.AnimationFinished
-		);
-
-		_isAttacking = false;
-	}
-
-	/// <summary>
-	/// Perform a melee attack using a custom damage value.
-	/// This is used by WeaponComponent for melee weapons.
-	/// </summary>
-	public void DoMeleeAttack(int damage)
-	{
-		_ = Attack(damage);
+		PlayWeaponAttack(weapon, direction);
+		DealDamage(damage * WeaponDamageMultiplier);
 	}
 
 	/// <summary>Moves the player forward as part of a weapon's attack.</summary>
@@ -327,7 +297,7 @@ public partial class Player : CharacterBody2D
 		_weaponDashSpeed = distance / duration;
 	}
 
-	private async void DealDamage(int damage)
+	private async void DealDamage(float damage)
 	{
 		await ToSignal(
 			GetTree(),
@@ -359,11 +329,24 @@ public partial class Player : CharacterBody2D
 		if (_invulnerabilityTimer > 0)
 			return;
 
+		if (HasShield)
+		{
+			HasShield = false;
+			QueueRedraw();
+			_invulnerabilityTimer = 0.15f;
+			CombatEffects.Burst(this, CombatEffects.Shield, amount: 16);
+			ShakeCamera(1.2f);
+			return;
+		}
+
+		ShakeCamera(1.8f);
+		CombatEffects.Burst(this, CombatEffects.Impact);
 		health = Mathf.Max(health - damage, 0);
 		_invulnerabilityTimer = DamageInvulnerabilityTime;
 
 		SpawnDamageNumber(damage);
 
+		EndAttackPose();
 		_animatedSprite.Play("hit");
 		GetNode<AudioStreamPlayer2D>("PlayerHurt").Play();
 
@@ -375,21 +358,6 @@ public partial class Player : CharacterBody2D
 			GetNode<AudioStreamPlayer2D>("DeathSound").Play();
 			Die();
 		}
-	}
-
-	public void ApplySpeedPotion(float bonus, float durationSeconds)
-	{
-		if (bonus <= 0.0f || durationSeconds <= 0.0f)
-			return;
-
-		if (_speedPotionTimeRemaining <= 0.0f)
-		{
-			_speedPotionBonus = bonus;
-			Speed += bonus;
-		}
-
-		// Refreshing the potion renews its duration without stacking its bonus.
-		_speedPotionTimeRemaining = durationSeconds;
 	}
 
 	public void Heal(float amount)
@@ -409,6 +377,8 @@ public partial class Player : CharacterBody2D
 		GD.Print("PLAYER DIED!");
 
 		Velocity = Vector2.Zero;
+		if (_shakeCamera != null)
+			_shakeCamera.Offset = _restingCameraOffset;
 		SetPhysicsProcess(false);
 		SetProcessInput(false);
 

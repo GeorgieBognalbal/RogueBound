@@ -213,6 +213,9 @@ public abstract partial class Enemy : CharacterBody2D
 			return;
 
 		_health -= damage;
+		CombatEffects.Burst(this, CombatEffects.Impact, direction: attackerPosition.DirectionTo(GlobalPosition));
+		if (GodotObject.IsInstanceValid(_player) && _player is Player player)
+			player.ShakeCamera(0.85f);
 
 		// Play hit sound if available.
 		GetNodeOrNull<AudioStreamPlayer2D>("HitBoxSound")?.Play();

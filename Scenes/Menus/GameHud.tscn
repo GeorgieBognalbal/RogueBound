@@ -28,6 +28,37 @@ offset_right = 272.0
 offset_bottom = 96.0
 script = ExtResource("1_xyfjw")
 
+[node name="PotionStatus" type="VBoxContainer" parent="HUDControl/HealthBar"]
+visible = false
+offset_left = 12.0
+offset_top = 74.0
+offset_right = 180.0
+mouse_filter = 2
+theme_override_constants/separation = 3
+
+[node name="Effect" type="HBoxContainer" parent="HUDControl/HealthBar/PotionStatus"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Icon" type="TextureRect" parent="HUDControl/HealthBar/PotionStatus/Effect"]
+custom_minimum_size = Vector2(20, 20)
+layout_mode = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Countdown" type="Label" parent="HUDControl/HealthBar/PotionStatus/Effect"]
+layout_mode = 2
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 15
+
+[node name="TimeBar" type="ProgressBar" parent="HUDControl/HealthBar/PotionStatus"]
+custom_minimum_size = Vector2(0, 5)
+layout_mode = 2
+mouse_filter = 2
+show_percentage = false
+
 [node name="HealthFill" type="TextureRect" parent="HUDControl/HealthBar" unique_id=961352865]
 layout_mode = 0
 offset_right = 128.0
@@ -199,7 +230,7 @@ grow_vertical = 0
 theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 14
-text = "[Q] Swap    [E] Interact"
+text = "[Q] Swap    [G] Drop    [E] Interact"
 horizontal_alignment = 1
 
 [node name="PauseMenu" parent="." unique_id=1234567433 instance=ExtResource("5_pause")]

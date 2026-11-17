@@ -9,6 +9,10 @@ public partial class GameHud : Control
 	private Label _waveLabel;
 	private Label _enemiesLabel;
 	private Label _potionEffectLabel;
+	private VBoxContainer _potionStatus;
+	private TextureRect _potionIcon;
+	private ProgressBar _potionTimeBar;
+	private ShopConsumable _displayedPotion;
 
 	private TextureRect _slot0Icon;
 	private TextureRect _slot1Icon;
@@ -29,22 +33,11 @@ public partial class GameHud : Control
 		_coinLabel = GetNodeOrNull<Label>("TopRight/HBoxContainer/CoinLabel");
 		_waveLabel = GetNodeOrNull<Label>("TopCenter/VBoxContainer/WaveLabel");
 		_enemiesLabel = GetNodeOrNull<Label>("TopCenter/VBoxContainer/EnemiesLabel");
-		var healthBar = GetNodeOrNull<Control>("HealthBar");
-		if (healthBar != null)
-		{
-			_potionEffectLabel = new Label
-			{
-				Name = "PotionEffectLabel",
-				Position = new Vector2(0.0f, 84.0f),
-				Size = new Vector2(256.0f, 22.0f),
-				Visible = false,
-				MouseFilter = Control.MouseFilterEnum.Ignore,
-			};
-			_potionEffectLabel.AddThemeColorOverride("font_outline_color", Colors.Black);
-			_potionEffectLabel.AddThemeConstantOverride("outline_size", 3);
-			_potionEffectLabel.AddThemeFontSizeOverride("font_size", 15);
-			healthBar.AddChild(_potionEffectLabel);
-		}
+		_potionStatus = GetNode<VBoxContainer>("HealthBar/PotionStatus");
+		_potionIcon = _potionStatus.GetNode<TextureRect>("Effect/Icon");
+		_potionEffectLabel = _potionStatus.GetNode<Label>("Effect/Countdown");
+		_potionTimeBar = _potionStatus.GetNode<ProgressBar>("TimeBar");
+		_potionTimeBar.MaxValue = Player.PotionDuration;
 
 		_slot0Icon = GetNodeOrNull<TextureRect>("BottomCenter/WeaponSlots/Slot0/Icon");
 		_slot1Icon = GetNodeOrNull<TextureRect>("BottomCenter/WeaponSlots/Slot1/Icon");
@@ -120,19 +113,30 @@ public partial class GameHud : Control
 		{
 			var activeWeapon = activeSlot == 0 ? primary : secondary;
 			_swapHintLabel.Text = activeWeapon?.Id == "dagger"
-				? "[Q] Swap  ·  ATTACK TO DASH"
-				: "[Q] Swap";
+				? "[Q] Swap  [G] Drop  ·  ATTACK TO DASH"
+				: "[Q] Swap  [G] Drop";
 		}
 	}
 
 	public override void _Process(double delta)
 	{
-		if (_player != null && _potionEffectLabel != null)
+		if (_player != null)
 		{
 			float remaining = _player.ActivePotionTimeRemaining;
-			_potionEffectLabel.Visible = remaining > 0.0f;
-			if (remaining > 0.0f)
-				_potionEffectLabel.Text = $"{_player.ActivePotionName}: {Mathf.CeilToInt(remaining)}s";
+			var potion = _player.ActivePotion;
+			_potionStatus.Visible = potion != ShopConsumable.None && _player.health > 0f;
+			if (_potionStatus.Visible)
+			{
+				var info = ConsumableInfo.Get(potion);
+				if (_displayedPotion != potion)
+				{
+					_displayedPotion = potion;
+					_potionIcon.Texture = GD.Load<Texture2D>(info.IconPath);
+					_potionIcon.Modulate = info.Tint;
+				}
+				_potionEffectLabel.Text = $"{info.Name}  {Mathf.CeilToInt(remaining)}s";
+				_potionTimeBar.Value = remaining;
+			}
 		}
 
 		if (_player == null)

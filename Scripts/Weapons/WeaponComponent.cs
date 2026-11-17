@@ -36,15 +36,12 @@ public partial class WeaponComponent : Node
 	[Export] public float StaffChargeRadius = 115.0f;
 	[Export] public float StaffMaxDamageMultiplier = 2.0f;
 	private ProgressBar _chargeBar;
-	private Sprite2D _equippedWeaponSprite;
 
 	[Export] public PackedScene PlayerProjectileScene;
 
 	public override void _Ready()
 	{
 		_player = GetParent<Player>();
-		_equippedWeaponSprite = new Sprite2D { Name = "EquippedWeapon", ZIndex = 1, Scale = new Vector2(0.65f, 0.65f), TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
-		_player.AddChild(_equippedWeaponSprite);
 
 		_chargeBar = new ProgressBar
 		{
@@ -64,41 +61,39 @@ public partial class WeaponComponent : Node
 		SecondaryWeapon = null;
 
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
-		UpdateEquippedWeaponSprite();
 	}
 
-	private void UpdateEquippedWeaponSprite()
-	{
-		if (_equippedWeaponSprite == null) return;
-		var weapon = Current;
-		_equippedWeaponSprite.Texture = weapon != null && !string.IsNullOrEmpty(weapon.IconPath) ? GD.Load<Texture2D>(weapon.IconPath) : null;
-		var animated = _player.GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
-		bool facingLeft = animated != null && animated.FlipH;
-		_equippedWeaponSprite.Position = facingLeft ? new Vector2(-11, 2) : new Vector2(11, 2);
-		_equippedWeaponSprite.FlipH = facingLeft;
-	}
-
-	public override void _Process(double delta) => UpdateEquippedWeaponSprite();
-
-	public override void _Input(InputEvent @event)
-	{
-		if (@event is InputEventKey key && key.Pressed && !key.Echo && key.Keycode == Key.Q)
-			DropCurrentWeapon();
-	}
-
-	private void DropCurrentWeapon()
+	public void DropCurrentWeapon()
 	{
 		var weapon = Current;
-		if (weapon == null || GetTree().CurrentScene == null) return;
+		var world = GetTree().CurrentScene;
+		if (weapon == null || world == null) return;
+
 		var scene = GD.Load<PackedScene>("res://Scenes/Dungeon/WeaponPickup.tscn");
 		if (scene == null) return;
+
 		var pickup = scene.Instantiate<WeaponPickup>();
 		pickup.Weapon = weapon;
-		GetTree().CurrentScene.AddChild(pickup);
-		pickup.GlobalPosition = _player.GlobalPosition;
-		if (ActiveSlot == 0) PrimaryWeapon = null; else SecondaryWeapon = null;
+		pickup.Position = world is Node2D world2D
+			? world2D.ToLocal(_player.GlobalPosition)
+			: _player.GlobalPosition;
+		world.AddChild(pickup);
+
+		if (ActiveSlot == 0)
+			PrimaryWeapon = null;
+		else
+			SecondaryWeapon = null;
+
+		if (PrimaryWeapon != null)
+			ActiveSlot = 0;
+		else if (SecondaryWeapon != null)
+			ActiveSlot = 1;
+
+		_isBowCharging = false;
+		_isStaffCharging = false;
+		HideChargeBar();
+		_player.EndAttackPose();
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
-		UpdateEquippedWeaponSprite();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -134,6 +129,7 @@ public partial class WeaponComponent : Node
 	public void Equip(WeaponData weapon, int slot = -1)
 	{
 		if (weapon == null) return;
+		bool wasUnarmed = Current == null;
 
 		if (slot == -1)
 		{
@@ -146,21 +142,21 @@ public partial class WeaponComponent : Node
 		if (slot == 0)      PrimaryWeapon   = weapon;
 		else if (slot == 1) SecondaryWeapon = weapon;
 
+		if (wasUnarmed && (slot == 0 || slot == 1))
+			ActiveSlot = slot;
+
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
-		UpdateEquippedWeaponSprite();
 		GD.Print($"[Weapon] Equipped '{weapon.Name}' in slot {slot}");
 	}
 
 	/// <summary>Toggle active slot between 0 and 1.</summary>
 	public void SwapWeapon()
 	{
-		// Can only swap if secondary slot has a weapon
-		if (SecondaryWeapon == null) return;
+		if (PrimaryWeapon == null || SecondaryWeapon == null) return;
 
 		ActiveSlot = ActiveSlot == 0 ? 1 : 0;
 		_cooldownTimer = 0.15f; // small swap penalty
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
-		UpdateEquippedWeaponSprite();
 		GD.Print($"[Weapon] Swapped to slot {ActiveSlot} → {Current?.Name}");
 	}
 
@@ -198,7 +194,7 @@ public partial class WeaponComponent : Node
 				_player.PerformWeaponDash(aimDirection, weapon.AttackDashDistance, weapon.AttackDashDuration);
 				_dashCooldownTimer = Mathf.Max(0.0f, weapon.AttackDashCooldown);
 			}
-			_player.DoMeleeAttack(weapon.Damage);
+			_player.DoMeleeAttack(weapon.Damage, weapon, aimDirection);
 		}
 		else
 			FireProjectile(aimDirection, weapon, weapon.ProjectileSpeed);
@@ -217,9 +213,11 @@ public partial class WeaponComponent : Node
 
 			float staffChargeRatio = Mathf.Clamp(
 				_staffChargeTime / Mathf.Max(0.01f, StaffMaxChargeSeconds), 0.0f, 1.0f);
-			float damage = staff.Damage * Mathf.Lerp(1.0f, StaffMaxDamageMultiplier, staffChargeRatio);
+			float damage = staff.Damage * Mathf.Lerp(1.0f, StaffMaxDamageMultiplier, staffChargeRatio)
+				* _player.WeaponDamageMultiplier;
 			float radius = Mathf.Lerp(StaffMinChargeRadius, StaffChargeRadius, staffChargeRatio);
 			_cooldownTimer = staff.Cooldown;
+			_player.PlayWeaponAttack(staff, aimDirection);
 			DischargeStaff(damage, radius);
 			return;
 		}
@@ -257,6 +255,8 @@ public partial class WeaponComponent : Node
 		var lightning = new LightningBurst { Radius = radius };
 		GetTree().CurrentScene.AddChild(lightning);
 		lightning.GlobalPosition = _player.GlobalPosition;
+		var boltTexture = GD.Load<Texture2D>(Current.ProjectileTexturePath);
+		CombatEffects.Burst(_player, CombatEffects.Magic, amount: 12, texture: boltTexture);
 
 		foreach (Node node in GetTree().GetNodesInGroup("enemies"))
 		{
@@ -292,7 +292,8 @@ public partial class WeaponComponent : Node
 
 		GetTree().CurrentScene.AddChild(proj);
 		proj.GlobalPosition = _player.GlobalPosition;
-		proj.Setup(direction, weapon.Damage, projectileSpeed);
+		proj.Setup(direction, weapon.Damage * _player.WeaponDamageMultiplier, projectileSpeed);
+		_player.PlayWeaponAttack(weapon, direction);
 
 		GD.Print($"[Weapon] Fired {weapon.Name} projectile → {direction}");
 	}

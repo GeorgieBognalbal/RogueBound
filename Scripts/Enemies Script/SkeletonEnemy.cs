@@ -64,6 +64,7 @@ public partial class SkeletonEnemy : Enemy
 		{
 			float blockedDamage = damage * BlockDamageReduction;
 			ShowBlockIndicator();
+			CombatEffects.Burst(this, CombatEffects.Shield, direction: directionToAttacker);
 
 			GD.Print("Skeleton Warrior blocked the attack!");
 

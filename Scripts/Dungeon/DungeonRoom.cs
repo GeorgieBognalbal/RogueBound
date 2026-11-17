@@ -56,6 +56,8 @@ namespace RogueBound.Dungeon
 
 		public void Initialize(DungeonRoomData data)
 		{
+			if (data.Type == RoomType.Maze)
+				data.Type = RoomType.Combat;
 			Data = data;
 			GlobalPosition = data.WorldCenter;
 
@@ -142,18 +144,18 @@ namespace RogueBound.Dungeon
 			if (!(body is Player player))
 				return;
 
-			if (Data == null || Data.State == RoomState.Cleared)
+			if (Data == null)
 				return;
 
+			PlayerEntered?.Invoke(this);
 			if (Data.State == RoomState.Unvisited)
 			{
 				Data.State = RoomState.Active;
-				PlayerEntered?.Invoke(this);
 
 				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit || Data.Type == RoomType.GolemBoss)
 				{
 					LockDoorsAfterEntry(player);
-					SpawnWave();
+					CallDeferred(nameof(SpawnWave));
 				}
 				else if (Data.Type == RoomType.Challenge)
 				{
@@ -280,7 +282,6 @@ namespace RogueBound.Dungeon
 			if (_waveSpawned)
 				return;
 
-			_waveSpawned = true;
 			ActiveEnemies.Clear();
 
 			var dm = GetTree().CurrentScene?.GetNodeOrNull<DungeonManager>("DungeonManager");
@@ -303,6 +304,7 @@ namespace RogueBound.Dungeon
 				golem.GlobalPosition = Data.WorldCenter;
 				GetTree().CurrentScene.AddChild(golem);
 				ActiveEnemies.Add(golem);
+				_waveSpawned = true;
 				return;
 			}
 
@@ -327,8 +329,6 @@ namespace RogueBound.Dungeon
 					continue;
 
 				Enemy enemy = packed.Instantiate<Enemy>();
-				GetTree().CurrentScene.AddChild(enemy);
-
 				// Apply floor scaling
 				enemy.MaxHealth *= hpMult;
 				enemy.AttackDamage *= dmgMult;
@@ -348,8 +348,12 @@ namespace RogueBound.Dungeon
 				);
 
 				enemy.GlobalPosition = Data.WorldCenter + offset;
+				GetTree().CurrentScene.AddChild(enemy);
 				ActiveEnemies.Add(enemy);
 			}
+			_waveSpawned = ActiveEnemies.Count > 0;
+			if (!_waveSpawned)
+				GD.PushError($"No enemies spawned in {Name}. Room remains uncleared.");
 		}
 
 		public override void _PhysicsProcess(double delta)

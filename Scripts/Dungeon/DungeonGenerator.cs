@@ -176,10 +176,10 @@ namespace RogueBound.Dungeon
 				candidates.RemoveAt(challengeIndex);
 			}
 
-			// Every third floor replaces the maze with a golem miniboss arena.
-			if (candidates.Count > 0)
+			// Every third floor includes a golem arena. Other slots remain combat rooms.
+			if (candidates.Count > 0 && floorNumber % 3 == 0)
 			{
-				RoomMap[candidates[0]].Type = floorNumber % 3 == 0 ? RoomType.GolemBoss : RoomType.Maze;
+				RoomMap[candidates[0]].Type = RoomType.GolemBoss;
 				candidates.RemoveAt(0);
 			}
 

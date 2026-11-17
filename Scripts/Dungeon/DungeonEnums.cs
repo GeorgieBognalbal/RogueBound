@@ -7,6 +7,7 @@ namespace RogueBound.Dungeon
 		Shop,
 		Challenge,
 		Maze,
+		GolemBoss,
 		BossExit
 	}
 

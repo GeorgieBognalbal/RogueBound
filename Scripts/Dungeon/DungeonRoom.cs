@@ -150,7 +150,7 @@ namespace RogueBound.Dungeon
 				Data.State = RoomState.Active;
 				PlayerEntered?.Invoke(this);
 
-				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit)
+				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit || Data.Type == RoomType.GolemBoss)
 				{
 					LockDoorsAfterEntry(player);
 					SpawnWave();
@@ -288,6 +288,24 @@ namespace RogueBound.Dungeon
 			float hpMult = 1.0f + (floor - 1) * 0.35f;
 			float dmgMult = 1.0f + (floor - 1) * 0.20f;
 
+			if (Data.Type == RoomType.GolemBoss)
+			{
+				var golemScene = GD.Load<PackedScene>("res://Scenes/Enemies/GolemMiniboss.tscn");
+				if (golemScene == null)
+				{
+					GD.PushError("Golem miniboss scene could not be loaded.");
+					return;
+				}
+
+				var golem = golemScene.Instantiate<GolemMiniboss>();
+				golem.MaxHealth *= hpMult;
+				golem.AttackDamage *= dmgMult;
+				golem.GlobalPosition = Data.WorldCenter;
+				GetTree().CurrentScene.AddChild(golem);
+				ActiveEnemies.Add(golem);
+				return;
+			}
+
 			int count = Data.Type == RoomType.BossExit ? (6 + floor) : (int)GD.RandRange(3 + floor, 5 + floor);
 			var rng = new Random();
 
@@ -391,7 +409,7 @@ namespace RogueBound.Dungeon
 			// Handle Combat / Boss Rooms
 			if (Data.State == RoomState.Active)
 			{
-				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit)
+				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit || Data.Type == RoomType.GolemBoss)
 				{
 					if (_waveSpawned)
 					{
@@ -411,7 +429,7 @@ namespace RogueBound.Dungeon
 			Data.State = RoomState.Cleared;
 			UnlockDoors();
 
-			if (Data.Type == RoomType.Combat)
+			if (Data.Type == RoomType.Combat || Data.Type == RoomType.GolemBoss)
 			{
 				var chestScene = GD.Load<PackedScene>("res://Scenes/Dungeon/Chest.tscn");
 				if (chestScene != null && GetTree().CurrentScene != null)

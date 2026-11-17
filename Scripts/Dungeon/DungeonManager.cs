@@ -58,7 +58,7 @@ namespace RogueBound.Dungeon
 			}
 
 			// Generate layout
-			_generator.GenerateLayout();
+			_generator.GenerateLayout(FloorNumber);
 
 			// Carve tiles and build rooms/doors
 			_generator.BuildDungeonTiles(_tileMapLayer, this);
@@ -67,7 +67,7 @@ namespace RogueBound.Dungeon
 			_totalCombatRooms = 0;
 			foreach (var roomNode in _generator.InstantiatedRooms)
 			{
-				if (roomNode.Data.Type == RoomType.Combat || roomNode.Data.Type == RoomType.BossExit)
+				if (roomNode.Data.Type == RoomType.Combat || roomNode.Data.Type == RoomType.BossExit || roomNode.Data.Type == RoomType.GolemBoss)
 					_totalCombatRooms++;
 
 				roomNode.PlayerEntered += OnPlayerEnteredRoom;

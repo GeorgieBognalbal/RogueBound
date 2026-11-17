@@ -19,7 +19,6 @@ public partial class SaveFilesMenu : CanvasLayer
 	private Button _cancelCreateButton;
 	private ConfirmationDialog _deleteDialog;
 	private long _pendingDeleteId = -1;
-	private bool _playAfterCreate;
 	public bool PlayIntent { get; set; }
 
 	public override void _Ready()
@@ -58,7 +57,6 @@ public partial class SaveFilesMenu : CanvasLayer
 		if (_database.GetSaveFiles().Count == 0)
 		{
 			_message.Text = "Create your first save file to begin playing.";
-			_playAfterCreate = PlayIntent;
 			ShowCreateForm();
 		}
 	}
@@ -121,12 +119,13 @@ public partial class SaveFilesMenu : CanvasLayer
 		_message.Text = $"Save file '{name}' created.";
 		RefreshSaveList();
 		ShowSaveStats(id);
-		if (_playAfterCreate) { _playAfterCreate = false; LaunchSave(id); }
+		if (PlayIntent)
+			LaunchSave(id);
 	}
 
 	private void RefreshSaveList()
 	{
-		while (_saveTable.GetChildCount() > 6)
+		while (_saveTable.GetChildCount() > _saveTable.Columns)
 		{
 			Node child = _saveTable.GetChild(_saveTable.GetChildCount() - 1);
 			_saveTable.RemoveChild(child);
@@ -142,9 +141,22 @@ public partial class SaveFilesMenu : CanvasLayer
 			_saveTable.AddChild(MakeColumnLabel(name, 260));
 			_saveTable.AddChild(MakeColumnLabel($"{save["total_kills"]}", 120, true));
 			_saveTable.AddChild(MakeColumnLabel($"{save["highest_wave"]}", 120, true));
-			var play = MakeRowButton("Play"); play.Pressed += () => LaunchSave(id); _saveTable.AddChild(play);
-			var stats = MakeRowButton("Stats"); stats.Pressed += () => ShowSaveStats(id); _saveTable.AddChild(stats);
-			var delete = MakeRowButton("Delete"); delete.Pressed += () => AskDelete(id, name); _saveTable.AddChild(delete);
+			var actions = new HBoxContainer();
+			actions.AddThemeConstantOverride("separation", 8);
+
+			var play = MakeRowButton("Play");
+			play.Pressed += () => LaunchSave(id);
+			actions.AddChild(play);
+
+			var stats = MakeRowButton("Stats");
+			stats.Pressed += () => ShowSaveStats(id);
+			actions.AddChild(stats);
+
+			var delete = MakeRowButton("Delete");
+			delete.Pressed += () => AskDelete(id, name);
+			actions.AddChild(delete);
+
+			_saveTable.AddChild(actions);
 		}
 	}
 
@@ -225,7 +237,8 @@ public partial class SaveFilesMenu : CanvasLayer
 	private async void LaunchSave(long id)
 	{
 		_database.SelectSaveFile(id);
-		string destination = PlayIntent && !Intro.SkipIntro
+		bool playIntro = !Intro.SkipIntro && (PlayIntent || _database.NeedsTutorial(id));
+		string destination = playIntro
 			? "res://Scenes/Intro.tscn"
 			: "res://Scenes/game.tscn";
 		var transition = GetNodeOrNull<SceneTransition>("/root/SceneTransition");

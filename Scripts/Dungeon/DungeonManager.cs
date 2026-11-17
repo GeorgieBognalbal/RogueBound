@@ -104,21 +104,9 @@ namespace RogueBound.Dungeon
 			if (FloorNumber != 1)
 				return;
 
-			var settings = new ConfigFile();
-			settings.Load("user://roguebound_settings.cfg");
-			int tutorialStateVersion = settings.GetValue("tutorial", "state_version", 0).AsInt32();
-			if (tutorialStateVersion < 3)
-			{
-				// Re-show the current tutorial once for profiles that completed an older version.
-				settings.SetValue("tutorial", "tutorial_done", false);
-				settings.SetValue("tutorial", "state_version", 3);
-				Error saveResult = settings.Save("user://roguebound_settings.cfg");
-				if (saveResult != Error.Ok)
-					GD.PushWarning($"Could not initialize tutorial progress: {saveResult}");
-			}
-
-			bool tutorialDone = settings.GetValue("tutorial", "tutorial_done", false).AsBool();
-			if (tutorialDone)
+			var database = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
+			long saveId = database?.CurrentSaveId ?? -1;
+			if (saveId < 0 || !database.NeedsTutorial(saveId))
 				return;
 
 			PackedScene overlayScene = GD.Load<PackedScene>("res://Scenes/Menus/TutorialOverlay.tscn");
@@ -128,7 +116,9 @@ namespace RogueBound.Dungeon
 				return;
 			}
 
-			GetTree().CurrentScene.AddChild(overlayScene.Instantiate<CanvasLayer>());
+			var overlay = overlayScene.Instantiate<TutorialOverlay>();
+			overlay.Continued += () => database.CompleteTutorial(saveId);
+			GetTree().CurrentScene.AddChild(overlay);
 		}
 
 		private void AttachMinimap()

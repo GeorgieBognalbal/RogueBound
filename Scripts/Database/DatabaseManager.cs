@@ -30,7 +30,8 @@ public partial class DatabaseManager : Node
 			CreatedAt TEXT NOT NULL,
 			TotalWavesSurvived INTEGER NOT NULL DEFAULT 0,
 			TotalEnemiesKilled INTEGER NOT NULL DEFAULT 0,
-			HighestWave INTEGER NOT NULL DEFAULT 0
+			HighestWave INTEGER NOT NULL DEFAULT 0,
+			TutorialCompleted INTEGER NOT NULL DEFAULT 0
 		);
 		CREATE TABLE IF NOT EXISTS Runs (
 			RunId INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,6 +53,43 @@ public partial class DatabaseManager : Node
 		if (!HasColumn("Runs", "SaveId"))
 			Execute("ALTER TABLE Runs ADD COLUMN SaveId INTEGER REFERENCES SaveFiles(SaveId) ON DELETE CASCADE;");
 		MigrateLegacyData();
+		if (!HasColumn("SaveFiles", "TutorialCompleted"))
+			MigrateTutorialProgress();
+	}
+
+	private void MigrateTutorialProgress()
+	{
+		var settings = new ConfigFile();
+		bool tutorialDone = settings.Load("user://roguebound_settings.cfg") == Error.Ok
+			&& settings.GetValue("tutorial", "tutorial_done", false).AsBool();
+
+		using var transaction = _connection.BeginTransaction();
+		using var command = new SqliteCommand(
+			"ALTER TABLE SaveFiles ADD COLUMN TutorialCompleted INTEGER NOT NULL DEFAULT 0;", _connection, transaction);
+		command.ExecuteNonQuery();
+		if (tutorialDone)
+		{
+			command.CommandText = @"UPDATE SaveFiles SET TutorialCompleted = 1
+				WHERE EXISTS (SELECT 1 FROM Runs WHERE Runs.SaveId = SaveFiles.SaveId);";
+			command.ExecuteNonQuery();
+		}
+		transaction.Commit();
+	}
+
+	public bool NeedsTutorial(long saveId)
+	{
+		using var command = new SqliteCommand(
+			"SELECT 1 FROM SaveFiles WHERE SaveId = @id AND TutorialCompleted = 0;", _connection);
+		command.Parameters.AddWithValue("@id", saveId);
+		return command.ExecuteScalar() != null;
+	}
+
+	public void CompleteTutorial(long saveId)
+	{
+		using var command = new SqliteCommand(
+			"UPDATE SaveFiles SET TutorialCompleted = 1 WHERE SaveId = @id;", _connection);
+		command.Parameters.AddWithValue("@id", saveId);
+		command.ExecuteNonQuery();
 	}
 
 	private void MigrateLegacyData()

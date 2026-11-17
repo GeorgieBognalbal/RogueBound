@@ -146,6 +146,8 @@ namespace RogueBound.Dungeon
 					fill = new Color(0.75f, 0.25f, 0.75f, 0.85f);
 				else if (data.Type == RoomType.BossExit)
 					fill = new Color(0.2f, 0.7f, 0.85f, 0.85f);
+				else if (data.Type == RoomType.GolemBoss)
+					fill = new Color(0.8f, 0.25f, 0.18f, 0.9f);
 				else if (data.Type == RoomType.Spawn)
 					fill = new Color(0.3f, 0.75f, 0.35f, 0.85f);
 

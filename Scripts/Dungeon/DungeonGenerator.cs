@@ -48,7 +48,7 @@ namespace RogueBound.Dungeon
 			{ DoorDirection.West,  DoorDirection.East }
 		};
 
-		public bool GenerateLayout()
+		public bool GenerateLayout(int floorNumber = 1)
 		{
 			RoomMap.Clear();
 
@@ -128,12 +128,12 @@ namespace RogueBound.Dungeon
 				}
 			}
 
-			AssignSpecialRooms();
+			AssignSpecialRooms(floorNumber);
 			CalculateBounds();
 			return true;
 		}
 
-		private void AssignSpecialRooms()
+		private void AssignSpecialRooms(int floorNumber)
 		{
 			// Find room furthest from spawn
 			Vector2I spawnPos = SpawnRoomData.GridCoord;
@@ -175,10 +175,10 @@ namespace RogueBound.Dungeon
 				candidates.RemoveAt(0);
 			}
 
-			// Assign 1 Maze
+			// Every third floor replaces the maze with a golem miniboss arena.
 			if (candidates.Count > 0)
 			{
-				RoomMap[candidates[0]].Type = RoomType.Maze;
+				RoomMap[candidates[0]].Type = floorNumber % 3 == 0 ? RoomType.GolemBoss : RoomType.Maze;
 				candidates.RemoveAt(0);
 			}
 

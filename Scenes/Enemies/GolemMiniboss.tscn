@@ -1,0 +1,35 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/Enemies/enemy.tscn" id="1_enemy"]
+[ext_resource type="Script" path="res://Scripts/Enemies Script/GolemMiniboss.cs" id="2_golem"]
+[ext_resource type="SpriteFrames" path="res://Assets/Enemies/Golem/GolemBossSpriteFrames.tres" id="3_frames"]
+[ext_resource type="PackedScene" path="res://Scenes/Effects/GolemRock.tscn" id="4_rocks"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_golem_body"]
+radius = 16.0
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_golem_damage"]
+radius = 22.0
+
+[node name="GolemMiniboss" instance=ExtResource("1_enemy")]
+script = ExtResource("2_golem")
+Speed = 18.0
+StopDistance = 150.0
+MaxHealth = 420.0
+AttackDamage = 18.0
+AttackCooldown = 2.0
+RockScene = ExtResource("4_rocks")
+
+[node name="EnemyAnimatedSprite" parent="." index="0"]
+offset = Vector2(0, -24)
+scale = Vector2(2, 2)
+texture_filter = 1
+sprite_frames = ExtResource("3_frames")
+animation = &"spawn"
+autoplay = "spawn"
+
+[node name="EnemyCollisionShape" parent="." index="2"]
+shape = SubResource("CircleShape2D_golem_body")
+
+[node name="CollisionShape2D" parent="DamageArea" index="0"]
+shape = SubResource("CircleShape2D_golem_damage")

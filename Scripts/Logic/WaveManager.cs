@@ -121,11 +121,6 @@ public partial class WaveManager : Node
 
 		GD.Print($"Wave {_currentWave} cleared!");
 
-		DatabaseManager database =
-			GetNode<DatabaseManager>("/root/DatabaseManager");
-
-		database.UpdateWaveProgress(_currentWave, _currentWave);
-
 		// Check for victory condition!
 		if (_currentWave >= MaxWaves)
 		{

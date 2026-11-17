@@ -28,16 +28,14 @@ public partial class DatabaseManager : Node
 			SaveId INTEGER PRIMARY KEY AUTOINCREMENT,
 			Name TEXT NOT NULL COLLATE NOCASE UNIQUE,
 			CreatedAt TEXT NOT NULL,
-			TotalWavesSurvived INTEGER NOT NULL DEFAULT 0,
 			TotalEnemiesKilled INTEGER NOT NULL DEFAULT 0,
-			HighestWave INTEGER NOT NULL DEFAULT 0,
 			TutorialCompleted INTEGER NOT NULL DEFAULT 0
 		);
 		CREATE TABLE IF NOT EXISTS Runs (
 			RunId INTEGER PRIMARY KEY AUTOINCREMENT,
 			DatePlayed TEXT NOT NULL,
-			WavesSurvived INTEGER NOT NULL DEFAULT 0,
-			HighestWave INTEGER NOT NULL DEFAULT 0,
+			RoomsCleared INTEGER,
+			HighestFloor INTEGER,
 			TotalEnemiesKilled INTEGER NOT NULL DEFAULT 0,
 			Result TEXT NOT NULL DEFAULT 'In Progress',
 			IsFinalized INTEGER NOT NULL DEFAULT 0,
@@ -55,6 +53,32 @@ public partial class DatabaseManager : Node
 		MigrateLegacyData();
 		if (!HasColumn("SaveFiles", "TutorialCompleted"))
 			MigrateTutorialProgress();
+		if (!HasColumn("Runs", "RoomsCleared"))
+			Execute("ALTER TABLE Runs ADD COLUMN RoomsCleared INTEGER;");
+		if (!HasColumn("Runs", "HighestFloor"))
+			Execute("ALTER TABLE Runs ADD COLUMN HighestFloor INTEGER;");
+		RemoveWaveColumns();
+	}
+
+	private void RemoveWaveColumns()
+	{
+		string sql = "";
+		foreach (var (table, column) in new[]
+		{
+			("SaveFiles", "TotalWavesSurvived"), ("SaveFiles", "HighestWave"),
+			("Runs", "WavesSurvived"), ("Runs", "HighestWave")
+		})
+		{
+			if (HasColumn(table, column))
+				sql += $"ALTER TABLE {table} DROP COLUMN {column};";
+		}
+		if (sql.Length == 0)
+			return;
+
+		using var transaction = _connection.BeginTransaction();
+		using var command = new SqliteCommand(sql, _connection, transaction);
+		command.ExecuteNonQuery();
+		transaction.Commit();
 	}
 
 	private void MigrateTutorialProgress()
@@ -96,23 +120,25 @@ public partial class DatabaseManager : Node
 	{
 		long unassignedRuns = ScalarLong("SELECT COUNT(*) FROM Runs WHERE SaveId IS NULL;");
 		long oldStatsExists = ScalarLong("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='PlayerStatistics';");
-		long oldWaves = 0, oldKills = 0, oldHighest = 0;
+		long oldKills = 0;
 		if (oldStatsExists > 0)
 		{
-			using var cmd = new SqliteCommand("SELECT TotalWavesSurvived, TotalEnemiesKilled, HighestWave FROM PlayerStatistics WHERE Id=1;", _connection);
+			using var cmd = new SqliteCommand("SELECT TotalEnemiesKilled FROM PlayerStatistics WHERE Id=1;", _connection);
 			using var reader = cmd.ExecuteReader();
-			if (reader.Read()) { oldWaves = reader.GetInt64(0); oldKills = reader.GetInt64(1); oldHighest = reader.GetInt64(2); }
+			if (reader.Read()) oldKills = reader.GetInt64(0);
 		}
 
-		if (unassignedRuns == 0 && oldWaves == 0 && oldKills == 0 && oldHighest == 0) return;
+		if (unassignedRuns == 0 && oldKills == 0)
+		{
+			Execute("DROP TABLE IF EXISTS PlayerStatistics;");
+			return;
+		}
 		long saveId = ScalarLong("SELECT SaveId FROM SaveFiles WHERE Name='Legacy Save' COLLATE NOCASE LIMIT 1;");
 		if (saveId == 0)
 		{
-			using var create = new SqliteCommand("INSERT INTO SaveFiles(Name, CreatedAt, TotalWavesSurvived, TotalEnemiesKilled, HighestWave) VALUES('Legacy Save', @date, @waves, @kills, @highest); SELECT last_insert_rowid();", _connection);
+			using var create = new SqliteCommand("INSERT INTO SaveFiles(Name, CreatedAt, TotalEnemiesKilled) VALUES('Legacy Save', @date, @kills); SELECT last_insert_rowid();", _connection);
 			create.Parameters.AddWithValue("@date", DateTime.UtcNow.ToString("o"));
-			create.Parameters.AddWithValue("@waves", oldWaves);
 			create.Parameters.AddWithValue("@kills", oldKills);
-			create.Parameters.AddWithValue("@highest", oldHighest);
 			saveId = Convert.ToInt64(create.ExecuteScalar());
 		}
 		using var assign = new SqliteCommand("UPDATE Runs SET SaveId=@saveId WHERE SaveId IS NULL;", _connection);
@@ -140,14 +166,17 @@ public partial class DatabaseManager : Node
 	public Godot.Collections.Array<Godot.Collections.Dictionary> GetSaveFiles()
 	{
 		var saves = new Godot.Collections.Array<Godot.Collections.Dictionary>();
-		using var cmd = new SqliteCommand("SELECT SaveId, Name, CreatedAt, TotalWavesSurvived, TotalEnemiesKilled, HighestWave FROM SaveFiles ORDER BY SaveId;", _connection);
+		using var cmd = new SqliteCommand(@"SELECT SaveId, Name, CreatedAt, TotalEnemiesKilled,
+			(SELECT MAX(HighestFloor) FROM Runs WHERE Runs.SaveId = SaveFiles.SaveId AND IsFinalized = 1)
+			FROM SaveFiles ORDER BY SaveId;", _connection);
 		using var reader = cmd.ExecuteReader();
 		while (reader.Read())
 		{
 			var item = new Godot.Collections.Dictionary {
 				["id"] = reader.GetInt64(0), ["name"] = reader.GetString(1), ["created"] = reader.GetString(2),
-				["total_waves"] = reader.GetInt64(3), ["total_kills"] = reader.GetInt64(4), ["highest_wave"] = reader.GetInt64(5)
+				["total_kills"] = reader.GetInt64(3)
 			};
+			item["highest_floor"] = reader.IsDBNull(4) ? "—" : reader.GetInt32(4).ToString();
 			saves.Add(item);
 		}
 		return saves;
@@ -195,22 +224,34 @@ public partial class DatabaseManager : Node
 	public Godot.Collections.Dictionary GetSaveFileSummary(long saveId)
 	{
 		var data = new Godot.Collections.Dictionary();
-		using (var cmd = new SqliteCommand("SELECT Name, CreatedAt, TotalWavesSurvived, TotalEnemiesKilled, HighestWave FROM SaveFiles WHERE SaveId=@id;", _connection))
+		using (var cmd = new SqliteCommand("SELECT Name, CreatedAt, TotalEnemiesKilled FROM SaveFiles WHERE SaveId=@id;", _connection))
 		{
 			cmd.Parameters.AddWithValue("@id", saveId);
 			using var reader = cmd.ExecuteReader();
 			if (!reader.Read()) return data;
 			data["name"] = reader.GetString(0); data["created"] = reader.GetString(1);
-			data["total_waves"] = reader.GetInt64(2); data["total_kills"] = reader.GetInt64(3); data["highest_wave"] = reader.GetInt64(4);
+			data["total_kills"] = reader.GetInt64(2);
 		}
-		using (var cmd = new SqliteCommand("SELECT DatePlayed, WavesSurvived, HighestWave, TotalEnemiesKilled, Result FROM Runs WHERE SaveId=@id AND IsFinalized=1 ORDER BY RunId DESC LIMIT 1;", _connection))
+		using (var cmd = new SqliteCommand(@"SELECT SUM(RoomsCleared), MAX(HighestFloor)
+			FROM Runs WHERE SaveId = @id AND IsFinalized = 1;", _connection))
 		{
 			cmd.Parameters.AddWithValue("@id", saveId);
 			using var reader = cmd.ExecuteReader();
 			if (reader.Read())
 			{
-				data["last_date"] = reader.GetString(0); data["last_waves"] = reader.GetInt64(1); data["last_highest"] = reader.GetInt64(2);
-				data["last_kills"] = reader.GetInt64(3); data["last_result"] = reader.GetString(4);
+				data["total_rooms"] = reader.IsDBNull(0) ? "—" : reader.GetInt64(0).ToString();
+				data["highest_floor"] = reader.IsDBNull(1) ? "—" : reader.GetInt32(1).ToString();
+			}
+		}
+		using (var cmd = new SqliteCommand("SELECT DatePlayed, TotalEnemiesKilled, Result, RoomsCleared FROM Runs WHERE SaveId=@id AND IsFinalized=1 ORDER BY RunId DESC LIMIT 1;", _connection))
+		{
+			cmd.Parameters.AddWithValue("@id", saveId);
+			using var reader = cmd.ExecuteReader();
+			if (reader.Read())
+			{
+				data["last_date"] = reader.GetString(0);
+				data["last_kills"] = reader.GetInt64(1); data["last_result"] = reader.GetString(2);
+				data["last_rooms"] = reader.IsDBNull(3) ? "—" : reader.GetInt64(3).ToString();
 			}
 		}
 		return data;
@@ -249,11 +290,18 @@ public partial class DatabaseManager : Node
 		tx.Commit();
 	}
 
-	public void UpdateWaveProgress(int wavesSurvived, int highestWave)
+	public void UpdateDungeonProgress(int floor, bool roomCleared = false)
 	{
-		if (_currentRunId == -1) return;
-		using var cmd = new SqliteCommand("UPDATE Runs SET WavesSurvived=@waves, HighestWave=@highest WHERE RunId=@run AND IsFinalized=0;", _connection);
-		cmd.Parameters.AddWithValue("@waves", wavesSurvived); cmd.Parameters.AddWithValue("@highest", highestWave); cmd.Parameters.AddWithValue("@run", _currentRunId); cmd.ExecuteNonQuery();
+		if (_currentRunId == -1)
+			return;
+		using var command = new SqliteCommand(@"UPDATE Runs
+			SET RoomsCleared = COALESCE(RoomsCleared, 0) + @cleared,
+				HighestFloor = MAX(COALESCE(HighestFloor, 0), @floor)
+			WHERE RunId = @run AND IsFinalized = 0;", _connection);
+		command.Parameters.AddWithValue("@cleared", roomCleared ? 1 : 0);
+		command.Parameters.AddWithValue("@floor", floor);
+		command.Parameters.AddWithValue("@run", _currentRunId);
+		command.ExecuteNonQuery();
 	}
 
 	public void FinishRun(string result)
@@ -263,9 +311,8 @@ public partial class DatabaseManager : Node
 		using (var cmd = new SqliteCommand("UPDATE Runs SET Result=@result, IsFinalized=1 WHERE RunId=@run AND IsFinalized=0;", _connection, tx))
 		{ cmd.Parameters.AddWithValue("@result", result ?? "Finished"); cmd.Parameters.AddWithValue("@run", _currentRunId); if (cmd.ExecuteNonQuery() == 0) { tx.Rollback(); return; } }
 		using (var cmd = new SqliteCommand(@"UPDATE SaveFiles SET
-			TotalWavesSurvived=TotalWavesSurvived+(SELECT WavesSurvived FROM Runs WHERE RunId=@run),
-			TotalEnemiesKilled=TotalEnemiesKilled+(SELECT TotalEnemiesKilled FROM Runs WHERE RunId=@run),
-			HighestWave=MAX(HighestWave,(SELECT HighestWave FROM Runs WHERE RunId=@run)) WHERE SaveId=@save;", _connection, tx))
+			TotalEnemiesKilled=TotalEnemiesKilled+(SELECT TotalEnemiesKilled FROM Runs WHERE RunId=@run)
+			WHERE SaveId=@save;", _connection, tx))
 		{ cmd.Parameters.AddWithValue("@run", _currentRunId); cmd.Parameters.AddWithValue("@save", _currentRunSaveId); cmd.ExecuteNonQuery(); }
 		tx.Commit(); _lastFinishedRunId = _currentRunId; _lastFinishedSaveId = _currentRunSaveId; _currentRunId = -1; _currentRunSaveId = -1;
 	}
@@ -274,9 +321,14 @@ public partial class DatabaseManager : Node
 	{
 		var data = new Godot.Collections.Dictionary();
 		if (_lastFinishedRunId == -1) return data;
-		using var cmd = new SqliteCommand("SELECT WavesSurvived,HighestWave,TotalEnemiesKilled,Result FROM Runs WHERE RunId=@id;", _connection);
+		using var cmd = new SqliteCommand("SELECT RoomsCleared,HighestFloor,TotalEnemiesKilled,Result FROM Runs WHERE RunId=@id;", _connection);
 		cmd.Parameters.AddWithValue("@id", _lastFinishedRunId); using var reader = cmd.ExecuteReader();
-		if (reader.Read()) { data["waves"] = reader.GetInt32(0); data["highest_wave"] = reader.GetInt32(1); data["total_kills"] = reader.GetInt32(2); data["result"] = reader.GetString(3); }
+		if (reader.Read())
+		{
+			data["rooms"] = reader.IsDBNull(0) ? "—" : reader.GetInt32(0).ToString();
+			data["highest_floor"] = reader.IsDBNull(1) ? "—" : reader.GetInt32(1).ToString();
+			data["total_kills"] = reader.GetInt32(2); data["result"] = reader.GetString(3);
+		}
 		return data;
 	}
 
@@ -299,9 +351,9 @@ public partial class DatabaseManager : Node
 
 	public void PrintDatabaseContents()
 	{
-		using var cmd = new SqliteCommand("SELECT s.Name,r.RunId,r.DatePlayed,r.WavesSurvived,r.HighestWave,r.TotalEnemiesKilled,r.Result FROM Runs r JOIN SaveFiles s ON s.SaveId=r.SaveId ORDER BY r.RunId DESC;", _connection);
+		using var cmd = new SqliteCommand("SELECT s.Name,r.RunId,r.DatePlayed,r.RoomsCleared,r.HighestFloor,r.TotalEnemiesKilled,r.Result FROM Runs r JOIN SaveFiles s ON s.SaveId=r.SaveId ORDER BY r.RunId DESC;", _connection);
 		using var reader = cmd.ExecuteReader();
-		while (reader.Read()) GD.Print($"{reader.GetString(0)} | Run {reader.GetInt64(1)} | {reader.GetString(2)} | waves {reader.GetInt32(3)} | kills {reader.GetInt32(5)} | {reader.GetString(6)}");
+		while (reader.Read()) GD.Print($"{reader.GetString(0)} | Run {reader.GetInt64(1)} | {reader.GetString(2)} | rooms {reader.GetValue(3)} | floor {reader.GetValue(4)} | kills {reader.GetInt32(5)} | {reader.GetString(6)}");
 	}
 
 	public void ClearDatabase()

@@ -56,7 +56,6 @@ namespace RogueBound.Dungeon
 			{
 				WeaponData.Bow,
 				WeaponData.Battleaxe,
-				WeaponData.Staff,
 				WeaponData.Dagger
 			};
 			for (int i = weaponStock.Count - 1; i > 0; i--)
@@ -64,6 +63,9 @@ namespace RogueBound.Dungeon
 				int swapIndex = (int)GD.RandRange(0, i);
 				(weaponStock[i], weaponStock[swapIndex]) = (weaponStock[swapIndex], weaponStock[i]);
 			}
+			// A staff replaces one regular offer in 15% of shops.
+			if (GD.Randf() < 0.15f)
+				weaponStock[1] = WeaponData.Staff;
 
 			var items = new (WeaponData weapon, ShopConsumable consumable, int price)[]
 			{

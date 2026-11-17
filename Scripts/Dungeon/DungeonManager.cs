@@ -12,7 +12,7 @@ namespace RogueBound.Dungeon
 
 		public event Action<int, int> ProgressChanged;
 		public event Action<int> EnemiesCountChanged;
-		public event Action<float, bool> ChallengeTimerUpdated;
+		public event Action<string, string> ChallengeStatusChanged;
 		public event Action<string> ChallengeNotice;
 
 		private DungeonGenerator _generator;
@@ -72,7 +72,7 @@ namespace RogueBound.Dungeon
 
 				roomNode.PlayerEntered += OnPlayerEnteredRoom;
 				roomNode.RoomCleared += OnRoomCleared;
-				roomNode.ChallengeTimerUpdated += (rem, gas) => ChallengeTimerUpdated?.Invoke(rem, gas);
+				roomNode.ChallengeStatusChanged += (title, hint) => ChallengeStatusChanged?.Invoke(title, hint);
 				roomNode.ChallengeNotice += message => ChallengeNotice?.Invoke(message);
 			}
 
@@ -94,6 +94,7 @@ namespace RogueBound.Dungeon
 
 			// Setup minimap
 			AttachMinimap();
+			GetNodeOrNull<DatabaseManager>("/root/DatabaseManager")?.UpdateDungeonProgress(FloorNumber);
 
 			ProgressChanged?.Invoke(_clearedRoomsCount, _totalCombatRooms);
 			SpawnFirstFloorTutorial();
@@ -166,6 +167,7 @@ namespace RogueBound.Dungeon
 				_countedClearedRooms.Add(room.GetInstanceId()))
 			{
 				_clearedRoomsCount++;
+				GetNodeOrNull<DatabaseManager>("/root/DatabaseManager")?.UpdateDungeonProgress(FloorNumber, true);
 			}
 
 			ProgressChanged?.Invoke(_clearedRoomsCount, _totalCombatRooms);
@@ -249,6 +251,9 @@ namespace RogueBound.Dungeon
 
 		private void AdvanceFloor()
 		{
+			foreach (Node item in GetTree().GetNodesInGroup("floor_items"))
+				item.Free();
+
 			FloorNumber++;
 			GD.Print($"[DungeonManager] Advancing to Floor {FloorNumber}!");
 
@@ -278,7 +283,8 @@ namespace RogueBound.Dungeon
 
 		public override void _Process(double delta)
 		{
-			if (_currentRoom != null && _currentRoom.Data.State == RoomState.Active)
+			if (_currentRoom?.Data.State == RoomState.Active &&
+				(_currentRoom.Data.Type == RoomType.Combat || _currentRoom.Data.Type == RoomType.BossExit))
 			{
 				EnemiesCountChanged?.Invoke(_currentRoom.ActiveEnemies.Count);
 			}

@@ -32,9 +32,9 @@ public partial class StatsMenu : CanvasLayer
 		// Lifetime stats
 		var lifetime = db.GetLifetimeStatistics();
 		sb.AppendLine("=== LIFETIME CAREER STATS ===");
-		sb.AppendLine($"Total Waves Survived: {(lifetime.ContainsKey("total_waves") ? lifetime["total_waves"] : 0)}");
+		sb.AppendLine($"Rooms Cleared: {(lifetime.ContainsKey("total_rooms") ? lifetime["total_rooms"] : "—")}");
 		sb.AppendLine($"Total Enemies Slain:  {(lifetime.ContainsKey("total_kills") ? lifetime["total_kills"] : 0)}");
-		sb.AppendLine($"Highest Wave Reached: {(lifetime.ContainsKey("highest_wave") ? lifetime["highest_wave"] : 0)}");
+		sb.AppendLine($"Highest Floor: {(lifetime.ContainsKey("highest_floor") ? lifetime["highest_floor"] : "—")}");
 		sb.AppendLine();
 
 		// Last Run stats
@@ -43,7 +43,7 @@ public partial class StatsMenu : CanvasLayer
 		{
 			sb.AppendLine("=== MOST RECENT RUN ===");
 			sb.AppendLine($"Result:         {lastRun["result"]}");
-			sb.AppendLine($"Waves Cleared:  {lastRun["waves"]}");
+			sb.AppendLine($"Rooms Cleared:  {lastRun["rooms"]}");
 			sb.AppendLine($"Enemies Slain:  {lastRun["total_kills"]}");
 
 			var kills = db.GetLastRunEnemyKills();

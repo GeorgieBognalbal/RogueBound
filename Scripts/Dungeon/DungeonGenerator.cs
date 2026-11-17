@@ -9,6 +9,7 @@ namespace RogueBound.Dungeon
 		[Export] public int GridWidth = 5;
 		[Export] public int GridHeight = 5;
 		[Export] public int TargetRoomCount = 8;
+		[Export(PropertyHint.Range, "0,1,0.05")] public float ChestPuzzleChance = 0.5f;
 
 		[Export] public int RoomTileWidth = 22;
 		[Export] public int RoomTileHeight = 16;
@@ -168,19 +169,8 @@ namespace RogueBound.Dungeon
 				candidates.RemoveAt(0);
 			}
 
-			// Assign 1 Challenge
-			if (candidates.Count > 0)
-			{
-				RoomMap[candidates[0]].Type = RoomType.Challenge;
-				candidates.RemoveAt(0);
-			}
-
-			// Assign 1 Maze
-			if (candidates.Count > 0)
-			{
-				RoomMap[candidates[0]].Type = RoomType.Maze;
-				candidates.RemoveAt(0);
-			}
+			if (candidates.Count > 0 && GD.Randf() < ChestPuzzleChance)
+				RoomMap[candidates[GD.RandRange(0, candidates.Count - 1)]].Type = RoomType.Challenge;
 
 			// All remaining candidates stay RoomType.Combat
 		}
@@ -234,8 +224,7 @@ namespace RogueBound.Dungeon
 					}
 				}
 
-				// Maze and key challenge rooms share the same traversable labyrinth layout.
-				if (roomData.Type == RoomType.Maze || roomData.Type == RoomType.Challenge)
+				if (roomData.Type == RoomType.Challenge)
 				{
 					// Labyrinth wall patterns with clear navigable corridors
 					for (int x = startX + 3; x < startX + w - 5; x++)

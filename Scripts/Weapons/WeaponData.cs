@@ -75,7 +75,7 @@ namespace RogueBound.Weapons
 			IconPath = "res://Decals/weapon_staff.png",
 			ProjectileTexturePath = "res://Decals/magic_bolt.png",
 			ProjectileSpeed = 380.0f,
-			Price = 60
+			Price = 150
 		};
 
 		public static WeaponData Dagger => new WeaponData
@@ -113,6 +113,12 @@ namespace RogueBound.Weapons
 			var pool = new[] { Bow, Battleaxe, Staff, Dagger };
 			int idx = (int)GD.RandRange(0, pool.Length - 1);
 			return pool[idx];
+		}
+
+		public static WeaponData GetRandomChestWeapon()
+		{
+			var pool = new[] { Bow, Battleaxe, Dagger };
+			return pool[GD.RandRange(0, pool.Length - 1)];
 		}
 	}
 }

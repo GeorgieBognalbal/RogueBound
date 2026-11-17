@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/Items/HealthPickup.tscn" id="1"]
+
+[node name="ConsumablePickup" instance=ExtResource("1")]
+Type = 2
+MagnetRange = 28.0

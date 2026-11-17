@@ -9,9 +9,9 @@ public partial class SaveFilesMenu : CanvasLayer
 	private LineEdit _nameInput;
 	private Label _message;
 	private Label _selectedSaveName;
-	private Label _totalWaves;
+	private Label _totalRooms;
 	private Label _totalKills;
-	private Label _bestWave;
+	private Label _highestFloor;
 	private GridContainer _latestRunGrid;
 	private Label _latestRunEmpty;
 	private Button _addButton;
@@ -29,9 +29,9 @@ public partial class SaveFilesMenu : CanvasLayer
 		_nameInput = GetNode<LineEdit>("CenterContainer/Panel/Margins/Content/CreateRow/NameInput");
 		_message = GetNode<Label>("CenterContainer/Panel/Margins/Content/Message");
 		_selectedSaveName = GetNode<Label>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/SelectedSaveName");
-		_totalWaves = GetNode<Label>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalWaves/Value");
+		_totalRooms = GetNode<Label>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalRooms/Value");
 		_totalKills = GetNode<Label>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalKills/Value");
-		_bestWave = GetNode<Label>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/BestWave/Value");
+		_highestFloor = GetNode<Label>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/HighestFloor/Value");
 		_latestRunGrid = GetNode<GridContainer>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid");
 		_latestRunEmpty = GetNode<Label>("CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunEmpty");
 		_addButton = GetNode<Button>("CenterContainer/Panel/Margins/Content/CreateRow/AddButton");
@@ -140,7 +140,7 @@ public partial class SaveFilesMenu : CanvasLayer
 			string name = (string)save["name"];
 			_saveTable.AddChild(MakeColumnLabel(name, 260));
 			_saveTable.AddChild(MakeColumnLabel($"{save["total_kills"]}", 120, true));
-			_saveTable.AddChild(MakeColumnLabel($"{save["highest_wave"]}", 120, true));
+			_saveTable.AddChild(MakeColumnLabel($"{save["highest_floor"]}", 120, true));
 			var actions = new HBoxContainer();
 			actions.AddThemeConstantOverride("separation", 8);
 
@@ -187,9 +187,9 @@ public partial class SaveFilesMenu : CanvasLayer
 		var info = _database.GetSaveFileSummary(id);
 		if (info.Count == 0) { ClearStats(); _selectedSaveName.Text = "Save file not found"; return; }
 		_selectedSaveName.Text = (string)info["name"];
-		_totalWaves.Text = $"{info["total_waves"]}";
+		_totalRooms.Text = $"{info["total_rooms"]}";
 		_totalKills.Text = $"{info["total_kills"]}";
-		_bestWave.Text = $"{info["highest_wave"]}";
+		_highestFloor.Text = $"{info["highest_floor"]}";
 
 		bool hasLatestRun = info.ContainsKey("last_result");
 		_latestRunGrid.Visible = hasLatestRun;
@@ -197,7 +197,7 @@ public partial class SaveFilesMenu : CanvasLayer
 		if (hasLatestRun)
 		{
 			_latestRunGrid.GetNode<Label>("ResultValue").Text = (string)info["last_result"];
-			_latestRunGrid.GetNode<Label>("WavesValue").Text = $"{info["last_waves"]}";
+			_latestRunGrid.GetNode<Label>("RoomsValue").Text = $"{info["last_rooms"]}";
 			_latestRunGrid.GetNode<Label>("KillsValue").Text = $"{info["last_kills"]}";
 			_latestRunGrid.GetNode<Label>("DateValue").Text = FormatDate((string)info["last_date"]);
 		}
@@ -227,9 +227,9 @@ public partial class SaveFilesMenu : CanvasLayer
 	private void ClearStats()
 	{
 		_selectedSaveName.Text = "Select a save file";
-		_totalWaves.Text = "—";
+		_totalRooms.Text = "—";
 		_totalKills.Text = "—";
-		_bestWave.Text = "—";
+		_highestFloor.Text = "—";
 		_latestRunGrid.Visible = false;
 		_latestRunEmpty.Visible = true;
 	}

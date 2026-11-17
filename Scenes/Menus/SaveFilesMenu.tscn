@@ -71,10 +71,10 @@ text = "TOTAL KILLS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BestWave" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
+[node name="HighestFloor" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
 custom_minimum_size = Vector2(120, 34)
 theme_override_font_sizes/font_size = 12
-text = "BEST WAVE"
+text = "HIGHEST FLOOR"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -111,16 +111,16 @@ horizontal_alignment = 1
 alignment = 1
 theme_override_constants/separation = 36
 
-[node name="TotalWaves" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats"]
+[node name="TotalRooms" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats"]
 custom_minimum_size = Vector2(140, 34)
 theme_override_constants/separation = 0
 
-[node name="Heading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalWaves"]
+[node name="Heading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalRooms"]
 theme_override_font_sizes/font_size = 12
-text = "TOTAL WAVES"
+text = "ROOMS CLEARED"
 horizontal_alignment = 1
 
-[node name="Value" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalWaves"]
+[node name="Value" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalRooms"]
 theme_override_font_sizes/font_size = 18
 text = "—"
 horizontal_alignment = 1
@@ -139,16 +139,16 @@ theme_override_font_sizes/font_size = 18
 text = "—"
 horizontal_alignment = 1
 
-[node name="BestWave" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats"]
+[node name="HighestFloor" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats"]
 custom_minimum_size = Vector2(140, 34)
 theme_override_constants/separation = 0
 
-[node name="Heading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/BestWave"]
+[node name="Heading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/HighestFloor"]
 theme_override_font_sizes/font_size = 12
-text = "BEST WAVE"
+text = "HIGHEST FLOOR"
 horizontal_alignment = 1
 
-[node name="Value" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/BestWave"]
+[node name="Value" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/HighestFloor"]
 theme_override_font_sizes/font_size = 18
 text = "—"
 horizontal_alignment = 1
@@ -173,9 +173,9 @@ theme_override_font_sizes/font_size = 12
 text = "LATEST RESULT"
 horizontal_alignment = 1
 
-[node name="WavesHeading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+[node name="RoomsHeading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
 theme_override_font_sizes/font_size = 12
-text = "WAVES"
+text = "ROOMS"
 horizontal_alignment = 1
 
 [node name="KillsHeading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
@@ -193,7 +193,7 @@ theme_override_font_sizes/font_size = 16
 text = "—"
 horizontal_alignment = 1
 
-[node name="WavesValue" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+[node name="RoomsValue" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
 theme_override_font_sizes/font_size = 16
 text = "—"
 horizontal_alignment = 1

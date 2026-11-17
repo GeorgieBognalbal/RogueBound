@@ -12,21 +12,23 @@ namespace RogueBound.Dungeon
 
 		public event Action<DungeonRoom> PlayerEntered;
 		public event Action<DungeonRoom> RoomCleared;
-		public event Action<float, bool> ChallengeTimerUpdated;
+		public event Action<string, string> ChallengeStatusChanged;
 		public event Action<string> ChallengeNotice;
 
 		private Area2D _triggerArea;
 		private CollisionShape2D _triggerCollision;
 		private DungeonPortal _portal;
 		private DungeonChest _challengeChest;
-		private readonly List<DungeonChest> _roomClearLockedChests = new();
-		private DungeonKey _dungeonKey;
+		private readonly int[] _sequence = { 0, 1, 2 };
+		private readonly Area2D[] _plates = new Area2D[3];
+		private const string Runes = "ABC";
+		private int _matched;
+		private float _previewLeft;
+		private float _resetHintLeft;
 		private PoisonGas _poisonGas;
 
 		private bool _waveSpawned = false;
 		private bool _challengeActive = false;
-		private bool _challengeCompleted = false;
-		private bool _challengeFailed = false;
 		private bool _challengeGasStarted = false;
 		private float _challengeTimer = 35.0f;
 		private const float ChallengeGasStartTime = 10.0f;
@@ -89,11 +91,7 @@ namespace RogueBound.Dungeon
 			}
 			else if (data.Type == RoomType.Challenge)
 			{
-				SetupKeyMaze(data, 50, true);
-			}
-			else if (data.Type == RoomType.Maze)
-			{
-				SetupKeyMaze(data, 30, false);
+				SetupPlateMaze(data);
 			}
 			else if (data.Type == RoomType.Shop)
 			{
@@ -101,47 +99,33 @@ namespace RogueBound.Dungeon
 			}
 		}
 
-		private bool IsKeyMaze => Data != null && (Data.Type == RoomType.Challenge || Data.Type == RoomType.Maze);
-
-		private void SetupKeyMaze(DungeonRoomData data, int chestGold, bool usePoisonGas)
+		private void SetupPlateMaze(DungeonRoomData data)
 		{
-			if (usePoisonGas)
-			{
-				var gasScene = GD.Load<PackedScene>("res://Scenes/Dungeon/PoisonGas.tscn");
-				if (gasScene != null)
-				{
-					_poisonGas = gasScene.Instantiate<PoisonGas>();
-					AddChild(_poisonGas);
-					_poisonGas.Position = Vector2.Zero;
-					_poisonGas.SetupBounds(data.WorldBounds.Size);
-				}
-			}
+			_poisonGas = GD.Load<PackedScene>("res://Scenes/Dungeon/PoisonGas.tscn").Instantiate<PoisonGas>();
+			AddChild(_poisonGas);
+			_poisonGas.SetupBounds(data.WorldBounds.Size);
 
-			// The reward remains locked until the player finds the key in the maze.
 			var chestScene = GD.Load<PackedScene>("res://Scenes/Dungeon/Chest.tscn");
 			if (chestScene != null)
 			{
 				_challengeChest = chestScene.Instantiate<DungeonChest>();
-				_challengeChest.GoldAmount = chestGold;
-				LockChestUntilRoomCleared(_challengeChest);
+				_challengeChest.GoldAmount = 50;
+				_challengeChest.LockUntilRoomCleared();
 				AddChild(_challengeChest);
 				_challengeChest.Position = Vector2.Zero;
 				_challengeChest.Visible = true;
 			}
 
-			// Put the key in the far corner so the player must navigate the maze.
-			var keyScene = GD.Load<PackedScene>("res://Scenes/Dungeon/Key.tscn");
-			if (keyScene != null)
+			Vector2[] corners = { new(-0.34f, -0.34f), new(0.34f, -0.34f), new(0.34f, 0.34f) };
+			var plateScene = GD.Load<PackedScene>("res://Scenes/Dungeon/PressurePlate.tscn");
+			for (int i = 0; i < _plates.Length; i++)
 			{
-				_dungeonKey = keyScene.Instantiate<DungeonKey>();
-				AddChild(_dungeonKey);
-
-				// Place in far quadrant (e.g. top-left or bottom-right)
-				float halfW = data.WorldBounds.Size.X * 0.38f;
-				float halfH = data.WorldBounds.Size.Y * 0.38f;
-				_dungeonKey.Position = new Vector2(-halfW, -halfH);
-
-				_dungeonKey.Collected += OnChallengeKeyCollected;
+				int rune = i;
+				var plate = _plates[i] = plateScene.Instantiate<Area2D>();
+				plate.Position = corners[i] * data.WorldBounds.Size;
+				plate.GetNode<Label>("Rune").Text = Runes[i].ToString();
+				plate.BodyEntered += body => { if (body is Player) StepOnPlate(rune); };
+				AddChild(plate);
 			}
 		}
 
@@ -151,12 +135,6 @@ namespace RogueBound.Dungeon
 			AddChild(shop);
 			shop.Position = Vector2.Zero;
 			shop.Setup(data.WorldBounds.Size);
-		}
-
-		private void LockChestUntilRoomCleared(DungeonChest chest)
-		{
-			chest.LockUntilRoomCleared();
-			_roomClearLockedChests.Add(chest);
 		}
 
 		private void OnTriggerBodyEntered(Node2D body)
@@ -177,7 +155,7 @@ namespace RogueBound.Dungeon
 					LockDoorsAfterEntry(player);
 					SpawnWave();
 				}
-				else if (IsKeyMaze)
+				else if (Data.Type == RoomType.Challenge)
 				{
 					LockDoorsAfterEntry(player);
 					StartChallenge();
@@ -194,57 +172,68 @@ namespace RogueBound.Dungeon
 		private void StartChallenge()
 		{
 			_challengeActive = true;
-			_challengeCompleted = false;
-			_challengeFailed = false;
-			_challengeGasStarted = false;
-			_challengeTimer = 35.0f;
-			ChallengeTimerUpdated?.Invoke(_challengeTimer, false);
+			for (int i = _sequence.Length - 1; i > 0; i--)
+			{
+				int j = GD.RandRange(0, i);
+				(_sequence[i], _sequence[j]) = (_sequence[j], _sequence[i]);
+			}
+			_previewLeft = _plates.Length;
+			ChallengeStatusChanged?.Invoke($"MEMORIZE   {Runes[_sequence[0]]} - {Runes[_sequence[1]]} - {Runes[_sequence[2]]}",
+				"Then step on the plates in order");
+			ShowPreviewPlate(0);
 		}
 
-		private void OnChallengeKeyCollected()
+		private void ShowPreviewPlate(int index)
 		{
-			if (_challengeFailed || _challengeCompleted)
-				return;
-
-			_challengeCompleted = true;
-			_challengeActive = false;
-
-			if (_poisonGas != null)
-			{
-				_poisonGas.Disperse();
-			}
-
-			Data.State = RoomState.Cleared;
-			UnlockDoors();
-			foreach (var chest in _roomClearLockedChests)
-			{
-				if (GodotObject.IsInstanceValid(chest))
-					chest.MarkRoomCleared();
-			}
-
-			ChallengeTimerUpdated?.Invoke(0.0f, false);
-			ChallengeNotice?.Invoke("KEY FOUND! CHEST UNLOCKED");
-			RoomCleared?.Invoke(this);
+			for (int i = 0; i < _plates.Length; i++)
+				_plates[_sequence[i]].Modulate = i == index ? Colors.Gold : Colors.LightGray;
 		}
 
-		private void FailChallenge()
+		private void StepOnPlate(int rune)
 		{
-			if (_challengeFailed || _challengeCompleted)
+			if (!_challengeActive || _previewLeft > 0)
 				return;
 
-			_challengeFailed = true;
+			if (rune != _sequence[_matched])
+			{
+				_matched = 0;
+				_resetHintLeft = 1.5f;
+				ShowPreviewPlate(-1);
+			}
+			else
+			{
+				_resetHintLeft = 0;
+				_plates[rune].Modulate = Colors.LightGreen;
+				if (++_matched == _plates.Length)
+				{
+					FinishChallenge(true);
+					return;
+				}
+			}
+			UpdatePlateHud();
+		}
+
+		private void UpdatePlateHud()
+		{
+			string hint = _resetHintLeft > 0 ? "Wrong plate! Start the sequence again" : "Step on the plates in order";
+			ChallengeStatusChanged?.Invoke($"PLATES {_matched}/{_plates.Length}   {Mathf.CeilToInt(_challengeTimer)}s",
+				_challengeGasStarted ? $"Gas!  {hint}" : hint);
+		}
+
+		private void FinishChallenge(bool solved)
+		{
 			_challengeActive = false;
 			_poisonGas?.Disperse();
-			if (GodotObject.IsInstanceValid(_challengeChest))
-				_challengeChest.Disappear();
-			if (GodotObject.IsInstanceValid(_dungeonKey))
-				_dungeonKey.Disappear();
-
-			Data.State = RoomState.Cleared;
-			UnlockDoors();
-			ChallengeTimerUpdated?.Invoke(0.0f, false);
-			RoomCleared?.Invoke(this);
-			ChallengeNotice?.Invoke("FAILED! TIME UP — CHEST LOST");
+			if (solved)
+				_challengeChest?.MarkRoomCleared();
+			else
+			{
+				_challengeChest?.Disappear();
+				foreach (var plate in _plates)
+					plate.Modulate = Colors.DimGray;
+			}
+			OnRoomCleared();
+			ChallengeNotice?.Invoke(solved ? "CHEST UNLOCKED!" : "FAILED! TIME UP — CHEST LOST");
 		}
 
 		private void LockDoorsAfterEntry(Player player)
@@ -279,6 +268,7 @@ namespace RogueBound.Dungeon
 
 		public void UnlockDoors()
 		{
+			_pendingDoorLock = false;
 			foreach (var door in Doors)
 			{
 				door.Open();
@@ -362,12 +352,27 @@ namespace RogueBound.Dungeon
 			}
 
 			// Handle Challenge Room Timer
-			if (IsKeyMaze && _challengeActive && !_challengeCompleted && !_challengeFailed)
+			if (_challengeActive)
 			{
+				if (_previewLeft > 0)
+				{
+					int previous = Mathf.CeilToInt(_previewLeft);
+					_previewLeft = Mathf.Max(0, _previewLeft - dt);
+					int left = Mathf.CeilToInt(_previewLeft);
+					if (left != previous)
+						ShowPreviewPlate(_plates.Length - left);
+					if (left == 0)
+						UpdatePlateHud();
+					return;
+				}
+
+				int seconds = Mathf.CeilToInt(_challengeTimer);
+				bool hadResetHint = _resetHintLeft > 0;
+				_resetHintLeft -= dt;
 				_challengeTimer -= dt;
 				if (_challengeTimer <= 0.0f)
 				{
-					FailChallenge();
+					FinishChallenge(false);
 					return;
 				}
 
@@ -379,7 +384,8 @@ namespace RogueBound.Dungeon
 					_poisonGas.Activate(0.4f);
 				}
 
-				ChallengeTimerUpdated?.Invoke(Mathf.Max(_challengeTimer, 0.0f), gasSpread);
+				if (seconds != Mathf.CeilToInt(_challengeTimer) || (hadResetHint && _resetHintLeft <= 0))
+					UpdatePlateHud();
 			}
 
 			// Handle Combat / Boss Rooms
@@ -404,11 +410,6 @@ namespace RogueBound.Dungeon
 		{
 			Data.State = RoomState.Cleared;
 			UnlockDoors();
-			foreach (var chest in _roomClearLockedChests)
-			{
-				if (GodotObject.IsInstanceValid(chest))
-					chest.MarkRoomCleared();
-			}
 
 			if (Data.Type == RoomType.Combat)
 			{

@@ -15,6 +15,7 @@ namespace RogueBound.Dungeon
 
 		public override void _Ready()
 		{
+			AddToGroup("floor_items");
 			_sprite = GetNodeOrNull<Sprite2D>("Sprite2D");
 			_audio = GetNodeOrNull<AudioStreamPlayer2D>("OpenAudio");
 			BodyEntered += OnBodyEntered;
@@ -106,10 +107,18 @@ namespace RogueBound.Dungeon
 				if (wpScene != null && GetTree().CurrentScene != null)
 				{
 					var wp = wpScene.Instantiate<WeaponPickup>();
-					wp.Weapon = WeaponData.GetRandomShopWeapon();
+					wp.Weapon = WeaponData.GetRandomChestWeapon();
 					wp.GlobalPosition = GlobalPosition + new Vector2((float)GD.RandRange(-24, 24), 22);
 					GetTree().CurrentScene.CallDeferred("add_child", wp);
 				}
+			}
+
+			if (GD.Randf() < 0.4f)
+			{
+				var drop = GD.Load<PackedScene>("res://Scenes/Items/ConsumablePickup.tscn").Instantiate<Pickup>();
+				drop.Type = GD.Randf() < 0.5f ? Pickup.PickupType.Speed : Pickup.PickupType.Shield;
+				drop.Position = GlobalPosition + new Vector2(0, -30);
+				GetTree().CurrentScene.CallDeferred("add_child", drop);
 			}
 
 			// Disable collision after opened

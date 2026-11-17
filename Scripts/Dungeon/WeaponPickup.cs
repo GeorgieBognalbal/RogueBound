@@ -20,6 +20,7 @@ namespace RogueBound.Dungeon
 
 		public override void _Ready()
 		{
+			AddToGroup("floor_items");
 			_initialPos = Position;
 			_iconSprite = GetNodeOrNull<Sprite2D>("Sprite2D");
 			_label = GetNodeOrNull<Label>("Label");

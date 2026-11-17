@@ -15,6 +15,7 @@ public partial class Player
 	private float _regenElapsed;
 
 	public const float PotionDuration = 10f;
+	public float ActivePotionDuration => ActivePotion == ShopConsumable.Speed ? 120f : PotionDuration;
 	public ShopConsumable ActivePotion { get; private set; }
 	public float ActivePotionTimeRemaining { get; private set; }
 	public bool HasShield { get; private set; }
@@ -128,7 +129,7 @@ public partial class Player
 		}
 
 		ActivePotion = item;
-		ActivePotionTimeRemaining = PotionDuration;
+		ActivePotionTimeRemaining = ActivePotionDuration;
 		_regenElapsed = 0f;
 		Color color = item switch
 		{

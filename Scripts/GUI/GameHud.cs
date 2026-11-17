@@ -135,6 +135,7 @@ public partial class GameHud : Control
 					_potionIcon.Modulate = info.Tint;
 				}
 				_potionEffectLabel.Text = $"{info.Name}  {Mathf.CeilToInt(remaining)}s";
+				_potionTimeBar.MaxValue = _player.ActivePotionDuration;
 				_potionTimeBar.Value = remaining;
 			}
 		}
@@ -229,7 +230,7 @@ public partial class GameHud : Control
 		{
 			_dungeonManager.ProgressChanged += OnDungeonProgressChanged;
 			_dungeonManager.EnemiesCountChanged += OnDungeonEnemiesCountChanged;
-			_dungeonManager.ChallengeTimerUpdated += OnChallengeTimerUpdated;
+			_dungeonManager.ChallengeStatusChanged += OnChallengeStatusChanged;
 			_dungeonManager.ChallengeNotice += OnChallengeNotice;
 			OnDungeonProgressChanged(_dungeonManager.ClearedRooms, _dungeonManager.TotalCombatRooms);
 			return;
@@ -259,29 +260,16 @@ public partial class GameHud : Control
 		}
 	}
 
-	private void OnChallengeTimerUpdated(float remaining, bool gasActive)
+	private void OnChallengeStatusChanged(string title, string hint)
 	{
-		if (_waveLabel == null)
-			return;
-
-		if (remaining > 0.0f)
+		_challengeNoticeVersion++;
+		if (_waveLabel != null)
 		{
-			_challengeNoticeVersion++;
-			_waveLabel.Text = $"⚠️ CHALLENGE: FIND KEY! [ {Mathf.CeilToInt(remaining)}s ]";
-			_waveLabel.Modulate = new Color(1.0f, 0.85f, 0.2f);
+			_waveLabel.Text = title;
+			_waveLabel.Modulate = Colors.Gold;
 		}
-		else if (gasActive)
-		{
-			_waveLabel.Text = "☠️ GAS SPREADING! FIND KEY! ☠️";
-			_waveLabel.Modulate = new Color(0.2f, 1.0f, 0.3f);
-		}
-		else
-		{
-			if (_dungeonManager != null)
-			{
-				OnDungeonProgressChanged(_dungeonManager.ClearedRooms, _dungeonManager.TotalCombatRooms);
-			}
-		}
+		if (_enemiesLabel != null)
+			_enemiesLabel.Text = hint;
 	}
 
 	private async void OnChallengeNotice(string message)
@@ -343,7 +331,7 @@ public partial class GameHud : Control
 		{
 			_dungeonManager.ProgressChanged -= OnDungeonProgressChanged;
 			_dungeonManager.EnemiesCountChanged -= OnDungeonEnemiesCountChanged;
-			_dungeonManager.ChallengeTimerUpdated -= OnChallengeTimerUpdated;
+			_dungeonManager.ChallengeStatusChanged -= OnChallengeStatusChanged;
 			_dungeonManager.ChallengeNotice -= OnChallengeNotice;
 		}
 

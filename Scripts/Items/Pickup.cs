@@ -1,11 +1,14 @@
 using Godot;
+using RogueBound.Dungeon;
 
 public partial class Pickup : Area2D
 {
 	public enum PickupType
 	{
 		Coin,
-		Health
+		Health,
+		Speed,
+		Shield
 	}
 
 	[Export] public PickupType Type = PickupType.Coin;
@@ -20,6 +23,14 @@ public partial class Pickup : Area2D
 
 	public override void _Ready()
 	{
+		AddToGroup("floor_items");
+		if (Type == PickupType.Speed || Type == PickupType.Shield)
+		{
+			var info = ConsumableInfo.Get(Type == PickupType.Speed ? ShopConsumable.Speed : ShopConsumable.Shield);
+			var sprite = GetNode<Sprite2D>("Sprite2D");
+			sprite.Texture = GD.Load<Texture2D>(info.IconPath);
+			sprite.Scale = Vector2.One * (20f / sprite.Texture.GetWidth());
+		}
 		// Pickup areas must monitor the player's collision layer so magnetized
 		// items are collected and removed when they reach the player.
 		CollisionMask |= 2;
@@ -45,6 +56,16 @@ public partial class Pickup : Area2D
 
 		if (_player != null && GodotObject.IsInstanceValid(_player))
 		{
+			if (Type == PickupType.Shield)
+			{
+				if (_player.HasShield)
+					return;
+				if (OverlapsBody(_player))
+				{
+					OnBodyEntered(_player);
+					return;
+				}
+			}
 			float distance = GlobalPosition.DistanceTo(_player.GlobalPosition);
 
 			// Magnet effect towards player when nearby
@@ -67,6 +88,8 @@ public partial class Pickup : Area2D
 
 		if (body is Player player)
 		{
+			if (Type == PickupType.Shield && player.HasShield)
+				return;
 			_collected = true;
 			Visible = false;
 			SetDeferred(Area2D.PropertyName.Monitoring, false);
@@ -78,6 +101,10 @@ public partial class Pickup : Area2D
 			else if (Type == PickupType.Health)
 			{
 				player.Heal(Value);
+			}
+			else
+			{
+				player.UseConsumable(Type == PickupType.Speed ? ShopConsumable.Speed : ShopConsumable.Shield);
 			}
 
 			// Play pickup audio if attached

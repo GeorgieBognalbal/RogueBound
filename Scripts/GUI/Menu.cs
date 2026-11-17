@@ -31,6 +31,7 @@ public partial class Menu : Control
 
 	public void OnPlayPressed()
 	{
+		// Keep save selection intact; a Start-intent selection enters the intro from SaveFilesMenu.
 		OpenSaveFiles(true);
 	}
 

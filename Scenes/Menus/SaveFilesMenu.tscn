@@ -58,41 +58,41 @@ columns = 6
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 
-[node name="PlayerName" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+[node name="PlayerName" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
 custom_minimum_size = Vector2(260, 34)
 theme_override_font_sizes/font_size = 12
 text = "PLAYER NAME"
 vertical_alignment = 1
 
-[node name="TotalKills" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+[node name="TotalKills" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
 custom_minimum_size = Vector2(120, 34)
 theme_override_font_sizes/font_size = 12
 text = "TOTAL KILLS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="BestWave" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+[node name="BestWave" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
 custom_minimum_size = Vector2(120, 34)
 theme_override_font_sizes/font_size = 12
 text = "BEST WAVE"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="PlayHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+[node name="PlayHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
 custom_minimum_size = Vector2(80, 34)
 theme_override_font_sizes/font_size = 12
 text = "PLAY"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StatsHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+[node name="StatsHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
 custom_minimum_size = Vector2(80, 34)
 theme_override_font_sizes/font_size = 12
 text = "STATS"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="DeleteHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+[node name="DeleteHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter/SaveTable"]
 custom_minimum_size = Vector2(80, 34)
 theme_override_font_sizes/font_size = 12
 text = "DELETE"

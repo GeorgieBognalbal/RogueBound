@@ -21,6 +21,8 @@ public partial class WeaponComponent : Node
 
 	// ─── Internal ────────────────────────────────────────────────────────────
 	private float _cooldownTimer = 0.0f;
+	private float _dashCooldownTimer = 0.0f;
+	public float DashCooldownRemaining => Mathf.Max(0.0f, _dashCooldownTimer);
 	private Player _player;
 	private bool _isBowCharging = false;
 	private float _bowChargeTime = 0.0f;
@@ -64,6 +66,9 @@ public partial class WeaponComponent : Node
 	{
 		if (_cooldownTimer > 0)
 			_cooldownTimer -= (float)delta;
+
+		if (_dashCooldownTimer > 0.0f)
+			_dashCooldownTimer = Mathf.Max(0.0f, _dashCooldownTimer - (float)delta);
 
 		if (_isBowCharging)
 		{
@@ -146,7 +151,14 @@ public partial class WeaponComponent : Node
 
 		_cooldownTimer = weapon.Cooldown;
 		if (weapon.Type == WeaponType.Melee)
+		{
+			if (weapon.AttackDashDistance > 0.0f && _dashCooldownTimer <= 0.0f)
+			{
+				_player.PerformWeaponDash(aimDirection, weapon.AttackDashDistance, weapon.AttackDashDuration);
+				_dashCooldownTimer = Mathf.Max(0.0f, weapon.AttackDashCooldown);
+			}
 			_player.DoMeleeAttack(weapon.Damage);
+		}
 		else
 			FireProjectile(aimDirection, weapon, weapon.ProjectileSpeed);
 	}

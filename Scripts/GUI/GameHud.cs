@@ -1,5 +1,6 @@
 using Godot;
 using RogueBound.Dungeon;
+using RogueBound.Weapons;
 
 public partial class GameHud : Control
 {
@@ -12,6 +13,9 @@ public partial class GameHud : Control
 	private TextureRect _slot1Icon;
 	private Panel _slot0Frame;
 	private Panel _slot1Frame;
+	private ProgressBar _slot0DashCooldownBar;
+	private ProgressBar _slot1DashCooldownBar;
+	private WeaponComponent _weaponComponent;
 	private Label _swapHintLabel;
 
 	private Player _player;
@@ -44,6 +48,9 @@ public partial class GameHud : Control
 		_slot1Icon = GetNodeOrNull<TextureRect>("BottomCenter/WeaponSlots/Slot1/Icon");
 		_slot0Frame = GetNodeOrNull<Panel>("BottomCenter/WeaponSlots/Slot0");
 		_slot1Frame = GetNodeOrNull<Panel>("BottomCenter/WeaponSlots/Slot1");
+
+		_slot0DashCooldownBar = CreateDashCooldownBar(_slot0Frame, "Slot0DashCooldownBar");
+		_slot1DashCooldownBar = CreateDashCooldownBar(_slot1Frame, "Slot1DashCooldownBar");
 		_swapHintLabel = GetNodeOrNull<Label>("BottomCenter/SwapHint");
 
 		_player = GetTree().GetFirstNodeInGroup("player") as Player;
@@ -60,11 +67,11 @@ public partial class GameHud : Control
 	private void HookPlayerWeapons()
 	{
 		if (_player == null) return;
-		var wc = _player.GetNodeOrNull<WeaponComponent>("WeaponComponent");
-		if (wc != null)
+		_weaponComponent = _player.GetNodeOrNull<WeaponComponent>("WeaponComponent");
+		if (_weaponComponent != null)
 		{
-			wc.WeaponChanged += OnWeaponChanged;
-			OnWeaponChanged(wc.PrimaryWeapon, wc.SecondaryWeapon, wc.ActiveSlot);
+			_weaponComponent.WeaponChanged += OnWeaponChanged;
+			OnWeaponChanged(_weaponComponent.PrimaryWeapon, _weaponComponent.SecondaryWeapon, _weaponComponent.ActiveSlot);
 		}
 	}
 
@@ -107,6 +114,13 @@ public partial class GameHud : Control
 		{
 			_slot1Frame.Modulate = activeSlot == 1 ? Colors.White : new Color(0.5f, 0.5f, 0.5f, 0.6f);
 		}
+		if (_swapHintLabel != null)
+		{
+			var activeWeapon = activeSlot == 0 ? primary : secondary;
+			_swapHintLabel.Text = activeWeapon?.Id == "dagger"
+				? "[Q] Swap  ·  ATTACK TO DASH"
+				: "[Q] Swap";
+		}
 	}
 
 	public override void _Process(double delta)
@@ -130,12 +144,78 @@ public partial class GameHud : Control
 			}
 		}
 
+		UpdateDashCooldownBars();
+
 		if (_dungeonManager == null && _waveManager == null)
 		{
 			HookManagers();
 		}
 	}
 
+	private ProgressBar CreateDashCooldownBar(Panel slot, string barName)
+	{
+		if (slot == null)
+			return null;
+
+		var bar = new ProgressBar
+		{
+			Name = barName,
+			AnchorLeft = 0.0f,
+			AnchorTop = 0.0f,
+			AnchorRight = 1.0f,
+			AnchorBottom = 0.0f,
+			OffsetLeft = 1.0f,
+			OffsetTop = -7.0f,
+			OffsetRight = -1.0f,
+			OffsetBottom = -3.0f,
+			MinValue = 0.0f,
+			MaxValue = 1.0f,
+			ShowPercentage = false,
+			Visible = false,
+			MouseFilter = Control.MouseFilterEnum.Ignore,
+		};
+
+		var background = new StyleBoxFlat
+		{
+			BgColor = new Color(0.08f, 0.04f, 0.14f, 0.95f),
+			BorderColor = new Color(0.72f, 0.35f, 1.0f, 1.0f),
+			BorderWidthTop = 1,
+			BorderWidthBottom = 1,
+			BorderWidthLeft = 1,
+			BorderWidthRight = 1,
+		};
+		var fill = new StyleBoxFlat
+		{
+			BgColor = new Color(0.72f, 0.35f, 1.0f, 1.0f),
+		};
+		bar.AddThemeStyleboxOverride("background", background);
+		bar.AddThemeStyleboxOverride("fill", fill);
+		slot.AddChild(bar);
+		return bar;
+	}
+
+	private void UpdateDashCooldownBars()
+	{
+		if (_weaponComponent == null)
+			return;
+
+		UpdateDashCooldownBar(_slot0DashCooldownBar, _weaponComponent.PrimaryWeapon);
+		UpdateDashCooldownBar(_slot1DashCooldownBar, _weaponComponent.SecondaryWeapon);
+	}
+
+	private void UpdateDashCooldownBar(ProgressBar bar, WeaponData weapon)
+	{
+		if (bar == null)
+			return;
+
+		float cooldown = weapon?.AttackDashCooldown ?? 0.0f;
+		float remaining = _weaponComponent.DashCooldownRemaining;
+		bool hasDashCooldown = weapon != null && weapon.AttackDashDistance > 0.0f && cooldown > 0.0f;
+		bool isCoolingDown = hasDashCooldown && remaining > 0.0f;
+
+		bar.Visible = isCoolingDown;
+		bar.Value = isCoolingDown ? Mathf.Clamp(remaining / cooldown, 0.0f, 1.0f) : 0.0f;
+	}
 	private void HookManagers()
 	{
 		_dungeonManager = GetTree().CurrentScene?.GetNodeOrNull<DungeonManager>("DungeonManager");

@@ -21,6 +21,9 @@ namespace RogueBound.Weapons
 		public string IconPath { get; set; }
 		public string ProjectileTexturePath { get; set; }
 		public float ProjectileSpeed { get; set; }
+		public float AttackDashDistance { get; set; }
+		public float AttackDashDuration { get; set; }
+		public float AttackDashCooldown { get; set; }
 		public int Price { get; set; }
 
 		public static WeaponData Sword => new WeaponData
@@ -84,6 +87,9 @@ namespace RogueBound.Weapons
 			Cooldown = 0.18f,
 			Knockback = 80.0f,
 			IconPath = "res://Decals/weapon_dagger.png",
+			AttackDashDistance = 96.0f,
+			AttackDashDuration = 0.16f,
+			AttackDashCooldown = 2.0f,
 			Price = 25
 		};
 

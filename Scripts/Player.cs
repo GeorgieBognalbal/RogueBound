@@ -25,6 +25,10 @@ public partial class Player : CharacterBody2D
 	private bool _godMode = false;
 	private float _speedPotionTimeRemaining = 0.0f;
 	private float _speedPotionBonus = 0.0f;
+	private Vector2 _weaponDashDirection;
+	private float _weaponDashDistanceRemaining;
+	private float _weaponDashSpeed;
+	private float _weaponDashTimeRemaining;
 
 	public string ActivePotionName => _speedPotionTimeRemaining > 0.0f ? "Swift Potion" : "";
 	public float ActivePotionTimeRemaining => _speedPotionTimeRemaining;
@@ -126,6 +130,34 @@ public partial class Player : CharacterBody2D
 			}
 		}
 
+		if (_weaponDashDistanceRemaining > 0.0f)
+		{
+			float dashDelta = (float)delta;
+			float requestedStep = Mathf.Min(_weaponDashSpeed * dashDelta, _weaponDashDistanceRemaining);
+			Velocity = _weaponDashDirection * (requestedStep / Mathf.Max(dashDelta, 0.0001f));
+			Vector2 positionBeforeDashStep = GlobalPosition;
+			MoveAndSlide();
+			float distanceTravelled = positionBeforeDashStep.DistanceTo(GlobalPosition);
+			_weaponDashDistanceRemaining = Mathf.Max(0.0f, _weaponDashDistanceRemaining - distanceTravelled);
+			_weaponDashTimeRemaining = Mathf.Max(0.0f, _weaponDashTimeRemaining - dashDelta);
+	
+			bool hitObstacle = GetSlideCollisionCount() > 0;
+			bool dashFinished = hitObstacle
+				|| _weaponDashDistanceRemaining <= 0.0f
+				|| _weaponDashTimeRemaining <= 0.0f;
+			if (dashFinished)
+			{
+				_weaponDashDistanceRemaining = 0.0f;
+				_weaponDashTimeRemaining = 0.0f;
+				_weaponDashSpeed = 0.0f;
+				Velocity = Vector2.Zero;
+			}
+			else
+			{
+				return;
+			}
+		}
+	
 		Vector2 direction = Input.GetVector(
 			"ui_left",
 			"ui_right",
@@ -254,12 +286,14 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
-	private async void Attack()
+	private async void Attack() => await Attack(AttackDamage);
+
+	private async System.Threading.Tasks.Task Attack(int damage)
 	{
 		_isAttacking = true;
 		_animatedSprite.Play("attack");
 
-		DealDamage();
+		DealDamage(damage);
 
 		await ToSignal(
 			_animatedSprite,
@@ -275,14 +309,25 @@ public partial class Player : CharacterBody2D
 	/// </summary>
 	public void DoMeleeAttack(int damage)
 	{
-		// Temporarily override base AttackDamage for this swing.
-		int previous = AttackDamage;
-		AttackDamage = damage;
-		Attack();
-		AttackDamage = previous;
+		_ = Attack(damage);
 	}
 
-	private async void DealDamage()
+	/// <summary>Moves the player forward as part of a weapon's attack.</summary>
+	public void PerformWeaponDash(Vector2 direction, float distance, float duration)
+	{
+		if (distance <= 0.0f || duration <= 0.0f || health <= 0.0f)
+			return;
+
+		if (direction.LengthSquared() <= 0.001f)
+			direction = _animatedSprite.FlipH ? Vector2.Left : Vector2.Right;
+
+		_weaponDashDirection = direction.Normalized();
+		_weaponDashDistanceRemaining = distance;
+		_weaponDashTimeRemaining = duration;
+		_weaponDashSpeed = distance / duration;
+	}
+
+	private async void DealDamage(int damage)
 	{
 		await ToSignal(
 			GetTree(),
@@ -294,7 +339,7 @@ public partial class Player : CharacterBody2D
 			if (body is Enemy enemy)
 			{
 				GD.Print($"Attacked {enemy.Name}");
-				enemy.TakeDamage(AttackDamage, GlobalPosition);
+				enemy.TakeDamage(damage, GlobalPosition);
 			}
 		}
 	}

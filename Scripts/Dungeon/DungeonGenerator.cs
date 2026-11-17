@@ -228,8 +228,8 @@ namespace RogueBound.Dungeon
 					}
 				}
 
-				// If Maze room, carve labyrinth partitions
-				if (roomData.Type == RoomType.Maze)
+				// Maze and key challenge rooms share the same traversable labyrinth layout.
+				if (roomData.Type == RoomType.Maze || roomData.Type == RoomType.Challenge)
 				{
 					// Labyrinth wall patterns with clear navigable corridors
 					for (int x = startX + 3; x < startX + w - 5; x++)
@@ -248,19 +248,6 @@ namespace RogueBound.Dungeon
 					{
 						if (x < startX + 13 || x > startX + 15) // Keep a three-tile passage
 							layer.SetCell(new Vector2I(x, startY + 11), WallSourceId, WallAtlasCoord);
-					}
-				}
-				// If Challenge room, place obstacle pillars for cover
-				else if (roomData.Type == RoomType.Challenge)
-				{
-					int[] ox = new[] { startX + 5, startX + w - 6 };
-					int[] oy = new[] { startY + 4, startY + h - 5 };
-					foreach (int px in ox)
-					{
-						foreach (int py in oy)
-						{
-							layer.SetCell(new Vector2I(px, py), WallSourceId, WallAtlasCoord);
-						}
 					}
 				}
 

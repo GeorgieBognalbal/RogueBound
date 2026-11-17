@@ -17,6 +17,7 @@ config/features=PackedStringArray("4.7", "C#", "Forward Plus")
 [autoload]
 
 DatabaseManager="*uid://b6vkso0tps6wv"
+SceneTransition="*res://Scripts/GUI/SceneTransition.cs"
 
 [display]
 

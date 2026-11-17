@@ -21,6 +21,10 @@ namespace RogueBound.Dungeon
 			_sprite = GetNodeOrNull<Sprite2D>("Sprite2D");
 			_collision = GetNodeOrNull<CollisionShape2D>("CollisionShape2D");
 			_audio = GetNodeOrNull<AudioStreamPlayer2D>("DoorAudio");
+			// Each doorway needs its own shape because horizontal and vertical doors
+			// use different dimensions. PackedScene subresources can otherwise be shared.
+			if (_collision?.Shape != null)
+				_collision.Shape = (Shape2D)_collision.Shape.Duplicate();
 
 			CollisionLayer = 1; // Wall / obstacle
 			CollisionMask = 3;  // Player and enemies

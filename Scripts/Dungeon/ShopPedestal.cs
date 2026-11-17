@@ -30,6 +30,11 @@ namespace RogueBound.Dungeon
 
 			_promptLabel = GetNodeOrNull<Label>("PromptLabel");
 			_itemIcon    = GetNodeOrNull<Sprite2D>("ItemIcon");
+			if (_promptLabel != null)
+			{
+				_promptLabel.AddThemeFontSizeOverride("font_size", 10);
+				_promptLabel.Visible = false;
+			}
 
 			// Populate icon
 			if (_itemIcon != null)
@@ -51,7 +56,7 @@ namespace RogueBound.Dungeon
 			}
 
 			// Update price label
-			UpdatePrompt(false);
+			UpdatePrompt(_playerNear);
 		}
 
 		public override void _Process(double delta)
@@ -64,7 +69,6 @@ namespace RogueBound.Dungeon
 
 		private void OnBodyEntered(Node2D body)
 		{
-			if (_sold) return;
 			if (body is Player p)
 			{
 				_player    = p;
@@ -87,18 +91,19 @@ namespace RogueBound.Dungeon
 		private void UpdatePrompt(bool visible)
 		{
 			if (_promptLabel == null) return;
+			_promptLabel.Visible = visible;
+			if (!visible) return;
+			_promptLabel.Modulate = Colors.White;
 
 			if (_sold)
 			{
 				_promptLabel.Text    = "[SOLD]";
-				_promptLabel.Visible = true;
 				return;
 			}
 			if (visible && !string.IsNullOrEmpty(_feedback))
 			{
 				_promptLabel.Text = _feedback;
 				_promptLabel.Modulate = new Color(1.0f, 0.55f, 0.42f);
-				_promptLabel.Visible = true;
 				return;
 			}
 			_promptLabel.Modulate = Colors.White;
@@ -107,8 +112,7 @@ namespace RogueBound.Dungeon
 				? Weapon.Name
 				: (PotionType == "health" ? "Health Potion" : "Speed Potion");
 
-			_promptLabel.Text    = visible ? $"[E] Buy {itemName}\n{Price} Gold" : $"{itemName}\n{Price} Gold";
-			_promptLabel.Visible = true;
+			_promptLabel.Text = $"[E] Buy {itemName}\n{Price} Gold";
 		}
 
 		private void TryPurchase()
@@ -149,7 +153,7 @@ namespace RogueBound.Dungeon
 				GD.Print("[Shop] Used Speed Potion (+20 Speed for 10 seconds)");
 			}
 
-			UpdatePrompt(false);
+			UpdatePrompt(_playerNear);
 
 			// Play upgrade sound if available
 			var sound = GetTree().CurrentScene?.GetNodeOrNull<AudioStreamPlayer>("UpgradeSound");

@@ -21,6 +21,11 @@ public partial class EnemyProjectile : Area2D
 
 	public override void _Ready()
 	{
+		// The player is on physics layer 2. Explicitly monitor that layer so
+		// the Area2D hit signal fires when the arrow overlaps the player.
+		CollisionLayer = 0;
+		CollisionMask = 2;
+		Monitoring = true;
 		BodyEntered += OnBodyEntered;
 	}
 

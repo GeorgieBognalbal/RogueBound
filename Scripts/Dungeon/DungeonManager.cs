@@ -13,6 +13,7 @@ namespace RogueBound.Dungeon
 		public event Action<int, int> ProgressChanged;
 		public event Action<int> EnemiesCountChanged;
 		public event Action<float, bool> ChallengeTimerUpdated;
+		public event Action<string> ChallengeNotice;
 
 		private DungeonGenerator _generator;
 		private TileMapLayer _tileMapLayer;
@@ -72,6 +73,7 @@ namespace RogueBound.Dungeon
 				roomNode.PlayerEntered += OnPlayerEnteredRoom;
 				roomNode.RoomCleared += OnRoomCleared;
 				roomNode.ChallengeTimerUpdated += (rem, gas) => ChallengeTimerUpdated?.Invoke(rem, gas);
+				roomNode.ChallengeNotice += message => ChallengeNotice?.Invoke(message);
 			}
 
 			// Spawn player at center of spawn room

@@ -1,4 +1,5 @@
 using Godot;
+using System;
 using RogueBound.Dungeon;
 using RogueBound.Weapons;
 
@@ -21,6 +22,7 @@ public partial class GameHud : Control
 	private Player _player;
 	private WaveManager _waveManager;
 	private DungeonManager _dungeonManager;
+	private int _challengeNoticeVersion;
 
 	public override void _Ready()
 	{
@@ -224,6 +226,7 @@ public partial class GameHud : Control
 			_dungeonManager.ProgressChanged += OnDungeonProgressChanged;
 			_dungeonManager.EnemiesCountChanged += OnDungeonEnemiesCountChanged;
 			_dungeonManager.ChallengeTimerUpdated += OnChallengeTimerUpdated;
+			_dungeonManager.ChallengeNotice += OnChallengeNotice;
 			OnDungeonProgressChanged(_dungeonManager.ClearedRooms, _dungeonManager.TotalCombatRooms);
 			return;
 		}
@@ -259,6 +262,7 @@ public partial class GameHud : Control
 
 		if (remaining > 0.0f)
 		{
+			_challengeNoticeVersion++;
 			_waveLabel.Text = $"⚠️ CHALLENGE: FIND KEY! [ {Mathf.CeilToInt(remaining)}s ]";
 			_waveLabel.Modulate = new Color(1.0f, 0.85f, 0.2f);
 		}
@@ -274,6 +278,25 @@ public partial class GameHud : Control
 				OnDungeonProgressChanged(_dungeonManager.ClearedRooms, _dungeonManager.TotalCombatRooms);
 			}
 		}
+	}
+
+	private async void OnChallengeNotice(string message)
+	{
+		if (_waveLabel == null)
+			return;
+
+		int version = ++_challengeNoticeVersion;
+		_waveLabel.Text = message;
+		_waveLabel.Modulate = message.StartsWith("FAILED", StringComparison.OrdinalIgnoreCase)
+			? new Color(1.0f, 0.35f, 0.3f)
+			: new Color(0.4f, 1.0f, 0.5f);
+		await ToSignal(GetTree().CreateTimer(2.5f), SceneTreeTimer.SignalName.Timeout);
+
+		if (version != _challengeNoticeVersion || !GodotObject.IsInstanceValid(_waveLabel))
+			return;
+
+		if (_dungeonManager != null)
+			OnDungeonProgressChanged(_dungeonManager.ClearedRooms, _dungeonManager.TotalCombatRooms);
 	}
 
 	private void OnDungeonEnemiesCountChanged(int count)
@@ -317,6 +340,7 @@ public partial class GameHud : Control
 			_dungeonManager.ProgressChanged -= OnDungeonProgressChanged;
 			_dungeonManager.EnemiesCountChanged -= OnDungeonEnemiesCountChanged;
 			_dungeonManager.ChallengeTimerUpdated -= OnChallengeTimerUpdated;
+			_dungeonManager.ChallengeNotice -= OnChallengeNotice;
 		}
 
 		if (_waveManager != null)

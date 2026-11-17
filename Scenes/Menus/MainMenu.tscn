@@ -517,7 +517,7 @@ text = "Start"
 layout_mode = 2
 size_flags_vertical = 3
 theme_override_font_sizes/font_size = 30
-text = "Stats"
+text = "Save Files"
 
 [node name="SettingsButton" type="Button" parent="MainMenu/VBoxContainer" unique_id=2068957008]
 layout_mode = 2

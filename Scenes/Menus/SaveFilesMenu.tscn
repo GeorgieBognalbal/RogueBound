@@ -1,0 +1,264 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://Scripts/GUI/SaveFilesMenu.cs" id="1_script"]
+
+[node name="SaveFilesMenu" type="CanvasLayer"]
+script = ExtResource("1_script")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.025, 0.035, 0.055, 0.92)
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="CenterContainer"]
+custom_minimum_size = Vector2(850, 430)
+
+[node name="Margins" type="MarginContainer" parent="CenterContainer/Panel"]
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 14
+
+[node name="Content" type="VBoxContainer" parent="CenterContainer/Panel/Margins"]
+theme_override_constants/separation = 8
+
+[node name="Title" type="Label" parent="CenterContainer/Panel/Margins/Content"]
+theme_override_font_sizes/font_size = 24
+text = "SAVE FILES"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="CenterContainer/Panel/Margins/Content"]
+theme_override_font_sizes/font_size = 12
+text = "Each save keeps its own run history and career stats."
+horizontal_alignment = 1
+
+[node name="SaveScroll" type="ScrollContainer" parent="CenterContainer/Panel/Margins/Content"]
+custom_minimum_size = Vector2(0, 150)
+size_flags_horizontal = 3
+horizontal_scroll_mode = 0
+
+[node name="SaveContents" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/SaveScroll"]
+size_flags_horizontal = 3
+
+[node name="TableCenter" type="CenterContainer" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents"]
+size_flags_horizontal = 3
+
+[node name="SaveTable" type="GridContainer" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/TableCenter"]
+columns = 6
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+
+[node name="PlayerName" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+custom_minimum_size = Vector2(260, 34)
+theme_override_font_sizes/font_size = 12
+text = "PLAYER NAME"
+vertical_alignment = 1
+
+[node name="TotalKills" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+custom_minimum_size = Vector2(120, 34)
+theme_override_font_sizes/font_size = 12
+text = "TOTAL KILLS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="BestWave" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+custom_minimum_size = Vector2(120, 34)
+theme_override_font_sizes/font_size = 12
+text = "BEST WAVE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="PlayHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+custom_minimum_size = Vector2(80, 34)
+theme_override_font_sizes/font_size = 12
+text = "PLAY"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatsHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+custom_minimum_size = Vector2(80, 34)
+theme_override_font_sizes/font_size = 12
+text = "STATS"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="DeleteHeader" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents/SaveTable"]
+custom_minimum_size = Vector2(80, 34)
+theme_override_font_sizes/font_size = 12
+text = "DELETE"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EmptyState" type="Label" parent="CenterContainer/Panel/Margins/Content/SaveScroll/SaveContents"]
+visible = false
+theme_override_font_sizes/font_size = 12
+text = "No save files yet. Create one to start your adventure."
+horizontal_alignment = 1
+
+[node name="StatsPanel" type="PanelContainer" parent="CenterContainer/Panel/Margins/Content"]
+custom_minimum_size = Vector2(0, 142)
+
+[node name="StatsMargins" type="MarginContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel"]
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="StatsContent" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins"]
+theme_override_constants/separation = 4
+
+[node name="SelectedSaveName" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent"]
+theme_override_font_sizes/font_size = 18
+text = "Select a save file"
+horizontal_alignment = 1
+
+[node name="CareerStats" type="HBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent"]
+alignment = 1
+theme_override_constants/separation = 36
+
+[node name="TotalWaves" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats"]
+custom_minimum_size = Vector2(140, 34)
+theme_override_constants/separation = 0
+
+[node name="Heading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalWaves"]
+theme_override_font_sizes/font_size = 12
+text = "TOTAL WAVES"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalWaves"]
+theme_override_font_sizes/font_size = 18
+text = "—"
+horizontal_alignment = 1
+
+[node name="TotalKills" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats"]
+custom_minimum_size = Vector2(140, 34)
+theme_override_constants/separation = 0
+
+[node name="Heading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalKills"]
+theme_override_font_sizes/font_size = 12
+text = "TOTAL KILLS"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/TotalKills"]
+theme_override_font_sizes/font_size = 18
+text = "—"
+horizontal_alignment = 1
+
+[node name="BestWave" type="VBoxContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats"]
+custom_minimum_size = Vector2(140, 34)
+theme_override_constants/separation = 0
+
+[node name="Heading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/BestWave"]
+theme_override_font_sizes/font_size = 12
+text = "BEST WAVE"
+horizontal_alignment = 1
+
+[node name="Value" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/CareerStats/BestWave"]
+theme_override_font_sizes/font_size = 18
+text = "—"
+horizontal_alignment = 1
+
+[node name="LatestRunEmpty" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent"]
+visible = false
+theme_override_font_sizes/font_size = 14
+text = "No completed runs yet."
+horizontal_alignment = 1
+
+[node name="LatestRunCenter" type="CenterContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent"]
+size_flags_horizontal = 3
+
+[node name="LatestRunGrid" type="GridContainer" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter"]
+visible = false
+columns = 4
+theme_override_constants/h_separation = 28
+theme_override_constants/v_separation = 0
+
+[node name="ResultHeading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 12
+text = "LATEST RESULT"
+horizontal_alignment = 1
+
+[node name="WavesHeading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 12
+text = "WAVES"
+horizontal_alignment = 1
+
+[node name="KillsHeading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 12
+text = "KILLS"
+horizontal_alignment = 1
+
+[node name="DateHeading" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 12
+text = "DATE"
+horizontal_alignment = 1
+
+[node name="ResultValue" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 16
+text = "—"
+horizontal_alignment = 1
+
+[node name="WavesValue" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 16
+text = "—"
+horizontal_alignment = 1
+
+[node name="KillsValue" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 16
+text = "—"
+horizontal_alignment = 1
+
+[node name="DateValue" type="Label" parent="CenterContainer/Panel/Margins/Content/StatsPanel/StatsMargins/StatsContent/LatestRunCenter/LatestRunGrid"]
+theme_override_font_sizes/font_size = 16
+text = "—"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="CenterContainer/Panel/Margins/Content"]
+theme_override_font_sizes/font_size = 12
+horizontal_alignment = 1
+
+[node name="CreateRow" type="HBoxContainer" parent="CenterContainer/Panel/Margins/Content"]
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="NameInput" type="LineEdit" parent="CenterContainer/Panel/Margins/Content/CreateRow"]
+visible = false
+size_flags_horizontal = 3
+custom_minimum_size = Vector2(300, 34)
+placeholder_text = "Enter a save file name"
+max_length = 32
+
+[node name="AddButton" type="Button" parent="CenterContainer/Panel/Margins/Content/CreateRow"]
+custom_minimum_size = Vector2(140, 34)
+text = "+ New Save File"
+
+[node name="CreateButton" type="Button" parent="CenterContainer/Panel/Margins/Content/CreateRow"]
+visible = false
+custom_minimum_size = Vector2(80, 34)
+text = "Create"
+
+[node name="CancelButton" type="Button" parent="CenterContainer/Panel/Margins/Content/CreateRow"]
+visible = false
+custom_minimum_size = Vector2(80, 34)
+text = "Cancel"
+
+[node name="Footer" type="HBoxContainer" parent="CenterContainer/Panel/Margins/Content"]
+alignment = 1
+
+[node name="BackButton" type="Button" parent="CenterContainer/Panel/Margins/Content/Footer"]
+custom_minimum_size = Vector2(80, 34)
+text = "Back"
+
+[node name="DeleteDialog" type="ConfirmationDialog" parent="."]
+title = "Delete Save File"
+dialog_text = "Delete this save file and all of its run history? This cannot be undone."

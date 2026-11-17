@@ -45,5 +45,15 @@ namespace RogueBound.Dungeon
 			Visible = false;
 			GetTree().CreateTimer(0.5f).Timeout += () => QueueFree();
 		}
+
+		public void Disappear()
+		{
+			if (_isCollected) return;
+			_isCollected = true;
+			SetDeferred(Area2D.PropertyName.Monitoring, false);
+			GetNodeOrNull<CollisionShape2D>("CollisionShape2D")?.SetDeferred(CollisionShape2D.PropertyName.Disabled, true);
+			Visible = false;
+			QueueFree();
+		}
 	}
 }

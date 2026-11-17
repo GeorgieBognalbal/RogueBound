@@ -48,6 +48,15 @@ namespace RogueBound.Dungeon
 			}
 		}
 
+		public void Disappear()
+		{
+			_roomCleared = false;
+			IsOpened = true;
+			SetDeferred(Area2D.PropertyName.Monitoring, false);
+			GetNodeOrNull<CollisionShape2D>("CollisionShape2D")?.SetDeferred(CollisionShape2D.PropertyName.Disabled, true);
+			Visible = false;
+		}
+
 		public void OpenChest(Player player)
 		{
 			if (IsOpened || !_roomCleared)

@@ -225,8 +225,11 @@ public partial class SaveFilesMenu : CanvasLayer
 	private async void LaunchSave(long id)
 	{
 		_database.SelectSaveFile(id);
+		string destination = PlayIntent && !Intro.SkipIntro
+			? "res://Scenes/Intro.tscn"
+			: "res://Scenes/game.tscn";
 		var transition = GetNodeOrNull<SceneTransition>("/root/SceneTransition");
-		if (transition != null) await transition.ChangeSceneWithFade("res://Scenes/game.tscn");
-		else GetTree().ChangeSceneToFile("res://Scenes/game.tscn");
+		if (transition != null) await transition.ChangeSceneWithFade(destination);
+		else GetTree().ChangeSceneToFile(destination);
 	}
 }

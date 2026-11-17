@@ -96,6 +96,39 @@ namespace RogueBound.Dungeon
 			AttachMinimap();
 
 			ProgressChanged?.Invoke(_clearedRoomsCount, _totalCombatRooms);
+			SpawnFirstFloorTutorial();
+		}
+
+		private void SpawnFirstFloorTutorial()
+		{
+			if (FloorNumber != 1)
+				return;
+
+			var settings = new ConfigFile();
+			settings.Load("user://roguebound_settings.cfg");
+			int tutorialStateVersion = settings.GetValue("tutorial", "state_version", 0).AsInt32();
+			if (tutorialStateVersion < 3)
+			{
+				// Re-show the current tutorial once for profiles that completed an older version.
+				settings.SetValue("tutorial", "tutorial_done", false);
+				settings.SetValue("tutorial", "state_version", 3);
+				Error saveResult = settings.Save("user://roguebound_settings.cfg");
+				if (saveResult != Error.Ok)
+					GD.PushWarning($"Could not initialize tutorial progress: {saveResult}");
+			}
+
+			bool tutorialDone = settings.GetValue("tutorial", "tutorial_done", false).AsBool();
+			if (tutorialDone)
+				return;
+
+			PackedScene overlayScene = GD.Load<PackedScene>("res://Scenes/Menus/TutorialOverlay.tscn");
+			if (overlayScene == null)
+			{
+				GD.PushError("TutorialOverlay.tscn could not be loaded.");
+				return;
+			}
+
+			GetTree().CurrentScene.AddChild(overlayScene.Instantiate<CanvasLayer>());
 		}
 
 		private void AttachMinimap()

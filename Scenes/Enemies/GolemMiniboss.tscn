@@ -33,3 +33,16 @@ shape = SubResource("CircleShape2D_golem_body")
 
 [node name="CollisionShape2D" parent="DamageArea" index="0"]
 shape = SubResource("CircleShape2D_golem_damage")
+
+[node name="CriticalCue" type="Label" parent="."]
+visible = false
+offset_left = -90.0
+offset_top = -100.0
+offset_right = 90.0
+offset_bottom = -80.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.85, 0.2, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 14
+text = "STRIKE! 2x"
+horizontal_alignment = 1

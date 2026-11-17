@@ -23,6 +23,7 @@ public partial class GolemRock : Area2D
 	private bool _damageSpent;
 	private RockState _state = RockState.Flying;
 	private GolemMiniboss _source;
+	private float _trailTimer;
 
 	public void Setup(Vector2 direction, float damage, float speed, float flightTime, bool isBoulder, GolemMiniboss source)
 	{
@@ -36,6 +37,7 @@ public partial class GolemRock : Area2D
 
 	public override void _Ready()
 	{
+		AddToGroup("floor_items");
 		CollisionLayer = 0;
 		CollisionMask = 2; // Player; the aimed flight timer provides the landing point.
 		Monitoring = true;
@@ -63,6 +65,16 @@ public partial class GolemRock : Area2D
 		}
 
 		GlobalPosition += _direction * _speed * dt;
+		_sprite.Rotation += dt * (_isBoulder ? 3f : 6f);
+		if (_isBoulder)
+		{
+			_trailTimer -= dt;
+			if (_trailTimer <= 0)
+			{
+				_trailTimer = 0.12f;
+				CombatEffects.Burst(this, Colors.SandyBrown, direction: -_direction, amount: 3);
+			}
+		}
 		if (_timer <= 0.0f)
 		{
 			if (_isBoulder)
@@ -105,6 +117,7 @@ public partial class GolemRock : Area2D
 			return;
 		_damageSpent = true;
 		player.TakeDamage(_damage);
+		CombatEffects.Burst(this, Colors.SandyBrown, amount: 10);
 	}
 
 	private void SettleAsHazard()
@@ -118,6 +131,7 @@ public partial class GolemRock : Area2D
 		CollisionMask = 2; // While resting, only the player can trigger the hazard.
 		_sprite.Rotation = 0.0f;
 		_sprite.Scale = Vector2.One;
+		CombatEffects.Burst(this, Colors.Gray, amount: 5);
 	}
 
 	private void LandBoulder()
@@ -125,6 +139,9 @@ public partial class GolemRock : Area2D
 		if (_state != RockState.Flying)
 			return;
 		_state = RockState.GroundHazard;
+		GolemShockwave.Spawn(this, 60f, CombatEffects.Impact);
+		CombatEffects.Burst(this, Colors.SandyBrown, amount: 22);
+		(GetTree().GetFirstNodeInGroup("player") as Player)?.ShakeCamera(2.3f);
 		ScatterGroundRocks();
 		QueueFree();
 	}
@@ -135,16 +152,24 @@ public partial class GolemRock : Area2D
 		if (scene == null || GetTree().CurrentScene == null)
 			return;
 
-		const int rockCount = 8;
-		for (int i = 0; i < rockCount; i++)
+		var world = GetTree().CurrentScene;
+		Vector2 position = GlobalPosition;
+		float damage = _damage * 0.65f;
+		GolemMiniboss source = _source;
+		Callable.From(() =>
 		{
-			float angle = Mathf.Tau * i / rockCount;
-			Vector2 direction = new(Mathf.Cos(angle), Mathf.Sin(angle));
-			GolemRock rock = scene.Instantiate<GolemRock>();
-			rock.Setup(direction, _damage * 0.65f, 150.0f, 0.55f, false, _source);
-			GetTree().CurrentScene.AddChild(rock);
-			rock.GlobalPosition = GlobalPosition;
-		}
+			if (!GodotObject.IsInstanceValid(world) || world.IsQueuedForDeletion())
+				return;
+			const int rockCount = 8;
+			for (int i = 0; i < rockCount; i++)
+			{
+				Vector2 direction = Vector2.FromAngle(Mathf.Tau * i / rockCount);
+				var rock = scene.Instantiate<GolemRock>();
+				rock.Setup(direction, damage, 150.0f, 0.55f, false, source);
+				rock.Position = position;
+				world.AddChild(rock);
+			}
+		}).CallDeferred();
 	}
 
 	private static ImageTexture GetRockTexture()

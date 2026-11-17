@@ -21,6 +21,7 @@ public partial class EnemyProjectile : Area2D
 
 	public override void _Ready()
 	{
+		AddToGroup("floor_items");
 		// The player is on physics layer 2. Explicitly monitor that layer so
 		// the Area2D hit signal fires when the arrow overlaps the player.
 		CollisionLayer = 0;

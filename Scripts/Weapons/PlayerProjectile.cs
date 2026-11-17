@@ -29,6 +29,7 @@ public partial class PlayerProjectile : Area2D
 
 	public override void _Ready()
 	{
+		AddToGroup("floor_items");
 		_sprite = GetNodeOrNull<Sprite2D>("Sprite2D");
 
 		if (_sprite != null && OverrideTexture != null)

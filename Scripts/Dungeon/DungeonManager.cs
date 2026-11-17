@@ -81,6 +81,7 @@ namespace RogueBound.Dungeon
 			if (_player != null && _generator.SpawnRoomData != null)
 			{
 				_player.GlobalPosition = _generator.SpawnRoomData.WorldCenter;
+				_player.Died -= OnPlayerDied;
 				_player.Died += OnPlayerDied;
 
 				// Camera smoothing for dungeon exploration
@@ -251,11 +252,27 @@ namespace RogueBound.Dungeon
 
 		private void AdvanceFloor()
 		{
+			FloorNumber++;
+			RebuildFloor();
+		}
+
+		public void DebugGoToFloor(int floor)
+		{
+			if (_generator == null || !GodotObject.IsInstanceValid(_player) || _player.health <= 0)
+				return;
+			FloorNumber = Mathf.Max(1, floor);
+			RebuildFloor();
+		}
+
+		private void RebuildFloor()
+		{
+			_currentRoom = null;
+			foreach (Node enemy in GetTree().GetNodesInGroup("enemies"))
+				enemy.Free();
 			foreach (Node item in GetTree().GetNodesInGroup("floor_items"))
 				item.Free();
 
-			FloorNumber++;
-			GD.Print($"[DungeonManager] Advancing to Floor {FloorNumber}!");
+			GD.Print($"[DungeonManager] Loading Floor {FloorNumber}!");
 
 			// Clean up previous rooms & doors
 			foreach (var room in _generator.InstantiatedRooms)
@@ -265,9 +282,9 @@ namespace RogueBound.Dungeon
 					foreach (var door in room.Doors)
 					{
 						if (GodotObject.IsInstanceValid(door))
-							door.QueueFree();
+							door.Free();
 					}
-					room.QueueFree();
+					room.Free();
 				}
 			}
 

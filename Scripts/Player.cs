@@ -24,6 +24,7 @@ public partial class Player : CharacterBody2D
 
 	private float _invulnerabilityTimer = 0.0f;
 	private bool _godMode = false;
+	public bool DebugGodMode { get => _godMode; set => _godMode = value; }
 	private Vector2 _weaponDashDirection;
 	private float _weaponDashDistanceRemaining;
 	private float _weaponDashSpeed;
@@ -102,6 +103,7 @@ public partial class Player : CharacterBody2D
 
 		HealthChanged?.Invoke(health, MaxHealth);
 		MoneyChanged?.Invoke(Money);
+		AddChild(GD.Load<PackedScene>("res://Scenes/Menus/DebugMenu.tscn").Instantiate());
 	}
 
 	// =========================
@@ -242,15 +244,6 @@ public partial class Player : CharacterBody2D
 		{
 			Vector2 aimDir = (GetGlobalMousePosition() - GlobalPosition).Normalized();
 			_weaponComponent?.ReleaseAttack(aimDir);
-		}
-
-		if (@event is InputEventKey keyEvent
-			&& keyEvent.Pressed
-			&& !keyEvent.Echo
-			&& keyEvent.Keycode == Key.F1)
-		{
-			_godMode = !_godMode;
-			GD.Print($"GOD MODE: {(_godMode ? "ON" : "OFF")}");
 		}
 
 		if (@event is InputEventKey dbKey

@@ -265,6 +265,11 @@ public abstract partial class Enemy : CharacterBody2D
 			return;
 		}
 
+		ApplyHitReaction(attackerPosition);
+	}
+
+	protected virtual void ApplyHitReaction(Vector2 attackerPosition)
+	{
 		// Calculate knockback direction.
 		Vector2 knockbackDirection = GlobalPosition - attackerPosition;
 

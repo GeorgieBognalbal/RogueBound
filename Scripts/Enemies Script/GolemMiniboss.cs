@@ -2,17 +2,20 @@ using Godot;
 
 public partial class GolemMiniboss : Enemy
 {
-	private enum BossAction { Idle, Spawning, RockBarrage, Boulder, Dying }
+	private enum BossAction { Idle, Spawning, RockBarrage, Boulder, Recovery, Dying }
 
 	[Export] public PackedScene RockScene;
 	[Export] public float AttackRange = 250.0f;
-	[Export] public float RockBarrageDuration = 3.6f;
-	[Export] public float RockBarrageCooldown = 4.5f;
-	[Export] public float BoulderCooldown = 3.5f;
+	[Export] public float RockBarrageDuration = 2.4f;
+	[Export] public float RockBarrageCooldown = 3.6f;
+	[Export] public float BoulderCooldown = 2.7f;
 	[Export] public float SmallRockDamage = 12.0f;
 	[Export] public float BoulderDamage = 24.0f;
-	[Export] public float SmallRockSpeed = 105.0f;
-	[Export] public float BoulderSpeed = 125.0f;
+	[Export] public float SmallRockSpeed = 130.0f;
+	[Export] public float BoulderSpeed = 150.0f;
+	[Export] public float AttackAnimationSpeed = 1.3f;
+	[Export] public float CriticalWindow = 0.55f;
+	[Export] public float CriticalMultiplier = 2.0f;
 
 	private BossAction _action = BossAction.Spawning;
 	private CollisionShape2D _bodyShape;
@@ -20,26 +23,39 @@ public partial class GolemMiniboss : Enemy
 	private int _lastAttackFrame = -1;
 	private bool _boulderLaunched;
 	private bool _nextAttackIsBoulder;
+	private Vector2 _arenaCenter;
+	private float _criticalRemaining;
+	private float _flashRemaining;
+	private Label _criticalLabel;
 
 	public override void _Ready()
 	{
-		// A slow, durable enemy; floor scaling is applied by DungeonRoom before _Ready.
-		Speed = 18.0f;
-		StopDistance = 150.0f;
+		Speed = 0.0f;
+		KnockbackForce = 0.0f;
 		AttackDamage = Mathf.Max(AttackDamage, 18.0f);
 		AttackCooldown = 2.0f;
 		MaxHealth = Mathf.Max(MaxHealth, 420.0f);
 		base._Ready();
+		_arenaCenter = GlobalPosition;
+		_criticalLabel = GetNode<Label>("CriticalCue");
 
 		_bodyShape = GetNodeOrNull<CollisionShape2D>("EnemyCollisionShape");
 		if (_hitbox != null)
 			_hitbox.Monitoring = false;
 		_action = BossAction.Spawning;
 		_animatedSprite.Play("spawn");
+		GolemShockwave.Spawn(this, 55f, CombatEffects.Impact);
 	}
 
 	public override void _Process(double delta)
 	{
+		float dt = (float)delta;
+		_criticalRemaining = Mathf.Max(0, _criticalRemaining - dt);
+		_flashRemaining = Mathf.Max(0, _flashRemaining - dt);
+		_criticalLabel.Visible = _criticalRemaining > 0;
+		_animatedSprite.SelfModulate = _flashRemaining > 0 ? Colors.White * 1.6f
+			: _criticalRemaining > 0 ? Colors.Gold : Colors.White;
+		QueueRedraw();
 		if (_action == BossAction.RockBarrage)
 		{
 			int frame = _animatedSprite.Frame;
@@ -59,39 +75,42 @@ public partial class GolemMiniboss : Enemy
 		}
 	}
 
+	public override void _Draw()
+	{
+		if (_criticalRemaining > 0)
+		{
+			DrawArc(Vector2.Zero, 28f, -Mathf.Pi / 2,
+				-Mathf.Pi / 2 + Mathf.Tau * _criticalRemaining / Mathf.Max(CriticalWindow, 0.01f),
+				32, Colors.Gold, 2f);
+		}
+	}
+
 	public override void _PhysicsProcess(double delta)
 	{
 		float dt = (float)delta;
+		Velocity = Vector2.Zero;
+		GlobalPosition = _arenaCenter;
 		if (_action == BossAction.Spawning || _action == BossAction.Dying || _isDead)
-		{
-			Velocity = Vector2.Zero;
-			MoveAndSlide();
 			return;
-		}
+
+		_attackTimer = Mathf.Max(0.0f, _attackTimer - dt);
 
 		if (_action == BossAction.RockBarrage)
 		{
-			_attackTimer = Mathf.Max(0.0f, _attackTimer - dt);
 			_actionTimer -= dt;
-			Velocity = Vector2.Zero;
-			MoveAndSlide();
 			if (_actionTimer <= 0.0f)
 				ReturnToIdle();
 			return;
 		}
 
 		if (_action == BossAction.Boulder)
-		{
-			_attackTimer = Mathf.Max(0.0f, _attackTimer - dt);
-			Velocity = Vector2.Zero;
-			MoveAndSlide();
 			return;
-		}
 
-		// Let the shared Enemy implementation handle knockback while a hit animation plays.
-		if (_hitTimer > 0.0f || _isHit)
+		if (_action == BossAction.Recovery)
 		{
-			base._PhysicsProcess(delta);
+			_actionTimer -= dt;
+			if (_actionTimer <= 0)
+				_action = BossAction.Idle;
 			return;
 		}
 
@@ -101,17 +120,9 @@ public partial class GolemMiniboss : Enemy
 			StartNextAttack();
 			return;
 		}
-
-		Vector2 before = GlobalPosition;
-		base._PhysicsProcess(delta);
-		if (_isDead || _isHit || _action != BossAction.Idle)
-			return;
-
-		bool moved = GlobalPosition.DistanceSquaredTo(before) > 0.01f;
-		string wantedAnimation = moved ? "walk" : "idle";
-		if (_animatedSprite.Animation.ToString() != wantedAnimation)
-			_animatedSprite.Play(wantedAnimation);
 	}
+
+	protected override void ApplyHitReaction(Vector2 attackerPosition) { }
 
 	protected override void TryAttackPlayer()
 	{
@@ -120,14 +131,26 @@ public partial class GolemMiniboss : Enemy
 
 	public override void TakeDamage(float damage, Vector2 attackerPosition)
 	{
-		if (_action == BossAction.Spawning || _action == BossAction.Dying || _isDead)
+		if (_action == BossAction.Spawning || _action == BossAction.Dying || _isDead || damage <= 0)
 			return;
 
-		_action = BossAction.Idle;
+		if (_criticalRemaining > 0)
+		{
+			damage *= CriticalMultiplier;
+			_criticalRemaining = 0;
+			GolemShockwave.Spawn(this, 46f, Colors.Gold);
+			CombatEffects.Burst(this, Colors.Gold, new Vector2(0, -24), amount: 22);
+			(_player as Player)?.ShakeCamera(2.2f);
+		}
 		base.TakeDamage(damage, attackerPosition);
 		if (_isDead)
 		{
 			_action = BossAction.Dying;
+			_criticalRemaining = 0;
+			_animatedSprite.SpeedScale = 1;
+			GolemShockwave.Spawn(this, 85f, CombatEffects.Impact);
+			CombatEffects.Burst(this, Colors.Gray, amount: 28);
+			(_player as Player)?.ShakeCamera(2.8f);
 			_attackTimer = 0.0f;
 			_animatedSprite.SelfModulate = Colors.White;
 			CollisionLayer = 0;
@@ -138,7 +161,7 @@ public partial class GolemMiniboss : Enemy
 		}
 		else
 		{
-			_animatedSprite.SelfModulate = new Color(1.0f, 0.65f, 0.65f, 1.0f);
+			_flashRemaining = 0.08f;
 		}
 	}
 
@@ -147,7 +170,11 @@ public partial class GolemMiniboss : Enemy
 		if (_action == BossAction.Dying && _animatedSprite.Animation == "death")
 		{
 			// Hold the final rubble frame for a moment before cleaning up.
-			GetTree().CreateTimer(3.0).Timeout += QueueFree;
+			GetTree().CreateTimer(3.0).Timeout += () =>
+			{
+				if (GodotObject.IsInstanceValid(this))
+					QueueFree();
+			};
 			return;
 		}
 
@@ -177,6 +204,8 @@ public partial class GolemMiniboss : Enemy
 
 	private void StartNextAttack()
 	{
+		_animatedSprite.SpeedScale = Mathf.Max(0.1f, AttackAnimationSpeed);
+		CombatEffects.Burst(this, Colors.SandyBrown, new Vector2(0, -28), amount: 12);
 		FaceDirection(_player.GlobalPosition.X - GlobalPosition.X);
 		Velocity = Vector2.Zero;
 		if (_nextAttackIsBoulder)
@@ -199,9 +228,13 @@ public partial class GolemMiniboss : Enemy
 
 	private void ReturnToIdle()
 	{
-		_action = BossAction.Idle;
+		_action = BossAction.Recovery;
+		_actionTimer = Mathf.Max(0.85f, CriticalWindow);
+		_criticalRemaining = Mathf.Max(0, CriticalWindow);
 		_lastAttackFrame = -1;
+		_animatedSprite.SpeedScale = 1;
 		_animatedSprite.Play("idle");
+		CombatEffects.Burst(this, Colors.Gold, new Vector2(0, -24));
 	}
 
 	private void ThrowSmallRock(int side)
@@ -237,7 +270,9 @@ public partial class GolemMiniboss : Enemy
 
 		GolemRock rock = scene.Instantiate<GolemRock>();
 		rock.Setup(direction, damage, speed, flightTime, boulder, this);
+		rock.Position = origin;
 		GetTree().CurrentScene.AddChild(rock);
-		rock.GlobalPosition = origin;
+		CombatEffects.Burst(this, Colors.SandyBrown, origin - GlobalPosition, direction, boulder ? 18 : 7);
+		(_player as Player)?.ShakeCamera(boulder ? 1.8f : 0.65f);
 	}
 }

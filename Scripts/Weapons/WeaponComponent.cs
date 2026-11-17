@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using RogueBound.Weapons;
+using RogueBound.Dungeon;
 
 /// <summary>
 /// Manages the player's two weapon slots, attack cooldown, and fires
@@ -35,12 +36,15 @@ public partial class WeaponComponent : Node
 	[Export] public float StaffChargeRadius = 115.0f;
 	[Export] public float StaffMaxDamageMultiplier = 2.0f;
 	private ProgressBar _chargeBar;
+	private Sprite2D _equippedWeaponSprite;
 
 	[Export] public PackedScene PlayerProjectileScene;
 
 	public override void _Ready()
 	{
 		_player = GetParent<Player>();
+		_equippedWeaponSprite = new Sprite2D { Name = "EquippedWeapon", ZIndex = 1, Scale = new Vector2(0.65f, 0.65f), TextureFilter = CanvasItem.TextureFilterEnum.Nearest };
+		_player.AddChild(_equippedWeaponSprite);
 
 		_chargeBar = new ProgressBar
 		{
@@ -60,6 +64,41 @@ public partial class WeaponComponent : Node
 		SecondaryWeapon = null;
 
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
+		UpdateEquippedWeaponSprite();
+	}
+
+	private void UpdateEquippedWeaponSprite()
+	{
+		if (_equippedWeaponSprite == null) return;
+		var weapon = Current;
+		_equippedWeaponSprite.Texture = weapon != null && !string.IsNullOrEmpty(weapon.IconPath) ? GD.Load<Texture2D>(weapon.IconPath) : null;
+		var animated = _player.GetNodeOrNull<AnimatedSprite2D>("AnimatedSprite2D");
+		bool facingLeft = animated != null && animated.FlipH;
+		_equippedWeaponSprite.Position = facingLeft ? new Vector2(-11, 2) : new Vector2(11, 2);
+		_equippedWeaponSprite.FlipH = facingLeft;
+	}
+
+	public override void _Process(double delta) => UpdateEquippedWeaponSprite();
+
+	public override void _Input(InputEvent @event)
+	{
+		if (@event is InputEventKey key && key.Pressed && !key.Echo && key.Keycode == Key.Q)
+			DropCurrentWeapon();
+	}
+
+	private void DropCurrentWeapon()
+	{
+		var weapon = Current;
+		if (weapon == null || GetTree().CurrentScene == null) return;
+		var scene = GD.Load<PackedScene>("res://Scenes/Dungeon/WeaponPickup.tscn");
+		if (scene == null) return;
+		var pickup = scene.Instantiate<WeaponPickup>();
+		pickup.Weapon = weapon;
+		GetTree().CurrentScene.AddChild(pickup);
+		pickup.GlobalPosition = _player.GlobalPosition;
+		if (ActiveSlot == 0) PrimaryWeapon = null; else SecondaryWeapon = null;
+		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
+		UpdateEquippedWeaponSprite();
 	}
 
 	public override void _PhysicsProcess(double delta)
@@ -108,6 +147,7 @@ public partial class WeaponComponent : Node
 		else if (slot == 1) SecondaryWeapon = weapon;
 
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
+		UpdateEquippedWeaponSprite();
 		GD.Print($"[Weapon] Equipped '{weapon.Name}' in slot {slot}");
 	}
 
@@ -120,6 +160,7 @@ public partial class WeaponComponent : Node
 		ActiveSlot = ActiveSlot == 0 ? 1 : 0;
 		_cooldownTimer = 0.15f; // small swap penalty
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
+		UpdateEquippedWeaponSprite();
 		GD.Print($"[Weapon] Swapped to slot {ActiveSlot} → {Current?.Name}");
 	}
 

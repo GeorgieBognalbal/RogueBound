@@ -35,7 +35,7 @@ namespace RogueBound.Weapons
 			Cooldown = 0.35f,
 			Knockback = 180.0f,
 			IconPath = "res://Decals/weapon_sword.png",
-			Price = 20
+			Price = 10
 		};
 
 		public static WeaponData Bow => new WeaponData
@@ -49,7 +49,7 @@ namespace RogueBound.Weapons
 			IconPath = "res://Decals/weapon_bow.png",
 			ProjectileTexturePath = "res://Assets/arrow.png",
 			ProjectileSpeed = 420.0f,
-			Price = 30
+			Price = 25
 		};
 
 		public static WeaponData Battleaxe => new WeaponData
@@ -61,7 +61,7 @@ namespace RogueBound.Weapons
 			Cooldown = 0.70f,
 			Knockback = 350.0f,
 			IconPath = "res://Decals/weapon_battleaxe.png",
-			Price = 35
+			Price = 45
 		};
 
 		public static WeaponData Staff => new WeaponData
@@ -75,7 +75,7 @@ namespace RogueBound.Weapons
 			IconPath = "res://Decals/weapon_staff.png",
 			ProjectileTexturePath = "res://Decals/magic_bolt.png",
 			ProjectileSpeed = 380.0f,
-			Price = 35
+			Price = 60
 		};
 
 		public static WeaponData Dagger => new WeaponData
@@ -90,7 +90,7 @@ namespace RogueBound.Weapons
 			AttackDashDistance = 96.0f,
 			AttackDashDuration = 0.16f,
 			AttackDashCooldown = 2.0f,
-			Price = 25
+			Price = 30
 		};
 
 		public static readonly List<WeaponData> AllWeapons = new()

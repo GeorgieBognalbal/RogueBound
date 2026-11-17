@@ -297,6 +297,11 @@ public abstract partial class Enemy : CharacterBody2D
 		if (coinScene != null && GetTree()?.CurrentScene != null)
 		{
 			Node2D coin = coinScene.Instantiate<Node2D>();
+			if (coin is Pickup coinPickup)
+			{
+				var dungeon = GetTree().CurrentScene.GetNodeOrNull<RogueBound.Dungeon.DungeonManager>("DungeonManager");
+				coinPickup.Value = 5 + Mathf.Max(0, (dungeon?.CurrentFloor ?? 1) - 1) * 2;
+			}
 			coin.GlobalPosition = GlobalPosition;
 			GetTree().CurrentScene.CallDeferred("add_child", coin);
 		}

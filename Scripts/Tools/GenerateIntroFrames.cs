@@ -189,8 +189,7 @@ public partial class GenerateIntroFrames : EditorScript
 				break;
 			case 8:
 				DrawDungeon(image);
-				DrawSprite(image, _knightIdle, new Vector2I(134, 103));
-				DrawPixelSword(image, 176, 112);
+				DrawKnightEnteringDungeon(image);
 				break;
 		}
 	}
@@ -428,9 +427,22 @@ public partial class GenerateIntroFrames : EditorScript
 	{
 		DrawDungeon(image);
 		DrawSprite(image, _knightSmall, new Vector2I(67, 101));
-		DrawEnemy(image, 105, 105);
-		DrawPartnerSprite(image, 165, 154, true);
-		DrawEnemy(image, 197, 101);
+
+		// Keep the carried group inside the doorway and clip it to the opening.
+		// The flat blue shadow tint makes them read as stepping beyond the stone frame.
+		Image enteringGroup = Image.CreateEmpty(FrameWidth, FrameHeight, true, Image.Format.Rgba8);
+		Image doorEnemy = ResizeToHeight(_enemySprite, 42);
+		DrawDoorEnemy(enteringGroup, doorEnemy, 106, 111);
+		DrawDoorEnemy(enteringGroup, doorEnemy, 172, 111);
+		Rect2I doorOpening = new Rect2I(108, 100, 104, 58);
+		BlitShadowedClipped(image, enteringGroup, doorOpening, 0.48f);
+		DrawDoorEnemyEyes(image, doorEnemy, 106, 111);
+		DrawDoorEnemyEyes(image, doorEnemy, 172, 111);
+		Image carriedPartner = Image.CreateEmpty(FrameWidth, FrameHeight, true, Image.Format.Rgba8);
+		DrawPartnerSprite(carriedPartner, 160, 157, true);
+		BlitShadowedClipped(image, carriedPartner, doorOpening, 0.68f);
+		// The lower threshold occludes their feet as they pass into the dungeon.
+		FillRect(image, 119, 158, 82, 22, DeepBlue);
 
 		// A foreground rock outcrop hides the knight's body while he peeks around the entrance.
 		FillRect(image, 63, 120, 42, 60, Ink);
@@ -439,6 +451,52 @@ public partial class GenerateIntroFrames : EditorScript
 		FillRect(image, 63, 117, 11, 7, StoneLight);
 		FillRect(image, 74, 121, 12, 4, StoneLight);
 		FillRect(image, 86, 123, 19, 4, Stone);
+	}
+
+	private static void DrawKnightEnteringDungeon(Image image)
+	{
+		Image enteringKnight = Image.CreateEmpty(FrameWidth, FrameHeight, true, Image.Format.Rgba8);
+		Image smallerKnight = ResizeToHeight(_knightIdle, 42);
+		DrawSprite(enteringKnight, smallerKnight, new Vector2I(139, 116));
+		DrawPixelSword(enteringKnight, 174, 126);
+		BlitShadowedClipped(image, enteringKnight, new Rect2I(108, 100, 104, 58), 0.52f);
+		FillRect(image, 119, 158, 82, 22, DeepBlue);
+	}
+
+	private static void DrawDoorEnemy(Image image, Image sprite, int x, int y)
+	{
+		DrawSprite(image, sprite, new Vector2I(x, y));
+		DrawDoorEnemyEyes(image, sprite, x, y);
+	}
+
+	private static void DrawDoorEnemyEyes(Image image, Image sprite, int x, int y)
+	{
+		int scale = Mathf.Max(1, Mathf.RoundToInt((float)sprite.GetWidth() / Mathf.Max(1, _enemySprite.GetWidth())));
+		int eyeY = y + Mathf.RoundToInt(21.0f * sprite.GetHeight() / _enemySprite.GetHeight());
+		int leftEye = x + Mathf.RoundToInt(24.0f * sprite.GetWidth() / _enemySprite.GetWidth());
+		int rightEye = x + Mathf.RoundToInt(40.0f * sprite.GetWidth() / _enemySprite.GetWidth());
+		FillRect(image, leftEye, eyeY, scale + 1, scale, FireOrange);
+		FillRect(image, rightEye, eyeY, scale + 1, scale, FireOrange);
+		SetPixel(image, leftEye, eyeY, FireYellow);
+		SetPixel(image, rightEye, eyeY, FireYellow);
+	}
+
+	private static void BlitShadowedClipped(Image destination, Image source, Rect2I clip, float brightness)
+	{
+		for (int y = clip.Position.Y; y < clip.End.Y; y++)
+		{
+			for (int x = clip.Position.X; x < clip.End.X; x++)
+			{
+				Color pixel = source.GetPixel(x, y);
+				if (pixel.A <= 0.01f)
+					continue;
+				destination.SetPixel(x, y, new Color(
+					pixel.R * brightness,
+					pixel.G * brightness,
+					pixel.B * brightness,
+					pixel.A));
+			}
+		}
 	}
 
 	private static void DrawDungeon(Image image)

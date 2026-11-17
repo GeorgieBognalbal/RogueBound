@@ -22,6 +22,12 @@ namespace RogueBound.Dungeon
 		[Export] public int WallSourceId = 2;
 		[Export] public Vector2I WallAtlasCoord = new Vector2I(0, 0);
 
+		private const int OvergrowthSourceId = 3;
+		private static readonly Vector2I[] GrassDetails =
+		{
+			new(2, 0), new(3, 2), new(5, 2), new(8, 1), new(11, 2), new(13, 4), new(15, 7)
+		};
+
 		public Dictionary<Vector2I, DungeonRoomData> RoomMap { get; private set; } = new();
 		public List<DungeonRoom> InstantiatedRooms { get; private set; } = new();
 		public DungeonRoomData SpawnRoomData { get; private set; }
@@ -390,6 +396,38 @@ namespace RogueBound.Dungeon
 					}
 				}
 			}
+			ApplyDungeonArt(layer);
 		}
+
+		private void ApplyDungeonArt(TileMapLayer layer)
+		{
+			var decorations = layer.GetNodeOrNull<TileMapLayer>("Decorations");
+			if (decorations == null)
+				return;
+
+			decorations.Clear();
+			foreach (var cell in layer.GetUsedCells())
+			{
+				int source = layer.GetCellSourceId(cell);
+				int variant = TileVariant(cell);
+				if (source == FloorSourceId && variant % 3 == 0)
+				{
+					layer.SetCell(cell, FloorSourceId, GrassDetails[variant % GrassDetails.Length]);
+				}
+				else if (source == WallSourceId)
+				{
+					bool wallAbove = layer.GetCellSourceId(cell + Vector2I.Up) == WallSourceId;
+					bool wallBelow = layer.GetCellSourceId(cell + Vector2I.Down) == WallSourceId;
+					int stoneRow = !wallAbove ? 0 : !wallBelow ? 5 : 1 + variant % 4;
+					layer.SetCell(cell, WallSourceId, new Vector2I(11 + variant % 4, stoneRow));
+
+					if (variant % 7 == 0 || variant % 11 == 0)
+						decorations.SetCell(cell, OvergrowthSourceId, new Vector2I(variant % 2, 0));
+				}
+			}
+		}
+
+		private static int TileVariant(Vector2I cell)
+			=> (int)(unchecked((uint)(cell.X * 374761393 ^ cell.Y * 668265263)) % 997);
 	}
 }

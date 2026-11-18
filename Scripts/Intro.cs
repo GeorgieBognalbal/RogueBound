@@ -9,7 +9,7 @@ public partial class Intro : Control
 	private const float CharactersPerSecond = 48.0f;
 	private const float EscapeHoldSeconds = 1.0f;
 
-	private static readonly string[] Captions =
+	private static readonly string[] IntroCaptions =
 	{
 		"A peaceful morning in the kingdom. The castle stands tall beneath a bright sun, and its people live in peace.",
 		"Inside its walls, the knight and his beloved partner share a rare, happy moment. Nothing could go wrong.",
@@ -20,12 +20,34 @@ public partial class Intro : Control
 		"The enemies vanish into the entrance of a dark dungeon beneath the ruins.",
 		"The knight grips his weapon and follows them down. He will not return without his partner."
 	};
+	private static readonly string[] HappyEndingCaptions =
+	{
+		"The Orc King falls at last. You break your partner's chains, and she is safe in your arms.",
+		"A peaceful morning in the kingdom. The castle stands tall beneath a bright sun, and you live happily ever after."
+	};
+	private static readonly string[] BadEndingCaptions =
+	{
+		"Too slow. The Orc King strikes, and your partner falls before your eyes.",
+		"You run. You don't stop until the dungeon is far behind you.",
+		"You return to the castle, but it has never felt so empty.",
+		"You didn't die. You just couldn't save her. And all that's left is the house you promised to build together."
+	};
 
 	private TextureRect _frameDisplay;
 	private Label _captionLabel;
 	private Label _continueLabel;
 	private Label _skipHint;
 	private ColorRect _fade;
+	private Label _endingTitle;
+	private Label _endingTitleShadow;
+	private ImageTexture _endingTexture;
+	private bool _endingMode;
+	private bool _happyEnding;
+	private float _endingElapsed;
+	private float _endingAnimationAccumulator;
+	private float _endingTitleAlpha;
+	private int _endingAnimationFrame;
+	private bool StaticBadEnding => _endingMode && !_happyEnding;
 
 	private int _frameIndex;
 	private float _typedCharacters;
@@ -36,10 +58,27 @@ public partial class Intro : Control
 	private bool _transitioning;
 	private bool _beginOnRelease;
 	private bool _skipOnEscapeRelease;
+	private string[] ActiveCaptions => !_endingMode ? IntroCaptions : _happyEnding ? HappyEndingCaptions : BadEndingCaptions;
+
+	public static void PlayEnding(Node parent, bool happyEnding)
+	{
+		PackedScene introScene = GD.Load<PackedScene>("res://Scenes/Intro.tscn");
+		if (introScene == null)
+		{
+			GD.PushError("The shared intro cutscene scene could not be loaded for the ending.");
+			return;
+		}
+		var layer = new CanvasLayer { Name = "EndingCutsceneLayer", Layer = 100, ProcessMode = Node.ProcessModeEnum.Always };
+		Intro sequence = introScene.Instantiate<Intro>();
+		sequence._endingMode = true;
+		sequence._happyEnding = happyEnding;
+		parent.AddChild(layer);
+		layer.AddChild(sequence);
+	}
 
 	public override void _Ready()
 	{
-		if (ShouldSkipIntro())
+		if (!_endingMode && ShouldSkipIntro())
 		{
 			GetTree().ChangeSceneToFile(GameScenePath);
 			return;
@@ -56,7 +95,53 @@ public partial class Intro : Control
 		_frameDisplay.StretchMode = TextureRect.StretchModeEnum.KeepAspectCentered;
 		_fade.MouseFilter = MouseFilterEnum.Ignore;
 		_continueLabel.Visible = false;
+		if (_endingMode && !StaticBadEnding)
+		{
+			_endingTitleShadow = CreateEndingTitle(true);
+			_endingTitle = CreateEndingTitle(false);
+			_endingTitleShadow.ZIndex = 10;
+			_endingTitle.ZIndex = 11;
+			_endingTitleShadow.Visible = false;
+			_endingTitle.Visible = false;
+			GetTree().Paused = true;
+		}
+		else if (StaticBadEnding)
+		{
+			GetNode<Control>("CaptionPanel").Visible = false;
+			_skipHint.Visible = false;
+			_frameDisplay.SetAnchorsAndOffsetsPreset(Control.LayoutPreset.FullRect);
+			_frameDisplay.StretchMode = TextureRect.StretchModeEnum.Scale;
+			GetTree().Paused = true;
+		}
 		ShowFrame(0);
+	}
+
+	private Label CreateEndingTitle(bool shadow)
+	{
+		string text = _happyEnding ? "Happy Ending" : "B A D   E N D I N G";
+		var label = new Label
+		{
+			Name = shadow ? "EndingTitleShadow" : "EndingTitle",
+			Text = text,
+			HorizontalAlignment = HorizontalAlignment.Center,
+			VerticalAlignment = VerticalAlignment.Center,
+			MouseFilter = Control.MouseFilterEnum.Ignore,
+			AnchorRight = 1.0f,
+			OffsetTop = 3.0f,
+			OffsetBottom = 52.0f,
+			ZIndex = shadow ? 10 : 11,
+		};
+		label.AddThemeFontOverride("font", GD.Load<Font>("res://Assets/Theme/m5x7.ttf"));
+		label.AddThemeFontSizeOverride("font_size", _happyEnding ? 34 : 30);
+		label.AddThemeColorOverride("font_color", shadow
+			? (_happyEnding ? new Color("#80520b") : new Color("#252a35"))
+			: (_happyEnding ? new Color("#ffd56a") : new Color("#aeb5bf")));
+		label.AddThemeColorOverride("font_outline_color", shadow ? Colors.Transparent : _happyEnding ? new Color("#d99529") : new Color("#343b49"));
+		label.AddThemeConstantOverride("outline_size", shadow ? 0 : _happyEnding ? 7 : 6);
+		AddChild(label);
+		if (shadow)
+			label.Position = new Vector2(0, 3);
+		return label;
 	}
 
 	private static bool ShouldSkipIntro() => SkipIntro;
@@ -108,6 +193,25 @@ public partial class Intro : Control
 	public override void _Process(double delta)
 	{
 		float elapsed = (float)delta;
+		if (_endingMode && !StaticBadEnding)
+		{
+			_endingElapsed += elapsed;
+			_endingAnimationAccumulator += elapsed;
+			float animationStep = !_happyEnding && _frameIndex == 0 ? 1.0f / 9.0f : 1.0f / 6.0f;
+			if (_endingAnimationAccumulator >= animationStep)
+			{
+				_endingAnimationAccumulator -= animationStep;
+				_endingAnimationFrame++;
+				if (IsAnimatedEndingFrame())
+					RefreshEndingFrame();
+			}
+			if (_endingTitle != null && _endingTitle.Visible && _endingElapsed >= 0.3f)
+			{
+				_endingTitleAlpha = Mathf.MoveToward(_endingTitleAlpha, 1.0f, elapsed / 0.55f);
+				_endingTitle.Modulate = new Color(1, 1, 1, _endingTitleAlpha);
+				_endingTitleShadow.Modulate = new Color(1, 1, 1, _endingTitleAlpha);
+			}
+		}
 		if (_escapeDown)
 		{
 			_escapeHeldTime += elapsed;
@@ -124,8 +228,8 @@ public partial class Intro : Control
 		if (!_skipOnEscapeRelease && _typing)
 		{
 			_typedCharacters += CharactersPerSecond * elapsed;
-			_captionLabel.VisibleCharacters = Mathf.Min((int)_typedCharacters, Captions[_frameIndex].Length);
-			if (_captionLabel.VisibleCharacters >= Captions[_frameIndex].Length)
+			_captionLabel.VisibleCharacters = Mathf.Min((int)_typedCharacters, ActiveCaptions[_frameIndex].Length);
+			if (_captionLabel.VisibleCharacters >= ActiveCaptions[_frameIndex].Length)
 				FinishTyping();
 		}
 		else if (_continueLabel.Visible)
@@ -139,24 +243,62 @@ public partial class Intro : Control
 	private void ShowFrame(int index)
 	{
 		_frameIndex = index;
-		string framePath = $"res://Assets/Intro/frame{index + 1}.png";
-		_frameDisplay.Texture = GD.Load<Texture2D>(framePath);
-		if (_frameDisplay.Texture == null)
-			GD.PushError($"Missing intro image: {framePath}");
+		if (StaticBadEnding)
+		{
+			string[] paths =
+			{
+				"res://Assets/Endings/BadEnding/frame1_arena.png",
+				"res://Assets/Endings/BadEnding/frame2_corridor.png",
+				"res://Assets/Endings/BadEnding/frame3_castle.png",
+				"res://Assets/Endings/BadEnding/frame4_house.png",
+			};
+			_frameDisplay.Texture = GD.Load<Texture2D>(paths[index]);
+			if (_frameDisplay.Texture == null)
+				GD.PushError($"Missing bad ending frame: {paths[index]}");
+			_typing = false;
+		}
+		else if (_endingMode)
+		{
+			_endingElapsed = 0;
+			_endingAnimationAccumulator = 0;
+			_endingAnimationFrame = 0;
+			RefreshEndingFrame();
+			bool titleFrame = _happyEnding ? index == 1 : index == 3;
+			_endingTitle.Visible = _endingTitleShadow.Visible = titleFrame;
+			_endingTitleAlpha = 0;
+			_endingTitle.Modulate = _endingTitleShadow.Modulate = new Color(1, 1, 1, 0);
+		}
+		else
+		{
+			string framePath = $"res://Assets/Intro/frame{index + 1}.png";
+			_frameDisplay.Texture = GD.Load<Texture2D>(framePath);
+			if (_frameDisplay.Texture == null)
+				GD.PushError($"Missing intro image: {framePath}");
+		}
 
-		_captionLabel.Text = Captions[index];
+		_captionLabel.Text = ActiveCaptions[index];
 		_captionLabel.VisibleCharacters = 0;
-		_continueLabel.Text = index == Captions.Length - 1 ? "Click to begin" : "Click to continue";
+		_continueLabel.Text = index == ActiveCaptions.Length - 1
+			? (_endingMode ? "Click to finish" : "Click to begin")
+			: "Click to continue";
 		_continueLabel.Visible = false;
 		_typedCharacters = 0.0f;
 		_blinkTime = 0.0f;
-		_typing = true;
+		_typing = !StaticBadEnding;
 	}
 
 	private void AdvanceFromInput()
 	{
 		if (_transitioning)
 			return;
+		if (StaticBadEnding)
+		{
+			if (_frameIndex == ActiveCaptions.Length - 1)
+				_beginOnRelease = true;
+			else
+				_ = TransitionToNextFrame();
+			return;
+		}
 
 		if (_typing)
 		{
@@ -167,7 +309,7 @@ public partial class Intro : Control
 		if (!_continueLabel.Visible)
 			return;
 
-		if (_frameIndex == Captions.Length - 1)
+		if (_frameIndex == ActiveCaptions.Length - 1)
 		{
 			_beginOnRelease = true;
 			return;
@@ -188,7 +330,27 @@ public partial class Intro : Control
 	{
 		_beginOnRelease = false;
 		_skipOnEscapeRelease = false;
-		GetTree().ChangeSceneToFile(GameScenePath);
+		if (_endingMode)
+		{
+			GetTree().Paused = false;
+			GetTree().ChangeSceneToFile(EndingScene.TITLE_SCENE);
+		}
+		else GetTree().ChangeSceneToFile(GameScenePath);
+	}
+
+	private bool IsAnimatedEndingFrame() => _happyEnding
+		? _frameIndex == 0
+		: _frameIndex == 0 || _frameIndex == 1 || _frameIndex == 2;
+
+	private void RefreshEndingFrame()
+	{
+		Image image = GenerateIntroFrames.GenerateEndingFrame(_happyEnding, _frameIndex, _endingAnimationFrame);
+		if (_endingTexture == null)
+		{
+			_endingTexture = ImageTexture.CreateFromImage(image);
+			_frameDisplay.Texture = _endingTexture;
+		}
+		else _endingTexture.Update(image);
 	}
 
 	private async System.Threading.Tasks.Task TransitionToNextFrame()

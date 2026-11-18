@@ -43,6 +43,19 @@ public partial class GenerateIntroFrames : EditorScript
 	private static Image _orc;
 	private static Image _enemySprite;
 	private static Image _partnerSprite;
+	private static Image _partnerRaw;
+	private static Image _soldierIdleSheet;
+	private static Image _soldierWalkSheet;
+	private static Image _orcKingSheet;
+	private static Image _endingKnight;
+	private static Image _endingKnightWalkA;
+	private static Image _endingKnightWalkB;
+	private static Image _endingKnightSmall;
+	private static Image _endingPartner;
+	private static Image _endingPartnerLying;
+	private static Image[] _endingKingDeath;
+	private static Image[] _endingKingAttack;
+	private static bool _sourcesLoaded;
 
 	public override void _Run()
 	{
@@ -84,22 +97,53 @@ public partial class GenerateIntroFrames : EditorScript
 		return frames;
 	}
 
+	public static Image GenerateEndingFrame(bool happy, int frameIndex, int animationFrame)
+	{
+		if (!LoadSourceAssets())
+			return Image.CreateEmpty(FrameWidth, FrameHeight, false, Image.Format.Rgba8);
+		PrepareEndingSprites();
+		Image image = Image.CreateEmpty(FrameWidth, FrameHeight, false, Image.Format.Rgba8);
+		if (happy)
+		{
+			if (frameIndex == 0) DrawHappyArena(image, animationFrame);
+			else
+			{
+				DrawCastleDay(image);
+				DrawHappyCouple(image, 34, 82, 158, 73);
+			}
+		}
+		else
+		{
+			switch (frameIndex)
+			{
+				case 0: DrawBadArena(image, animationFrame); break;
+				case 1: DrawDungeonRun(image, animationFrame); break;
+				case 2: DrawGloomyCastle(image, animationFrame); break;
+				default: DrawNotebookHouse(image); break;
+			}
+		}
+		return image;
+	}
+
 	private static bool LoadSourceAssets()
 	{
+		if (_sourcesLoaded)
+			return true;
 		_stoneAtlas = LoadImage("res://Assets/Temp/TX Tileset Stone Ground.png");
 		_grassAtlas = LoadImage("res://Assets/Temp/TX Tileset Grass.png");
-		Image soldierIdleSheet = LoadImage("res://Assets/Temp/Soldier/Soldier.png");
-		Image soldierWalkSheet = LoadImage("res://Assets/Temp/Soldier/Soldier_Walk.png");
+		_soldierIdleSheet = LoadImage("res://Assets/Temp/Soldier/Soldier.png");
+		_soldierWalkSheet = LoadImage("res://Assets/Temp/Soldier/Soldier_Walk.png");
 		Image orcSheet = LoadImage("res://Assets/Temp/Orc/Orc with shadows/Orc_Idle.png");
 		Image partnerSheet = LoadOptionalImage("res://Assets/Intro/partner_girl_32x32.png");
 
 		// These are the actual 100x100 atlas cells referenced by the Player scene.
-		_knightIdle = ExtractSprite(soldierIdleSheet, new Rect2I(100, 0, 100, 100), CharacterScale);
-		_knightWalk = ExtractSprite(soldierWalkSheet, new Rect2I(0, 0, 100, 100), CharacterScale);
+		_knightIdle = ExtractSprite(_soldierIdleSheet, new Rect2I(100, 0, 100, 100), CharacterScale);
+		_knightWalk = ExtractSprite(_soldierWalkSheet, new Rect2I(0, 0, 100, 100), CharacterScale);
 		_orc = ExtractSprite(orcSheet, new Rect2I(0, 0, 100, 100), CharacterScale);
-		_partnerSprite = partnerSheet != null
+		_partnerRaw = partnerSheet != null
 			? ExtractSprite(partnerSheet, new Rect2I(0, 0, 32, 32), 1)
 			: null;
+		_partnerSprite = _partnerRaw;
 		if (_knightIdle != null)
 		{
 			_knightSmall = ResizeToHeight(_knightIdle, 34);
@@ -115,7 +159,49 @@ public partial class GenerateIntroFrames : EditorScript
 		}
 		if (_partnerSprite == null)
 			GD.PushWarning("Partner sprite is missing at res://Assets/Intro/partner_girl_32x32.png; generated frames will omit the partner until it is added.");
+		_sourcesLoaded = true;
 		return true;
+	}
+
+	private static void PrepareEndingSprites()
+	{
+		if (_endingKingDeath != null)
+			return;
+		_orcKingSheet = LoadImage("res://Assets/Enemies/OrcKing/orc_king_spritesheet.png");
+		_endingKnight = ResizeToHeight(_knightIdle, 56);
+		_endingKnightSmall = ScaleNearest(_endingKnight, 0.5f);
+		_endingKnightWalkA = ResizeToHeight(_knightWalk, 56);
+		_endingKnightWalkB = _soldierWalkSheet != null && _soldierWalkSheet.GetWidth() >= 200
+			? ResizeToHeight(ExtractSprite(_soldierWalkSheet, new Rect2I(100, 0, 100, 100), CharacterScale), 56)
+			: _endingKnightWalkA;
+		_endingPartner = ResizeToHeight(_partnerRaw, 56);
+		_endingPartnerLying = RotateClockwise(_endingPartner);
+		_endingKingDeath = new Image[6];
+		_endingKingAttack = new Image[4];
+		for (int i = 0; i < _endingKingDeath.Length; i++)
+			_endingKingDeath[i] = ResizeToHeight(ExtractCell(_orcKingSheet, 6, 4 + i), 96);
+		for (int i = 0; i < _endingKingAttack.Length; i++)
+			_endingKingAttack[i] = ResizeToHeight(ExtractCell(_orcKingSheet, 2, 3 + i), 96);
+	}
+
+	private static Image ScaleNearest(Image source, float scale)
+	{
+		if (source == null) return null;
+		int width = Mathf.Max(1, Mathf.RoundToInt(source.GetWidth() * scale));
+		int height = Mathf.Max(1, Mathf.RoundToInt(source.GetHeight() * scale));
+		Image scaled = Image.CreateEmpty(source.GetWidth(), source.GetHeight(), true, Image.Format.Rgba8);
+		scaled.BlitRect(source, new Rect2I(0, 0, source.GetWidth(), source.GetHeight()), Vector2I.Zero);
+		scaled.Resize(width, height, Image.Interpolation.Nearest);
+		return scaled;
+	}
+
+	private static Image ExtractCell(Image sheet, int row, int column)
+	{
+		if (sheet == null) return null;
+		var cell = new Rect2I(column * 64, row * 64, 64, 64);
+		Image result = Image.CreateEmpty(64, 64, true, Image.Format.Rgba8);
+		result.BlitRect(sheet, cell, Vector2I.Zero);
+		return result;
 	}
 
 	private static Image LoadImage(string path)
@@ -280,6 +366,183 @@ public partial class GenerateIntroFrames : EditorScript
 		DrawCloud(image, 229, 77);
 		DrawHill(image, false);
 		DrawCastle(image, false, false);
+	}
+
+	private static void DrawHappyArena(Image image, int animationFrame)
+	{
+		DrawArenaFloor(image);
+		int deathFrame = Mathf.Clamp(animationFrame, 0, _endingKingDeath.Length - 1);
+		DrawHappyCouple(image, 110, 164, 140, 69 + animationFrame % 3);
+		DrawBottomAligned(image, _endingKingDeath[deathFrame], 260, 140);
+	}
+
+	private static void DrawHappyCouple(Image image, int knightCenterX, int partnerCenterX, int bottomY, int heartY)
+	{
+		DrawBottomAligned(image, _endingKnight, knightCenterX, bottomY, true);
+		DrawBottomAligned(image, _endingPartner, partnerCenterX, bottomY);
+		DrawPixelHeart(image, knightCenterX - 8, heartY);
+		DrawPixelHeart(image, partnerCenterX + 4, heartY + 3);
+	}
+
+	private static void DrawBadArena(Image image, int animationFrame)
+	{
+		DrawArenaFloor(image);
+		DrawBottomAligned(image, _endingKnight, 50, 140, true);
+		DrawBottomAligned(image, _endingPartnerLying, 156, 140);
+		Image attack = _endingKingAttack[animationFrame % _endingKingAttack.Length];
+		DrawBottomAligned(image, attack, 229, 140);
+		if (animationFrame % 2 == 0)
+		{
+			FillRect(image, 168, 125, 4, 3, Red);
+			SetPixel(image, 173, 129, FireRed);
+		}
+	}
+
+	private static void DrawArenaFloor(Image image)
+	{
+		image.Fill(Hex("76804a"));
+		FillRect(image, 0, 0, FrameWidth, 126, Hex("9baa65"));
+		FillCircle(image, 34, 126, 35, Hex("839252"));
+		FillCircle(image, 286, 123, 48, Hex("7c8a4e"));
+		FillRect(image, 0, 126, FrameWidth, 54, Hex("657441"));
+		TileRect(image, _grassAtlas, 0, 130, FrameWidth, 50, 0, 0);
+		for (int i = 0; i < 38; i++)
+			SetPixel(image, (i * 43 + 9) % FrameWidth, 127 + (i * 17 % 49), i % 2 == 0 ? GrassLight : LeafDark);
+	}
+
+	private static void DrawDungeonRun(Image image, int animationFrame)
+	{
+		DrawDungeon(image);
+		// Move the iconic doorway to the right for this running-away composition.
+		FillRect(image, 112, 67, 112, 112, NightBlue);
+		TileRect(image, _stoneAtlas, 112, 67, 112, 112, 16, 16);
+		FillRect(image, 233, 66, 87, 114, Ink);
+		FillRect(image, 242, 75, 78, 105, Hex("080b16"));
+		FillRect(image, 233, 66, 87, 9, StoneLight);
+		FillRect(image, 233, 66, 9, 114, Stone);
+		int x = 14 + (animationFrame * 19) % 250;
+		int bob = animationFrame % 2 == 0 ? 0 : -3;
+		for (int i = 0; i < 5; i++)
+			DrawLine(image, x - 13 - i * 7, 124 - i * 13, x - 4 - i * 7, 121 - i * 13, Hex("626b7b"));
+		DrawBottomAligned(image, animationFrame % 2 == 0 ? _endingKnightWalkA : _endingKnightWalkB, x, 147 + bob, true);
+	}
+
+	private static void DrawGloomyCastle(Image image, int animationFrame)
+	{
+		image.Fill(Hex("69727d"));
+		DrawGreyCloud(image, 30, 24);
+		DrawGreyCloud(image, 129, 10);
+		DrawGreyCloud(image, 232, 31);
+		DrawHill(image, true);
+		DrawCastle(image, true, false);
+		ApplyTint(image, Hex("59616c"), 0.42f);
+		// Replace the castle's raised banners with limp cloth hanging in the rain.
+		FillRect(image, 107, 37, 24, 36, Hex("69727d"));
+		FillRect(image, 211, 32, 24, 36, Hex("69727d"));
+		FillRect(image, 109, 40, 2, 25, StoneShadow);
+		FillRect(image, 213, 35, 2, 25, StoneShadow);
+		FillRect(image, 111, 45, 13, 3, Hex("70404a"));
+		FillRect(image, 114, 48, 11, 3, Hex("70404a"));
+		FillRect(image, 215, 40, 13, 3, Hex("526c58"));
+		FillRect(image, 218, 43, 11, 3, Hex("526c58"));
+		for (int i = 0; i < 19; i++)
+		{
+			int x = (i * 47 + 13) % FrameWidth;
+			int y = (i * 31 + animationFrame * 7) % 132;
+			DrawLine(image, x, y, x - 3, y + 7, Hex("9aa2a8"));
+		}
+		DrawBottomAligned(image, _endingKnightSmall, 159, 151, true);
+	}
+
+	private static void DrawNotebookHouse(Image image)
+	{
+		image.Fill(Hex("67b7dc"));
+		DrawCloud(image, 33, 26);
+		DrawCloud(image, 235, 39);
+		DrawHill(image, false);
+		// Dark trees frame the house and lawn.
+		DrawPixelTree(image, 14, 77, 52);
+		DrawPixelTree(image, 275, 70, 60);
+		// Red tractor sits behind the left side of the house.
+		FillRect(image, 40, 111, 38, 13, Hex("b63d32"));
+		FillRect(image, 57, 101, 15, 12, Hex("cb4a38"));
+		FillRect(image, 61, 103, 8, 6, Hex("90c8df"));
+		FillCircle(image, 48, 126, 8, Ink);
+		FillCircle(image, 70, 126, 6, Ink);
+		FillCircle(image, 48, 126, 4, StoneLight);
+		FillCircle(image, 70, 126, 3, StoneLight);
+		// Two-story white colonial house, brown roof, dormers, shutters, and chimneys.
+		FillRect(image, 91, 62, 152, 86, Ink);
+		FillRect(image, 98, 70, 138, 74, Hex("e5e4d7"));
+		FillRect(image, 89, 58, 157, 11, Hex("75442f"));
+		FillRect(image, 100, 51, 134, 10, Hex("86533a"));
+		FillRect(image, 110, 35, 14, 24, Hex("9b3b32"));
+		FillRect(image, 214, 29, 14, 30, Hex("9b3b32"));
+		FillRect(image, 108, 31, 18, 5, Hex("b64c3d"));
+		FillRect(image, 212, 25, 18, 5, Hex("b64c3d"));
+		// Dormer windows.
+		FillRect(image, 136, 44, 28, 19, Hex("67412f"));
+		FillRect(image, 140, 49, 20, 14, Hex("94c8dc"));
+		FillRect(image, 179, 44, 28, 19, Hex("67412f"));
+		FillRect(image, 183, 49, 20, 14, Hex("94c8dc"));
+		// Tall white columns and porch.
+		FillRect(image, 92, 119, 149, 8, Hex("bdbdb2"));
+		for (int x = 108; x <= 222; x += 28)
+		{
+			FillRect(image, x, 89, 12, 31, Hex("fbf8e9"));
+			FillRect(image, x - 2, 87, 16, 4, Colors.White);
+			FillRect(image, x - 2, 118, 16, 4, Hex("c4c1b3"));
+		}
+		// Blue shutters flank the upper and lower windows.
+		for (int y = 75; y <= 103; y += 28)
+			for (int x = 103; x <= 221; x += 39)
+			{
+				FillRect(image, x, y, 7, 16, Hex("385d82"));
+				FillRect(image, x + 17, y, 7, 16, Hex("385d82"));
+				FillRect(image, x + 8, y + 2, 9, 12, Hex("94c8dc"));
+			}
+		FillRect(image, 157, 111, 23, 33, Hex("60463b"));
+		FillRect(image, 162, 116, 13, 28, Hex("382e32"));
+		// Gloom overlay and a cool shadow across the foreground lawn.
+		ApplyTint(image, Hex("667184"), 0.24f);
+		FillRect(image, 0, 150, FrameWidth, 30, new Color(0.12f, 0.16f, 0.24f, 0.42f));
+		DrawBottomAligned(image, _endingKnight, 69, 158, true);
+	}
+
+	private static void DrawGreyCloud(Image image, int x, int y)
+	{
+		Color cloud = Hex("969da2");
+		FillRect(image, x, y + 8, 61, 17, cloud);
+		FillCircle(image, x + 15, y + 11, 13, cloud);
+		FillCircle(image, x + 34, y + 3, 17, cloud);
+		FillCircle(image, x + 52, y + 12, 11, cloud);
+	}
+
+	private static void DrawPixelTree(Image image, int x, int baseY, int height)
+	{
+		FillRect(image, x + 17, baseY - height / 3, 9, height / 3, Hex("564536"));
+		FillCircle(image, x + 20, baseY - height / 2, height / 3, Hex("243e35"));
+		FillCircle(image, x + 10, baseY - height / 2 + 8, height / 4, Hex("2d5140"));
+		FillCircle(image, x + 30, baseY - height / 2 + 6, height / 4, Hex("1f382f"));
+		FillRect(image, x + 4, baseY - 12, 38, 13, Hex("28483d"));
+	}
+
+	private static void ApplyTint(Image image, Color tint, float amount)
+	{
+		for (int y = 0; y < image.GetHeight(); y++)
+			for (int x = 0; x < image.GetWidth(); x++)
+			{
+				Color pixel = image.GetPixel(x, y);
+				image.SetPixel(x, y, new Color(
+					Mathf.Lerp(pixel.R, tint.R, amount), Mathf.Lerp(pixel.G, tint.G, amount),
+					Mathf.Lerp(pixel.B, tint.B, amount), pixel.A));
+			}
+	}
+
+	private static void DrawBottomAligned(Image destination, Image sprite, int centerX, int bottomY, bool flipX = false)
+	{
+		if (sprite == null) return;
+		DrawSprite(destination, sprite, new Vector2I(centerX - sprite.GetWidth() / 2, bottomY - sprite.GetHeight()), flipX);
 	}
 
 	private static void DrawCastleNight(Image image)

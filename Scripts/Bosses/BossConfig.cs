@@ -64,7 +64,7 @@ public static class BossRoster
 	public const string IVERN_SHEET = "res://Assets/Enemies/Ivern/ivern_spritesheet.png";
 	public const string IVERN_PROJECTILE_SHEET = "res://Assets/Enemies/Ivern/ivern_projectiles_spritesheet.png";
 	public const float IVERN_MOVE_SPEED = 0.0f;
-	public const float IVERN_ATTACK_COOLDOWN = 2.25f;
+	public const float IVERN_ATTACK_COOLDOWN = 1.5f;
 	public const int IVERN_MAX_ATTACKS_IN_ROW = 2;
 	public const float IVERN_CONTACT_DAMAGE = 12.0f;
 	public const string ORC_KING_NAME = "Trundle";
@@ -92,6 +92,7 @@ public static class BossRoster
 	public const int ORC_KING_SUMMON_START_FRAME = 7;
 	public const float ORC_KING_THROW_DAMAGE = 28.0f;
 	public const float ORC_KING_THROW_COOLDOWN = 3.5f;
+	public const float ORC_KING_THROW_RANGE = 84.0f;
 	public const float ORC_KING_THROW_SPEED = 210.0f;
 	public const bool ORC_KING_AXE_RETURNS = false;
 	public const float ORC_KING_AXE_LIFETIME = 4.0f;
@@ -130,8 +131,8 @@ public static class BossRoster
 	public const float POISON_TICK_DAMAGE = 5.0f;
 	public const float POISON_TICK_INTERVAL = 0.75f;
 	public const int POISON_MAX_PUDDLES = 4;
-	public const float POISON_PUDDLE_WIDTH = 14.0f;
-	public const float POISON_PUDDLE_HEIGHT = 7.0f;
+	public const float POISON_PUDDLE_WIDTH = 28.0f;
+	public const float POISON_PUDDLE_HEIGHT = 14.0f;
 	public const float PLAYER_BODY_PADDING_X = 9.0f;
 	public const float PLAYER_BODY_PADDING_Y = 9.0f;
 	public const float VINE_STRAIGHT_HALF_LENGTH = 10.0f;

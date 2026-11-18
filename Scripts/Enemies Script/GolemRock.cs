@@ -23,6 +23,7 @@ public partial class GolemRock : Area2D
 	private bool _damageSpent;
 	private RockState _state = RockState.Flying;
 	private GolemMiniboss _source;
+	private bool _attackLandsSoundPlayed;
 	private float _trailTimer;
 	private Polygon2D _warning;
 	private Polygon2D _warningCore;
@@ -157,6 +158,7 @@ public partial class GolemRock : Area2D
 
 		if (body is Player)
 		{
+			PlayAttackLandsSound();
 			DamagePlayerOnce(body);
 			if (_isBoulder)
 				LandBoulder();
@@ -188,6 +190,7 @@ public partial class GolemRock : Area2D
 		if (_state != RockState.Flying)
 			return;
 		_state = RockState.GroundHazard;
+		PlayAttackLandsSound();
 		_timer = GroundDuration;
 		_direction = Vector2.Zero;
 		_speed = 0.0f;
@@ -202,11 +205,21 @@ public partial class GolemRock : Area2D
 		if (_state != RockState.Flying)
 			return;
 		_state = RockState.GroundHazard;
+		PlayAttackLandsSound();
 		GolemShockwave.Spawn(this, 60f, CombatEffects.Impact);
 		CombatEffects.Burst(this, Colors.SandyBrown, amount: 22);
 		(GetTree().GetFirstNodeInGroup("player") as Player)?.ShakeCamera(2.3f);
 		ScatterGroundRocks();
 		QueueFree();
+	}
+
+	private void PlayAttackLandsSound()
+	{
+		if (_attackLandsSoundPlayed)
+			return;
+		_attackLandsSoundPlayed = true;
+		if (_source != null && GodotObject.IsInstanceValid(_source))
+			_source.PlayAttackLandsSound(GlobalPosition);
 	}
 
 	private void ScatterGroundRocks()

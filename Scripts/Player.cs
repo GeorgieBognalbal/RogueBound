@@ -65,6 +65,7 @@ public partial class Player : CharacterBody2D
 	public event Action<float, float> HealthChanged;
 	public event Action<int> MoneyChanged;
 	public event Action Died;
+	public Enemy LastDamageSource { get; private set; }
 
 	// =========================
 	// UPGRADES
@@ -346,7 +347,7 @@ public partial class Player : CharacterBody2D
 	// PLAYER TAKES DAMAGE
 	// =========================
 
-	public void TakeDamage(float damage)
+	public void TakeDamage(float damage, Enemy damageSource = null)
 	{
 		if (_bossIntroLocked || _godMode || Invincible)
 			return;
@@ -367,6 +368,7 @@ public partial class Player : CharacterBody2D
 			return;
 		}
 
+		LastDamageSource = damageSource;
 		ShakeCamera(1.8f);
 		CombatEffects.Burst(this, CombatEffects.Impact);
 		health = Mathf.Max(health - damage, 0);

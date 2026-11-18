@@ -25,6 +25,8 @@ public partial class BossIntro : CanvasLayer
     [Export] public float HoldSeconds = 2.0f;
     [Export] public int TitleFontSize = 0;               // 0 = auto (scales with screen height)
     [Export] public int SubtitleFontSize = 0;            // 0 = auto
+    [Export] public float PortraitVerticalOffset = 0f;   // positive values raise the portrait
+    [Export] public float TextHorizontalOffset = 0f;     // positive values move the text right
 
     private const string DimShader = @"
 shader_type canvas_item;
@@ -49,12 +51,15 @@ void fragment() {
 
     public static BossIntro Play(Node parent, Texture2D boss, string name = "GALIO",
                                  string subtitle = "The Golem", Font font = null,
-                                 Color? band = null, Color? edge = null, Color? subtitleColor = null)
+                                 Color? band = null, Color? edge = null, Color? subtitleColor = null,
+                                 float portraitVerticalOffset = 0f, float textHorizontalOffset = 0f)
     {
         var intro = new BossIntro { BossTexture = boss, BossName = name, Subtitle = subtitle, TextFont = font };
         if (band.HasValue) intro.BandColor = band.Value;
         if (edge.HasValue) intro.BandEdgeColor = edge.Value;
         if (subtitleColor.HasValue) intro.SubtitleColor = subtitleColor.Value;
+        intro.PortraitVerticalOffset = portraitVerticalOffset;
+        intro.TextHorizontalOffset = textHorizontalOffset;
         parent.AddChild(intro);
         return intro;
     }
@@ -149,7 +154,7 @@ void fragment() {
 
         int titleSize = TitleFontSize > 0 ? TitleFontSize : Mathf.RoundToInt(_h * 0.17f);
         int subSize = SubtitleFontSize > 0 ? SubtitleFontSize : Mathf.RoundToInt(_h * 0.095f);
-        float textX = -_w * 0.44f;
+        float textX = -_w * 0.44f + _w * TextHorizontalOffset;
         float titleY = -_h * 0.19f;
 
         var title = MakeLabel(BossName, titleSize, Colors.White);
@@ -165,7 +170,7 @@ void fragment() {
         {
             float scale = Mathf.Max(1f, Mathf.Floor(_h * 0.8f / BossTexture.GetHeight()));
             var bs = new Vector2(BossTexture.GetWidth(), BossTexture.GetHeight()) * scale;
-            _bossRest = new Vector2(_w * 0.78f - bs.X / 2f, _h * 0.17f);
+            _bossRest = new Vector2(_w * 0.78f - bs.X / 2f, _h * (0.17f - PortraitVerticalOffset));
             _boss = new TextureRect
             {
                 Texture = BossTexture,

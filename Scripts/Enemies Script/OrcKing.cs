@@ -131,7 +131,7 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 		int pick;
 		bool canSummon = _summons.Count < BossRoster.ORC_KING_SUMMON_CAP;
 		if (canSummon && (_summonCooldown <= 0 || _health / MaxHealth < 0.75f)) pick = 2;
-		else if (distance > BossRoster.ORC_KING_SLASH_RANGE * 1.35f) pick = 3;
+		else if (distance > BossRoster.ORC_KING_THROW_RANGE) pick = 3;
 		else pick = _rng.Randf() < 0.55f ? 0 : 1;
 		if (_sameAttackCount >= 2 && pick == _lastAttack) pick = (pick + 1) % 4;
 		if (pick == _lastAttack) _sameAttackCount++; else { _lastAttack = pick; _sameAttackCount = 1; }
@@ -162,7 +162,7 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 		if (toPlayer.Length() <= BossRoster.ORC_KING_SLASH_RANGE && Mathf.Abs(Mathf.RadToDeg(Mathf.Atan2(toPlayer.Y, toPlayer.X * forward))) <= BossRoster.ORC_KING_SLASH_ARC_DEGREES * 0.5f)
 		{
 			_basicAttackLandsSound?.Play();
-			target.TakeDamage(BossRoster.ORC_KING_SLASH_DAMAGE * _attackDamageMultiplier);
+			target.TakeDamage(BossRoster.ORC_KING_SLASH_DAMAGE * _attackDamageMultiplier, this);
 		}
 	}
 
@@ -174,7 +174,7 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 			new Vector2(BossRoster.ORC_KING_SMASH_TELEGRAPH_WIDTH, BossRoster.ORC_KING_SMASH_TELEGRAPH_HEIGHT));
 		if (rect.HasPoint(target.GlobalPosition))
 		{
-			target.TakeDamage(BossRoster.ORC_KING_SMASH_DAMAGE * _attackDamageMultiplier);
+			target.TakeDamage(BossRoster.ORC_KING_SMASH_DAMAGE * _attackDamageMultiplier, this);
 			target.TryApplyStun(BossRoster.ORC_KING_SMASH_STUN_SECONDS);
 		}
 	}
@@ -204,7 +204,7 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 	{
 		var axe = new OrcKingAxe();
 		axe.Setup(_player?.GlobalPosition ?? GlobalPosition + Vector2.Right, this, _attackDamageMultiplier);
-		axe.GlobalPosition = GlobalPosition + new Vector2(_animatedSprite.FlipH ? -20 : 20, -18);
+		axe.GlobalPosition = GlobalPosition + new Vector2(_animatedSprite.FlipH ? -30 : 30, -18);
 		GetTree().CurrentScene.AddChild(axe);
 		_axe = axe;
 	}

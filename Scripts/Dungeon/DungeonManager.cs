@@ -20,6 +20,7 @@ namespace RogueBound.Dungeon
 		private DungeonMinimap _minimap;
 		private CanvasLayer _minimapLayer;
 		private DungeonRoom _currentRoom;
+		private bool _endingTriggered;
 
 		private int _clearedRoomsCount = 0;
 		private int _totalCombatRooms = 0;
@@ -173,24 +174,26 @@ namespace RogueBound.Dungeon
 			ProgressChanged?.Invoke(_clearedRoomsCount, _totalCombatRooms);
 			EnemiesCountChanged?.Invoke(0);
 			if (room.Data.Type == RoomType.OrcKing)
-			{
-				DatabaseManager database = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
-				database?.FinishRun("Victory");
-				_ = LoadVictoryEndingAfterBossDeath();
-			}
+				TryTriggerEnding(true);
 		}
 
 		private void OnPlayerDied()
 		{
+			if (_endingTriggered)
+				return;
 			CleanupAllBossEffects();
 			DatabaseManager database = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
 			int kills = database?.GetCurrentRunKillCount() ?? 0;
-			database?.FinishRun("Defeated");
-			if (FloorNumber == BossRoster.TOTAL_FLOORS && _currentRoom?.Data.Type == RoomType.OrcKing && _currentRoom.Data.State == RoomState.Active)
+			bool diedToOrcKing = FloorNumber == BossRoster.TOTAL_FLOORS &&
+				_currentRoom?.Data.Type == RoomType.OrcKing &&
+				_currentRoom.Data.State == RoomState.Active &&
+				_player?.LastDamageSource is OrcKing;
+			if (diedToOrcKing)
 			{
-				CallDeferred(nameof(LoadDefeatEnding));
+				TryTriggerEnding(false);
 				return;
 			}
+			database?.FinishRun("Defeated");
 
 			var gameOverScene = GD.Load<PackedScene>("res://Scenes/Menus/GameOverMenu.tscn");
 			if (gameOverScene != null && GetTree()?.CurrentScene != null)
@@ -211,8 +214,7 @@ namespace RogueBound.Dungeon
 						finalBossCleared = true;
 				if (finalBossCleared)
 				{
-					GetNodeOrNull<DatabaseManager>("/root/DatabaseManager")?.FinishRun("Victory");
-					LoadVictoryEnding();
+					TryTriggerEnding(true);
 				}
 				return;
 			}
@@ -336,14 +338,28 @@ namespace RogueBound.Dungeon
 					node.QueueFree();
 		}
 
-		private async System.Threading.Tasks.Task LoadVictoryEndingAfterBossDeath()
+		private void TryTriggerEnding(bool happy)
 		{
-			float hold = BossRoster.ORC_KING_DEATH_ANIMATION_SECONDS + BossRoster.ORC_KING_DEATH_HOLD_SECONDS;
-			await ToSignal(GetTree().CreateTimer(hold), SceneTreeTimer.SignalName.Timeout);
-			if (GodotObject.IsInstanceValid(this)) LoadVictoryEnding();
+			if (_endingTriggered)
+				return;
+			_endingTriggered = true;
+			GetNodeOrNull<DatabaseManager>("/root/DatabaseManager")?.FinishRun(happy ? "Victory" : "Defeated");
+			CallDeferred(nameof(LoadEnding), happy);
 		}
 
-		private void LoadVictoryEnding() => GetTree().ChangeSceneToFile("res://Scenes/Endings/VictoryEnding.tscn");
-		private void LoadDefeatEnding() => GetTree().ChangeSceneToFile("res://Scenes/Endings/DefeatEnding.tscn");
+		private void LoadEnding(bool happy)
+			=> GetTree().ChangeSceneToFile(happy ? "res://Scenes/Endings/VictoryEnding.tscn" : "res://Scenes/Endings/DefeatEnding.tscn");
+
+		public override void _UnhandledInput(InputEvent @event)
+		{
+			if (!OS.IsDebugBuild() || _endingTriggered || @event is not InputEventKey key || !key.Pressed || key.Echo)
+				return;
+			if (key.Keycode == Key.F9)
+				TryTriggerEnding(true);
+			else if (key.Keycode == Key.F10)
+				TryTriggerEnding(false);
+			else return;
+			GetViewport().SetInputAsHandled();
+		}
 	}
 }

@@ -51,13 +51,12 @@ namespace RogueBound.Dungeon
 			if (_triggerArea != null)
 			{
 				_triggerArea.BodyEntered += OnTriggerBodyEntered;
+				_triggerArea.BodyExited += OnTriggerBodyExited;
 			}
 		}
 
 		public void Initialize(DungeonRoomData data)
 		{
-			if (data.Type == RoomType.Maze)
-				data.Type = RoomType.Combat;
 			Data = data;
 			GlobalPosition = data.WorldCenter;
 
@@ -69,6 +68,7 @@ namespace RogueBound.Dungeon
 				_triggerArea.CollisionMask = 2; // Player layer
 				AddChild(_triggerArea);
 				_triggerArea.BodyEntered += OnTriggerBodyEntered;
+				_triggerArea.BodyExited += OnTriggerBodyExited;
 			}
 
 			_triggerCollision = new CollisionShape2D();
@@ -144,7 +144,15 @@ namespace RogueBound.Dungeon
 			if (!(body is Player player))
 				return;
 
-			if (Data == null)
+			// Re-entering a boss room after stepping out restores its HUD without replaying the intro.
+			foreach (Enemy enemy in ActiveEnemies)
+				if (enemy is IBossEncounter activeBoss && GodotObject.IsInstanceValid(enemy))
+				{
+					activeBoss.SetRoomActive(true);
+					activeBoss.ShowBossBarIfFightStarted();
+				}
+
+			if (Data == null || Data.State == RoomState.Cleared)
 				return;
 
 			PlayerEntered?.Invoke(this);
@@ -152,9 +160,11 @@ namespace RogueBound.Dungeon
 			{
 				Data.State = RoomState.Active;
 
-				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit || Data.Type == RoomType.GolemBoss)
+				if (IsCombatRoom(Data.Type))
 				{
 					LockDoorsAfterEntry(player);
+					if (Data.Type == RoomType.GolemBoss || Data.Type == RoomType.IvernBoss || Data.Type == RoomType.OrcKing)
+						player.BeginBossIntroLock();
 					CallDeferred(nameof(SpawnWave));
 				}
 				else if (Data.Type == RoomType.Challenge)
@@ -169,6 +179,18 @@ namespace RogueBound.Dungeon
 					RoomCleared?.Invoke(this);
 				}
 			}
+		}
+
+		private void OnTriggerBodyExited(Node2D body)
+		{
+			if (body is not Player) return;
+			foreach (Enemy enemy in ActiveEnemies)
+				if (enemy is IBossEncounter boss && GodotObject.IsInstanceValid(enemy))
+				{
+					boss.SetRoomActive(false);
+					boss.HideBossBar();
+					boss.CleanupBossEffects();
+				}
 		}
 
 		private void StartChallenge()
@@ -257,7 +279,7 @@ namespace RogueBound.Dungeon
 			// Keep all doors open until the player has moved clear of the entrance.
 			_pendingDoorLock = _entryDoor != null && nearestDistance < 64.0f * 64.0f;
 			if (!_pendingDoorLock)
-				LockDoors();
+				CallDeferred(nameof(LockDoors));
 		}
 
 		public void LockDoors()
@@ -289,40 +311,55 @@ namespace RogueBound.Dungeon
 			float hpMult = 1.0f + (floor - 1) * 0.35f;
 			float dmgMult = 1.0f + (floor - 1) * 0.20f;
 
-			if (Data.Type == RoomType.GolemBoss)
+			if (Data.Type == RoomType.GolemBoss || Data.Type == RoomType.IvernBoss || Data.Type == RoomType.OrcKing)
 			{
-				var golemScene = GD.Load<PackedScene>("res://Scenes/Enemies/GolemMiniboss.tscn");
-				if (golemScene == null)
+				string bossPath = Data.Type switch
 				{
-					GD.PushError("Golem miniboss scene could not be loaded.");
+					RoomType.GolemBoss => "res://Scenes/Enemies/GolemMiniboss.tscn",
+					RoomType.IvernBoss => "res://Scenes/Enemies/IvernMiniboss.tscn",
+					_ => "res://Scenes/Enemies/OrcKing.tscn",
+				};
+				var bossScene = GD.Load<PackedScene>(bossPath);
+				if (bossScene == null)
+				{
+					GD.PushError($"Boss scene could not be loaded: {bossPath}");
+					(GetTree().GetFirstNodeInGroup("player") as Player)?.EndBossIntroLock();
 					return;
 				}
 
-				var golem = golemScene.Instantiate<GolemMiniboss>();
-				golem.MaxHealth *= hpMult;
-				golem.AttackDamage *= dmgMult;
-				golem.GlobalPosition = Data.WorldCenter;
-				GetTree().CurrentScene.AddChild(golem);
-				ActiveEnemies.Add(golem);
+				Enemy bossEnemy = bossScene.Instantiate<Enemy>();
+				if (Data.Type == RoomType.GolemBoss)
+				{
+					bossEnemy.MaxHealth = GolemBossSettings.BOSS_BASE_HEALTH * hpMult;
+					bossEnemy.AttackDamage = (int)(GolemBossSettings.BOSS_BASE_CONTACT_DAMAGE * dmgMult);
+				}
+				else if (Data.Type == RoomType.IvernBoss)
+				{
+					bossEnemy.MaxHealth = BossRoster.IVERN_MAX_HP * hpMult;
+					bossEnemy.AttackDamage = (int)(BossRoster.IVERN_CONTACT_DAMAGE * dmgMult);
+				}
+				else
+				{
+					bossEnemy.MaxHealth = BossRoster.ORC_KING_MAX_HP * hpMult;
+					bossEnemy.AttackDamage = (int)(BossRoster.ORC_KING_ATTACK_DAMAGE * dmgMult);
+				}
+				bossEnemy.GlobalPosition = Data.WorldCenter;
+				GetTree().CurrentScene.AddChild(bossEnemy);
+				((IBossEncounter)bossEnemy).StartBossIntroOnce(GetTree().GetFirstNodeInGroup("player") as Player);
+				ActiveEnemies.Add(bossEnemy);
 				_waveSpawned = true;
 				return;
 			}
 
-			int count = Data.Type == RoomType.BossExit ? (6 + floor) : (int)GD.RandRange(3 + floor, 5 + floor);
+			// The exit room remains a normal encounter; boss fights only come from
+			// the explicit BossRoster floor table.
+			int count = (int)GD.RandRange(3 + floor, 5 + floor);
 			var rng = new Random();
 
 			for (int i = 0; i < count; i++)
 			{
-				string path;
-				if (Data.Type == RoomType.BossExit && i == 0)
-				{
-					path = "res://Scenes/Enemies/OrcEnemy.tscn";
-				}
-				else
-				{
-					int idx = rng.Next(EnemyScenePaths.Length);
-					path = EnemyScenePaths[idx];
-				}
+				int idx = rng.Next(EnemyScenePaths.Length);
+				string path = EnemyScenePaths[idx];
 
 				var packed = GD.Load<PackedScene>(path);
 				if (packed == null)
@@ -332,16 +369,8 @@ namespace RogueBound.Dungeon
 				// Apply floor scaling
 				enemy.MaxHealth *= hpMult;
 				enemy.AttackDamage *= dmgMult;
-				if (Data.Type == RoomType.BossExit && i == 0)
-				{
-					// Boss buff
-					enemy.MaxHealth *= 2.0f;
-					enemy.AttackDamage *= 1.3f;
-					enemy.Scale = new Vector2(1.4f, 1.4f);
-				}
-
-				float halfW = (Data.WorldBounds.Size.X * 0.35f);
-				float halfH = (Data.WorldBounds.Size.Y * 0.35f);
+				float halfW = (Data.WorldBounds.Size.X * 0.25f);
+				float halfH = (Data.WorldBounds.Size.Y * 0.25f);
 				Vector2 offset = new Vector2(
 					(float)GD.RandRange(-halfW, halfW),
 					(float)GD.RandRange(-halfH, halfH)
@@ -372,6 +401,8 @@ namespace RogueBound.Dungeon
 					LockDoors();
 				}
 			}
+
+			KeepActiveEnemiesInsideRoom();
 
 			// Handle Challenge Room Timer
 			if (_challengeActive)
@@ -413,7 +444,7 @@ namespace RogueBound.Dungeon
 			// Handle Combat / Boss Rooms
 			if (Data.State == RoomState.Active)
 			{
-				if (Data.Type == RoomType.Combat || Data.Type == RoomType.BossExit || Data.Type == RoomType.GolemBoss)
+				if (IsCombatRoom(Data.Type))
 				{
 					if (_waveSpawned)
 					{
@@ -428,12 +459,39 @@ namespace RogueBound.Dungeon
 			}
 		}
 
+		private void KeepActiveEnemiesInsideRoom()
+		{
+			if (Data == null)
+				return;
+
+			// Enemies may pursue the player, but they must not follow through an open doorway
+			// into another room while the entrance door is waiting to close.
+			const float wallInset = 32.0f;
+			Rect2 bounds = Data.WorldBounds;
+			float minX = bounds.Position.X + wallInset;
+			float maxX = bounds.End.X - wallInset;
+			float minY = bounds.Position.Y + wallInset;
+			float maxY = bounds.End.Y - wallInset;
+			foreach (Enemy enemy in ActiveEnemies)
+			{
+				if (!GodotObject.IsInstanceValid(enemy) || enemy.IsDead())
+					continue;
+
+				Vector2 position = enemy.GlobalPosition;
+				Vector2 contained = new(
+					Mathf.Clamp(position.X, minX, maxX),
+					Mathf.Clamp(position.Y, minY, maxY));
+				if (contained != position)
+					enemy.GlobalPosition = contained;
+			}
+		}
+
 		private void OnRoomCleared()
 		{
 			Data.State = RoomState.Cleared;
 			UnlockDoors();
 
-			if (Data.Type == RoomType.Combat || Data.Type == RoomType.GolemBoss)
+			if (Data.Type == RoomType.Combat || Data.Type == RoomType.GolemBoss || Data.Type == RoomType.IvernBoss)
 			{
 				var chestScene = GD.Load<PackedScene>("res://Scenes/Dungeon/Chest.tscn");
 				if (chestScene != null && GetTree().CurrentScene != null)
@@ -446,10 +504,16 @@ namespace RogueBound.Dungeon
 
 			if (_portal != null)
 			{
-				_portal.Activate();
+				int currentFloor = GetTree().CurrentScene?.GetNodeOrNull<DungeonManager>("DungeonManager")?.CurrentFloor ?? 1;
+				if (Data.Type != RoomType.BossExit || currentFloor < BossRoster.TOTAL_FLOORS)
+					_portal.Activate();
 			}
 
 			RoomCleared?.Invoke(this);
 		}
+
+		private static bool IsCombatRoom(RoomType type) =>
+			type == RoomType.Combat || type == RoomType.BossExit || type == RoomType.GolemBoss ||
+			type == RoomType.IvernBoss || type == RoomType.OrcKing;
 	}
 }

@@ -6,8 +6,9 @@ namespace RogueBound.Dungeon
 		Combat,
 		Shop,
 		Challenge,
-		Maze,
 		GolemBoss,
+		IvernBoss,
+		OrcKing,
 		BossExit
 	}
 

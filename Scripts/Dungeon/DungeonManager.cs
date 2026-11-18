@@ -7,7 +7,6 @@ namespace RogueBound.Dungeon
 	public partial class DungeonManager : Node
 	{
 		[Export] public int FloorNumber = 1;
-		[Export] public int MaxFloors = 3;
 		[Export] public PackedScene UpgradeScene;
 
 		public event Action<int, int> ProgressChanged;
@@ -67,7 +66,7 @@ namespace RogueBound.Dungeon
 			_totalCombatRooms = 0;
 			foreach (var roomNode in _generator.InstantiatedRooms)
 			{
-				if (roomNode.Data.Type == RoomType.Combat || roomNode.Data.Type == RoomType.BossExit || roomNode.Data.Type == RoomType.GolemBoss)
+				if (IsCombatRoom(roomNode.Data.Type))
 					_totalCombatRooms++;
 
 				roomNode.PlayerEntered += OnPlayerEnteredRoom;
@@ -152,7 +151,7 @@ namespace RogueBound.Dungeon
 			_currentRoom = room;
 			_minimap?.SetCurrentRoom(room.Data.GridCoord);
 
-			if (room.Data.Type == RoomType.Combat || room.Data.Type == RoomType.BossExit)
+			if (IsCombatRoom(room.Data.Type))
 			{
 				EnemiesCountChanged?.Invoke(room.ActiveEnemies.Count);
 			}
@@ -164,7 +163,7 @@ namespace RogueBound.Dungeon
 
 		private void OnRoomCleared(DungeonRoom room)
 		{
-			if ((room.Data.Type == RoomType.Combat || room.Data.Type == RoomType.BossExit) &&
+			if (IsCombatRoom(room.Data.Type) &&
 				_countedClearedRooms.Add(room.GetInstanceId()))
 			{
 				_clearedRoomsCount++;
@@ -173,13 +172,25 @@ namespace RogueBound.Dungeon
 
 			ProgressChanged?.Invoke(_clearedRoomsCount, _totalCombatRooms);
 			EnemiesCountChanged?.Invoke(0);
+			if (room.Data.Type == RoomType.OrcKing)
+			{
+				DatabaseManager database = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
+				database?.FinishRun("Victory");
+				CallDeferred(nameof(LoadVictoryEnding));
+			}
 		}
 
 		private void OnPlayerDied()
 		{
+			CleanupAllBossEffects();
 			DatabaseManager database = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
 			int kills = database?.GetCurrentRunKillCount() ?? 0;
 			database?.FinishRun("Defeated");
+			if (FloorNumber == BossRoster.TOTAL_FLOORS && _currentRoom?.Data.Type == RoomType.OrcKing && _currentRoom.Data.State == RoomState.Active)
+			{
+				CallDeferred(nameof(LoadDefeatEnding));
+				return;
+			}
 
 			var gameOverScene = GD.Load<PackedScene>("res://Scenes/Menus/GameOverMenu.tscn");
 			if (gameOverScene != null && GetTree()?.CurrentScene != null)
@@ -192,19 +203,16 @@ namespace RogueBound.Dungeon
 
 		public void NextFloor()
 		{
-			if (FloorNumber >= MaxFloors)
+			if (FloorNumber >= BossRoster.TOTAL_FLOORS)
 			{
-				// Victory achieved!
-				DatabaseManager db = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
-				int kills = db?.GetCurrentRunKillCount() ?? 0;
-				db?.FinishRun("Victory");
-
-				var victoryScene = GD.Load<PackedScene>("res://Scenes/Menus/GameOverMenu.tscn");
-				if (victoryScene != null && GetTree()?.CurrentScene != null)
+				bool finalBossCleared = false;
+				foreach (DungeonRoom room in _generator.InstantiatedRooms)
+					if (room.Data.Type == RoomType.OrcKing && room.Data.State == RoomState.Cleared)
+						finalBossCleared = true;
+				if (finalBossCleared)
 				{
-					GameOverMenu menu = victoryScene.Instantiate<GameOverMenu>();
-					GetTree().CurrentScene.AddChild(menu);
-					menu.Setup(true, _clearedRoomsCount, _totalCombatRooms, kills, _player?.Money ?? 0);
+					GetNodeOrNull<DatabaseManager>("/root/DatabaseManager")?.FinishRun("Victory");
+					LoadVictoryEnding();
 				}
 				return;
 			}
@@ -300,11 +308,35 @@ namespace RogueBound.Dungeon
 
 		public override void _Process(double delta)
 		{
-			if (_currentRoom?.Data.State == RoomState.Active &&
-				(_currentRoom.Data.Type == RoomType.Combat || _currentRoom.Data.Type == RoomType.BossExit))
+			if (_currentRoom?.Data.State == RoomState.Active && IsCombatRoom(_currentRoom.Data.Type))
 			{
 				EnemiesCountChanged?.Invoke(_currentRoom.ActiveEnemies.Count);
 			}
 		}
+
+		private static bool IsCombatRoom(RoomType type) =>
+			type == RoomType.Combat || type == RoomType.BossExit || type == RoomType.GolemBoss ||
+			type == RoomType.IvernBoss || type == RoomType.OrcKing;
+
+		private void CleanupAllBossEffects()
+		{
+			_player?.ClearRootEffect();
+			foreach (Node node in GetTree().GetNodesInGroup("enemies"))
+				if (node is Enemy enemy && enemy is IBossEncounter boss && GodotObject.IsInstanceValid(enemy))
+				{
+					boss.SetRoomActive(false);
+					boss.HideBossBar();
+					boss.CleanupBossEffects();
+				}
+			foreach (Node node in GetTree().GetNodesInGroup("ivern_effects"))
+				if (GodotObject.IsInstanceValid(node))
+					node.QueueFree();
+			foreach (Node node in GetTree().GetNodesInGroup("golem_rocks"))
+				if (GodotObject.IsInstanceValid(node))
+					node.QueueFree();
+		}
+
+		private void LoadVictoryEnding() => GetTree().ChangeSceneToFile("res://Scenes/Endings/VictoryEnding.tscn");
+		private void LoadDefeatEnding() => GetTree().ChangeSceneToFile("res://Scenes/Endings/DefeatEnding.tscn");
 	}
 }

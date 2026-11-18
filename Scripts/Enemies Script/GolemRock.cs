@@ -11,7 +11,7 @@ public partial class GolemRock : Area2D
 	private static readonly Color StoneLight = new("#9a9aae");
 	private static ImageTexture _rockTexture;
 
-	[Export] public float GroundDuration = 2.4f;
+	[Export] public float GroundDuration = GolemBossSettings.SMALL_ROCK_GROUND_SECONDS;
 
 	private Sprite2D _sprite;
 	private CollisionShape2D _collisionShape;
@@ -24,6 +24,8 @@ public partial class GolemRock : Area2D
 	private RockState _state = RockState.Flying;
 	private GolemMiniboss _source;
 	private float _trailTimer;
+	private Polygon2D _warning;
+	private Polygon2D _warningCore;
 
 	public void Setup(Vector2 direction, float damage, float speed, float flightTime, bool isBoulder, GolemMiniboss source)
 	{
@@ -38,6 +40,7 @@ public partial class GolemRock : Area2D
 	public override void _Ready()
 	{
 		AddToGroup("floor_items");
+		AddToGroup("golem_rocks");
 		CollisionLayer = 0;
 		CollisionMask = 2; // Player; the aimed flight timer provides the landing point.
 		Monitoring = true;
@@ -46,12 +49,22 @@ public partial class GolemRock : Area2D
 		_sprite = GetNode<Sprite2D>("Sprite2D");
 		_sprite.Texture = GetRockTexture();
 		_sprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
-		_sprite.Scale = _isBoulder ? new Vector2(2, 2) : Vector2.One;
+		_sprite.Scale = _isBoulder ? Vector2.One * GolemBossSettings.BOULDER_RENDER_SCALE : Vector2.One;
 
 		_collisionShape = GetNode<CollisionShape2D>("CollisionShape2D");
 		_collisionShape.Shape = new CircleShape2D { Radius = _isBoulder ? 11.0f : 6.0f };
-
+		if (_isBoulder)
+		{
+			_warning = new Polygon2D { Name = "LandingWarning", Color = new Color(GolemBossSettings.ROCK_WARNING_COLOR), Visible = false, ZIndex = -1 };
+			_warning.Polygon = MakeOctagon(GolemBossSettings.ROCK_WARNING_RADIUS);
+			_warningCore = new Polygon2D { Color = new Color(GolemBossSettings.ROCK_WARNING_CORE_COLOR) };
+			_warningCore.Polygon = MakeOctagon(GolemBossSettings.ROCK_WARNING_RADIUS * 0.55f);
+			_warning.AddChild(_warningCore);
+			AddChild(_warning);
+		}
 	}
+
+	public bool BelongsTo(GolemMiniboss boss) => _source == boss;
 
 	public override void _PhysicsProcess(double delta)
 	{
@@ -64,7 +77,22 @@ public partial class GolemRock : Area2D
 			return;
 		}
 
-		GlobalPosition += _direction * _speed * dt;
+		Vector2 start = GlobalPosition;
+		Vector2 travel = _direction * _speed * dt;
+		int samples = Mathf.Max(1, Mathf.CeilToInt(travel.Length() / GolemBossSettings.ROCK_SWEEP_SAMPLE_PIXELS));
+		for (int i = 1; i <= samples; i++)
+		{
+			Vector2 sample = start + travel * ((float)i / samples);
+			if (CheckSweptPlayerHit(sample)) return;
+		}
+		GlobalPosition = start + travel;
+		if (_isBoulder && _timer <= GolemBossSettings.ROCK_LANDING_WARNING_SECONDS && _warning != null)
+		{
+			_warning.Visible = true;
+			_warning.Position = _direction * _speed * _timer;
+			bool bright = Mathf.Sin((float)Time.GetTicksMsec() * 0.001f * Mathf.Tau * GolemBossSettings.ROCK_WARNING_BLINK_HZ) > 0.0f;
+			_warning.Color = new Color(bright ? GolemBossSettings.ROCK_WARNING_COLOR : GolemBossSettings.ROCK_WARNING_ALT_COLOR);
+		}
 		_sprite.Rotation += dt * (_isBoulder ? 3f : 6f);
 		if (_isBoulder)
 		{
@@ -82,6 +110,41 @@ public partial class GolemRock : Area2D
 			else
 				SettleAsHazard();
 		}
+	}
+
+	private bool CheckSweptPlayerHit(Vector2 position)
+	{
+		var query = new PhysicsShapeQueryParameters2D
+		{
+			Shape = _collisionShape.Shape,
+			Transform = new Transform2D(0.0f, position),
+			CollisionMask = 2,
+			CollideWithAreas = false,
+			CollideWithBodies = true,
+		};
+		query.Exclude = new Godot.Collections.Array<Rid> { GetRid() };
+		if (_source != null && GodotObject.IsInstanceValid(_source)) query.Exclude.Add(_source.GetRid());
+		foreach (Godot.Collections.Dictionary hit in GetWorld2D().DirectSpaceState.IntersectShape(query, 8))
+		{
+			if (hit.TryGetValue("collider", out Variant collider) && collider.AsGodotObject() is Player player)
+			{
+				GlobalPosition = position;
+				OnBodyEntered(player);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	private static Vector2[] MakeOctagon(float radius)
+	{
+		Vector2[] points = new Vector2[8];
+		for (int i = 0; i < points.Length; i++)
+		{
+			float angle = Mathf.Tau * i / points.Length;
+			points[i] = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * radius;
+		}
+		return points;
 	}
 
 	private void OnBodyEntered(Node2D body)
@@ -152,24 +215,16 @@ public partial class GolemRock : Area2D
 		if (scene == null || GetTree().CurrentScene == null)
 			return;
 
-		var world = GetTree().CurrentScene;
-		Vector2 position = GlobalPosition;
-		float damage = _damage * 0.65f;
-		GolemMiniboss source = _source;
-		Callable.From(() =>
+		int rockCount = GolemBossSettings.PEBBLE_COUNT;
+		for (int i = 0; i < rockCount; i++)
 		{
-			if (!GodotObject.IsInstanceValid(world) || world.IsQueuedForDeletion())
-				return;
-			const int rockCount = 8;
-			for (int i = 0; i < rockCount; i++)
-			{
-				Vector2 direction = Vector2.FromAngle(Mathf.Tau * i / rockCount);
-				var rock = scene.Instantiate<GolemRock>();
-				rock.Setup(direction, damage, 150.0f, 0.55f, false, source);
-				rock.Position = position;
-				world.AddChild(rock);
-			}
-		}).CallDeferred();
+			float angle = Mathf.Tau * i / rockCount;
+			Vector2 direction = new(Mathf.Cos(angle), Mathf.Sin(angle));
+			GolemRock rock = scene.Instantiate<GolemRock>();
+			rock.Setup(direction, _damage * GolemBossSettings.SMALL_ROCK_DAMAGE_RATIO_ON_SCATTER, GolemBossSettings.PEBBLE_SPEED, GolemBossSettings.PEBBLE_FLIGHT_SECONDS, false, _source);
+			GetTree().CurrentScene.AddChild(rock);
+			rock.GlobalPosition = GlobalPosition;
+		}
 	}
 
 	private static ImageTexture GetRockTexture()

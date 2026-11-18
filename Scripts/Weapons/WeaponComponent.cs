@@ -237,6 +237,15 @@ public partial class WeaponComponent : Node
 		FireProjectile(aimDirection, weapon, weapon.ProjectileSpeed * speedMultiplier);
 	}
 
+	public void CancelForBossEntrance()
+	{
+		_isBowCharging = false;
+		_isStaffCharging = false;
+		_cooldownTimer = 0.0f;
+		HideChargeBar();
+		_player?.EndAttackPose();
+	}
+
 	private void ShowChargeBar()
 	{
 		if (_chargeBar == null) return;

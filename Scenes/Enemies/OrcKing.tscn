@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://Scenes/Enemies/OrcEnemy.tscn" id="1_orc"]
+[ext_resource type="Script" path="res://Scripts/Enemies Script/OrcKing.cs" id="2_king"]
+
+[node name="OrcKing" instance=ExtResource("1_orc")]
+script = ExtResource("2_king")
+scale = Vector2(1.5, 1.5)

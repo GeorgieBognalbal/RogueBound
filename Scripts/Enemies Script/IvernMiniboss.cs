@@ -270,7 +270,7 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 		Texture2D portrait = BossPortraitBuilder.FromSheet(BossConfig);
 		Font font = GD.Load<Font>("res://Assets/Theme/m5x7.ttf");
 		var intro = BossIntro.Play(this, portrait, BossConfig.Name.ToUpperInvariant(), "THE GUARDIAN\nOF THE FOREST", font,
-			BossConfig.BannerColor, BossConfig.BannerEdgeColor);
+			BossConfig.BannerColor, BossConfig.BannerEdgeColor, portraitVerticalOffset: 0.08f, textHorizontalOffset: 0.05f);
 		await ToSignal(intro, BossIntro.SignalName.Finished);
 		if (!GodotObject.IsInstanceValid(this) || _isDead)
 			return;

@@ -27,6 +27,9 @@ public partial class GolemMiniboss : Enemy
 	private float _criticalRemaining;
 	private float _flashRemaining;
 	private Label _criticalLabel;
+	private AudioStreamPlayer2D _throwSound;
+	private AudioStreamPlayer2D _attackLandsSound;
+	private AudioStreamPlayer2D _dieSound;
 
 	public override void _Ready()
 	{
@@ -38,6 +41,9 @@ public partial class GolemMiniboss : Enemy
 		base._Ready();
 		_arenaCenter = GlobalPosition;
 		_criticalLabel = GetNode<Label>("CriticalCue");
+		_throwSound = AddAudioPlayer("ThrowSound", "res://Sounds/Golem Throw.wav");
+		_attackLandsSound = AddAudioPlayer("AttackLandsSound", "res://Sounds/Golem AttackLands.wav");
+		_dieSound = AddAudioPlayer("DieSound", "res://Sounds/Golem Die Sound.wav");
 
 		_bodyShape = GetNodeOrNull<CollisionShape2D>("EnemyCollisionShape");
 		if (_hitbox != null)
@@ -145,6 +151,7 @@ public partial class GolemMiniboss : Enemy
 		base.TakeDamage(damage, attackerPosition);
 		if (_isDead)
 		{
+			_dieSound?.Play();
 			_action = BossAction.Dying;
 			_criticalRemaining = 0;
 			_animatedSprite.SpeedScale = 1;
@@ -272,7 +279,27 @@ public partial class GolemMiniboss : Enemy
 		rock.Setup(direction, damage, speed, flightTime, boulder, this);
 		rock.Position = origin;
 		GetTree().CurrentScene.AddChild(rock);
+		_throwSound?.Play();
 		CombatEffects.Burst(this, Colors.SandyBrown, origin - GlobalPosition, direction, boulder ? 18 : 7);
 		(_player as Player)?.ShakeCamera(boulder ? 1.8f : 0.65f);
+	}
+
+	private AudioStreamPlayer2D AddAudioPlayer(string nodeName, string streamPath)
+	{
+		var player = new AudioStreamPlayer2D
+		{
+			Name = nodeName,
+			Stream = GD.Load<AudioStream>(streamPath)
+		};
+		AddChild(player);
+		return player;
+	}
+
+	public void PlayAttackLandsSound(Vector2 impactPosition)
+	{
+		if (_attackLandsSound == null || !GodotObject.IsInstanceValid(_attackLandsSound))
+			return;
+		_attackLandsSound.GlobalPosition = impactPosition;
+		_attackLandsSound.Play();
 	}
 }

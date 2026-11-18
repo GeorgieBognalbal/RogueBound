@@ -176,10 +176,17 @@ namespace RogueBound.Dungeon
 				candidates.RemoveAt(challengeIndex);
 			}
 
-			// Every third floor includes a golem arena. Other slots remain combat rooms.
-			if (candidates.Count > 0 && floorNumber % 3 == 0)
+			// Only floors in the central boss table receive a boss room. Other floors
+			// leave this slot as a normal combat room; the maze is not generated.
+			if (candidates.Count > 0)
 			{
-				RoomMap[candidates[0]].Type = RoomType.GolemBoss;
+				if (BossRoster.TryGetFloorBoss(floorNumber, out BossKind bossKind))
+					RoomMap[candidates[0]].Type = bossKind switch
+					{
+						BossKind.Galio => RoomType.GolemBoss,
+						BossKind.Ivern => RoomType.IvernBoss,
+						_ => RoomType.OrcKing,
+					};
 				candidates.RemoveAt(0);
 			}
 

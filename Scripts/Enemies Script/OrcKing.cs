@@ -19,6 +19,8 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 	private float _attackDamageMultiplier = 1.0f;
 	private Vector2 _smashCenter;
 	private OrcKingAxe _axe;
+	private AudioStreamPlayer2D _skillSound;
+	private AudioStreamPlayer2D _basicAttackLandsSound;
 
 	public BossConfig BossConfig => BossRoster.ORC_KING;
 	public bool IsFightStarted => _fightStarted;
@@ -29,6 +31,8 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 		float configuredDamage = AttackDamage;
 		ProcessMode = ProcessModeEnum.Pausable;
 		base._Ready();
+		_skillSound = AddAudioPlayer("SkillSound", "res://Sounds/Orc King Skill.wav");
+		_basicAttackLandsSound = AddAudioPlayer("BasicAttackLandsSound", "res://Sounds/Golem AttackLands.wav");
 		MaxHealth = Mathf.Max(configuredHealth, BossRoster.ORC_KING_MAX_HP);
 		_health = MaxHealth;
 		Speed = BossRoster.ORC_KING_MOVE_SPEED;
@@ -141,6 +145,7 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 			case 0: _action = ActionState.Slash; _animatedSprite.Play("slash"); break;
 			case 1:
 				_action = ActionState.Smash;
+			_skillSound?.Play();
 				_smashCenter = _player.GlobalPosition; // locked when the charge starts
 				_smashTelegraph = BossRoster.ORC_KING_SMASH_TELEGRAPH_SECONDS;
 				_animatedSprite.Play("smash"); QueueRedraw(); break;
@@ -155,7 +160,10 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 		Vector2 toPlayer = target.GlobalPosition - GlobalPosition;
 		float forward = _animatedSprite.FlipH ? -1 : 1;
 		if (toPlayer.Length() <= BossRoster.ORC_KING_SLASH_RANGE && Mathf.Abs(Mathf.RadToDeg(Mathf.Atan2(toPlayer.Y, toPlayer.X * forward))) <= BossRoster.ORC_KING_SLASH_ARC_DEGREES * 0.5f)
+		{
+			_basicAttackLandsSound?.Play();
 			target.TakeDamage(BossRoster.ORC_KING_SLASH_DAMAGE * _attackDamageMultiplier);
+		}
 	}
 
 	private void ResolveSmash()
@@ -277,6 +285,17 @@ public partial class OrcKing : OrcEnemy, IBossEncounter
 		_axe = null;
 		foreach (var summon in _summons) if (GodotObject.IsInstanceValid(summon)) summon.QueueFree();
 		_summons.Clear();
+	}
+
+	private AudioStreamPlayer2D AddAudioPlayer(string nodeName, string streamPath)
+	{
+		var player = new AudioStreamPlayer2D
+		{
+			Name = nodeName,
+			Stream = GD.Load<AudioStream>(streamPath)
+		};
+		AddChild(player);
+		return player;
 	}
 
 	private GameHud GetBossHud()

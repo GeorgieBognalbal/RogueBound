@@ -125,6 +125,7 @@ public partial class IvernProjectile : Node2D
 		if (result.Count > 0)
 		{
 			GlobalPosition = (Vector2)result["position"];
+			PlayAttackLandsSound();
 			if (result["collider"].AsGodotObject() is Player player)
 			{
 				player.TakeDamage(BossRoster.VINE_DAMAGE);
@@ -201,6 +202,12 @@ public partial class IvernProjectile : Node2D
 		return new Godot.Collections.Dictionary();
 	}
 
+	private void PlayAttackLandsSound()
+	{
+		if (_owner != null && GodotObject.IsInstanceValid(_owner))
+			_owner.PlayPlantAttackLandsSound(GlobalPosition);
+	}
+
 	private void BeginVineFade()
 	{
 		if (_fading)
@@ -214,6 +221,7 @@ public partial class IvernProjectile : Node2D
 		if (_poisonPhase != PoisonPhase.Flying)
 			return;
 		_poisonPhase = PoisonPhase.Landing;
+		PlayAttackLandsSound();
 		_sprite.Position = Vector2.Zero;
 		_sprite.Play("poison_land");
 	}

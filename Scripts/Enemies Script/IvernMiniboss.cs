@@ -24,6 +24,9 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 	private bool _roomActive = true;
 	private bool _vinesFired;
 	private float _flashTime;
+	private AudioStreamPlayer2D _plantThrowSound;
+	private AudioStreamPlayer2D _plantAttackLandsSound;
+	private AudioStreamPlayer2D _plantDieSound;
 	private readonly RandomNumberGenerator _rng = new();
 
 	public BossConfig BossConfig => BossRoster.IVERN;
@@ -38,6 +41,9 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 		StopDistance = 100000.0f;
 		AttackDamage = Mathf.Max(AttackDamage, (int)BossRoster.IVERN_CONTACT_DAMAGE);
 		base._Ready();
+		_plantThrowSound = AddAudioPlayer("PlantThrowSound", "res://Sounds/Plant Throw.wav");
+		_plantAttackLandsSound = AddAudioPlayer("PlantAttackLandsSound", "res://Sounds/Plant AttackLands.wav");
+		_plantDieSound = AddAudioPlayer("PlantDieSound", "res://Sounds/Plant Die.wav");
 		_animatedSprite.SpriteFrames = BossSpriteFramesBuilder.FromConfig(BossConfig);
 		_animatedSprite.TextureFilter = CanvasItem.TextureFilterEnum.Nearest;
 		_animatedSprite.Offset = new Vector2(0, BossRoster.IVERN_SPRITE_OFFSET_Y);
@@ -123,6 +129,7 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 		base.TakeDamage(damage, attackerPosition);
 		if (_isDead)
 		{
+			_plantDieSound?.Play();
 			_action = Action.Dying;
 			CollisionLayer = 0;
 			if (_bodyShape != null)
@@ -198,6 +205,7 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 
 	private void LaunchVineRing()
 	{
+		_plantThrowSound?.Play();
 		float startAngle = Mathf.DegToRad(_rng.RandfRange(0.0f, BossRoster.VINE_ROTATION_JITTER_DEGREES));
 		for (int i = 0; i < BossRoster.VINE_COUNT; i++)
 		{
@@ -215,6 +223,7 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 	{
 		if (_poisonEffectCount >= BossRoster.POISON_MAX_PUDDLES || _player == null || !GodotObject.IsInstanceValid(_player))
 			return;
+		_plantThrowSound?.Play();
 		Vector2 origin = GlobalPosition + new Vector2(0.0f, BossRoster.POISON_ORIGIN_Y);
 		float angle = _rng.RandfRange(0.0f, Mathf.Tau);
 		float radius = _rng.RandfRange(0.0f, BossRoster.POISON_OFFSET_RADIUS);
@@ -303,6 +312,25 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 		_effects.Clear();
 		_poisonEffectCount = 0;
 		(GetTree().GetFirstNodeInGroup("player") as Player)?.ClearRootEffect();
+	}
+
+	private AudioStreamPlayer2D AddAudioPlayer(string nodeName, string streamPath)
+	{
+		var player = new AudioStreamPlayer2D
+		{
+			Name = nodeName,
+			Stream = GD.Load<AudioStream>(streamPath)
+		};
+		AddChild(player);
+		return player;
+	}
+
+	public void PlayPlantAttackLandsSound(Vector2 impactPosition)
+	{
+		if (_plantAttackLandsSound == null || !GodotObject.IsInstanceValid(_plantAttackLandsSound))
+			return;
+		_plantAttackLandsSound.GlobalPosition = impactPosition;
+		_plantAttackLandsSound.Play();
 	}
 
 	private GameHud GetBossHud()

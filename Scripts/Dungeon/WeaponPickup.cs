@@ -78,6 +78,20 @@ namespace RogueBound.Dungeon
 			}
 		}
 
+		private void PlayPickupSound()
+		{
+			var scene = GetTree().CurrentScene;
+			if (scene == null) return;
+			var sound = new AudioStreamPlayer2D
+			{
+				Stream = GD.Load<AudioStream>("res://Sounds/Weapon PickUp.wav")
+			};
+			scene.AddChild(sound);
+			sound.GlobalPosition = GlobalPosition;
+			sound.Finished += sound.QueueFree;
+			sound.Play();
+		}
+
 		private void CollectWeapon()
 		{
 			if (_player == null) return;
@@ -92,7 +106,8 @@ namespace RogueBound.Dungeon
 				_player.CollectWeapon(Weapon.Id);
 			}
 
-			GD.Print($"[WeaponPickup] Player picked up: {Weapon.Name}");
+			PlayPickupSound();
+		GD.Print($"[WeaponPickup] Player picked up: {Weapon.Name}");
 			QueueFree();
 		}
 	}

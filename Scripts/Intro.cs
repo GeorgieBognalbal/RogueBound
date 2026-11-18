@@ -45,6 +45,14 @@ public partial class Intro : Control
 			return;
 		}
 
+		var storyBgm = new AudioStreamPlayer
+		{
+			Stream = GD.Load<AudioStream>("res://Sounds/Story BGM.wav"),
+			VolumeDb = 0.0f
+		};
+		AddChild(storyBgm);
+		storyBgm.Play();
+
 		_frameDisplay = GetNode<TextureRect>("Frame");
 		_captionLabel = GetNode<Label>("CaptionPanel/Caption");
 		_continueLabel = GetNode<Label>("CaptionPanel/ContinuePrompt");

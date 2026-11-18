@@ -65,6 +65,13 @@ void fragment() {
         ProcessMode = ProcessModeEnum.Always;   // keep animating while the game is paused
         _wasPaused = GetTree().Paused;
         GetTree().Paused = true;
+        var introBgm = new AudioStreamPlayer
+        {
+            Stream = GD.Load<AudioStream>("res://Sounds/Intro Boss BGM.wav"),
+            VolumeDb = 0.0f
+        };
+        AddChild(introBgm);
+        introBgm.Play();
         Build();
         PlayIn();
     }

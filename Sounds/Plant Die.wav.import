@@ -1,0 +1,24 @@
+[remap]
+
+importer="wav"
+type="AudioStreamWAV"
+uid="uid://bw2xe3qxpokmy"
+path="res://.godot/imported/Plant Die.wav-8a378f3213f0f1f257d77b49dd230a4d.sample"
+
+[deps]
+
+source_file="res://Sounds/Plant Die.wav"
+dest_files=["res://.godot/imported/Plant Die.wav-8a378f3213f0f1f257d77b49dd230a4d.sample"]
+
+[params]
+
+force/8_bit=false
+force/mono=false
+force/max_rate=false
+force/max_rate_hz=44100
+edit/trim=false
+edit/normalize=false
+edit/loop_mode=0
+edit/loop_begin=0
+edit/loop_end=-1
+compress/mode=2

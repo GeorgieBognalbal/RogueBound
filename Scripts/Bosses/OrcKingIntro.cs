@@ -26,6 +26,13 @@ public partial class OrcKingIntro : CanvasLayer
 		ProcessMode = ProcessModeEnum.Always;
 		_wasPaused = GetTree().Paused;
 		GetTree().Paused = true;
+		var introBgm = new AudioStreamPlayer
+		{
+			Stream = GD.Load<AudioStream>("res://Sounds/Intro Boss BGM.wav"),
+			VolumeDb = 0.0f
+		};
+		AddChild(introBgm);
+		introBgm.Play();
 		var json = Json.ParseString(FileAccess.GetFileAsString(_folder + "/manifest.json"));
 		if (json.VariantType == Variant.Type.Dictionary)
 		{

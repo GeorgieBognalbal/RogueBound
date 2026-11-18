@@ -89,6 +89,16 @@ public partial class Intro : Control
 			Stream = GD.Load<AudioStream>("res://Sounds/Story BGM.wav"),
 			VolumeDb = 0.0f
 		};
+		if (_endingMode)
+		{
+			storyBgm.Stream = GD.Load<AudioStream>("res://Sounds/Ending BGM.wav");
+			storyBgm.Finished += () =>
+			{
+				if (GodotObject.IsInstanceValid(storyBgm))
+					storyBgm.Play();
+			};
+		}
+
 		AddChild(storyBgm);
 		storyBgm.Play();
 

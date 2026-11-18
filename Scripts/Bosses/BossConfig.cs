@@ -67,11 +67,42 @@ public static class BossRoster
 	public const float IVERN_ATTACK_COOLDOWN = 2.25f;
 	public const int IVERN_MAX_ATTACKS_IN_ROW = 2;
 	public const float IVERN_CONTACT_DAMAGE = 12.0f;
+	public const string ORC_KING_NAME = "Trundle";
+	public const string ORC_KING_TITLE = "The Orc King";
 	public const int ORC_KING_MAX_HP = 1000;
-	public const int ORC_KING_ATTACK_DAMAGE = 32;
-	public const float ORC_KING_ATTACK_COOLDOWN = 1.4f;
-	public const float ORC_KING_MOVE_SPEED = 28.0f;
-	public const float ORC_KING_PREINTRO_DELAY_SECONDS = 0.8f;
+	public const float ORC_KING_MOVE_SPEED = 42.0f;
+	public const float ORC_KING_BODY_WIDTH = 26.0f;
+	public const float ORC_KING_BODY_HEIGHT = 38.0f;
+	public const float ORC_KING_ATTACK_COOLDOWN = 1.0f;
+	public const float ORC_KING_ANIMATION_FPS = 7.0f;
+	public const float ORC_KING_SLASH_DAMAGE = 32.0f;
+	public const float ORC_KING_SLASH_RANGE = 70.0f;
+	public const float ORC_KING_SLASH_ARC_DEGREES = 110.0f;
+	public const int ORC_KING_SLASH_HIT_FRAME = 4;
+	public const float ORC_KING_SMASH_DAMAGE = 42.0f;
+	public const float ORC_KING_SMASH_COOLDOWN = 3.5f;
+	public const float ORC_KING_SMASH_STUN_SECONDS = 1.0f;
+	public const float ORC_KING_SMASH_TELEGRAPH_SECONDS = 1.0f;
+	public const int ORC_KING_SMASH_HIT_FRAME = 7;
+	public const float ORC_KING_SMASH_TELEGRAPH_WIDTH = 112.0f;
+	public const float ORC_KING_SMASH_TELEGRAPH_HEIGHT = 56.0f;
+	public const float ORC_KING_SUMMON_COOLDOWN = 12.0f;
+	public const int ORC_KING_SUMMON_COUNT = 2;
+	public const int ORC_KING_SUMMON_CAP = 4;
+	public const int ORC_KING_SUMMON_START_FRAME = 7;
+	public const float ORC_KING_THROW_DAMAGE = 28.0f;
+	public const float ORC_KING_THROW_COOLDOWN = 3.5f;
+	public const float ORC_KING_THROW_SPEED = 210.0f;
+	public const bool ORC_KING_AXE_RETURNS = false;
+	public const float ORC_KING_AXE_LIFETIME = 4.0f;
+	public const int ORC_KING_AXE_RELEASE_FRAME = 3;
+	public const float ORC_KING_PHASE_TWO_THRESHOLD = 0.5f;
+	public const float ORC_KING_PHASE_TWO_SPEED_MULTIPLIER = 1.2f;
+	public const float ORC_KING_PHASE_TWO_COOLDOWN_MULTIPLIER = 0.8f;
+	public const float ORC_KING_RECOVERY_SECONDS = 0.25f;
+	public const float ORC_KING_DEATH_HOLD_SECONDS = 1.0f;
+	public const float ORC_KING_DEATH_ANIMATION_SECONDS = 2.0f;
+	public const float ORC_KING_PREINTRO_DELAY_SECONDS = 0.1f;
 	public const int VINE_COUNT = 8;
 	public const float VINE_ROTATION_JITTER_DEGREES = 45.0f;
 	public const int VINE_BURST_FRAME = 1;
@@ -134,9 +165,10 @@ public static class BossRoster
 		});
 
 	public static readonly BossConfig ORC_KING = new(
-		BossKind.OrcKing, "Orc King", "The Final Warlord", "res://Decals/orc_32_idle.png",
-		"res://Decals/orc_32_idle.png", 32, ORC_KING_MAX_HP, new Color("704225"), new Color("dab574"),
-		new BossAnimationRow[] { new("idle", 0, 1, true) });
+		BossKind.OrcKing, ORC_KING_NAME, ORC_KING_TITLE, "res://Assets/Enemies/OrcKing/orc_king_spritesheet.png",
+		"res://Assets/Enemies/OrcKing/orc_king_intro_sprite.png", 64, ORC_KING_MAX_HP, new Color("704225"), new Color("dab574"),
+		new BossAnimationRow[] { new("spawn", 0, 8, false), new("idle", 1, 6, true), new("slash", 2, 8, false),
+			new("smash", 3, 10, false), new("summon", 4, 8, false), new("throw", 5, 8, false), new("death", 6, 10, false) });
 
 	public static BossConfig Get(BossKind kind) => kind switch
 	{

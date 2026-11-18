@@ -341,7 +341,7 @@ namespace RogueBound.Dungeon
 				else
 				{
 					bossEnemy.MaxHealth = BossRoster.ORC_KING_MAX_HP * hpMult;
-					bossEnemy.AttackDamage = (int)(BossRoster.ORC_KING_ATTACK_DAMAGE * dmgMult);
+					bossEnemy.AttackDamage = BossRoster.ORC_KING_SLASH_DAMAGE * dmgMult;
 				}
 				bossEnemy.GlobalPosition = Data.WorldCenter;
 				GetTree().CurrentScene.AddChild(bossEnemy);

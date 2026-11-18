@@ -10,7 +10,10 @@ public static class BossSpriteFramesBuilder
 		foreach (BossAnimationRow row in config.Animations)
 		{
 			frames.AddAnimation(row.Name);
-			frames.SetAnimationSpeed(row.Name, BossRoster.ANIMATION_FPS);
+			float animationFps = config.Kind == BossKind.OrcKing
+				? BossRoster.ORC_KING_ANIMATION_FPS
+				: BossRoster.ANIMATION_FPS;
+			frames.SetAnimationSpeed(row.Name, animationFps);
 			frames.SetAnimationLoopMode(row.Name, row.Loop ? SpriteFrames.LoopMode.Linear : SpriteFrames.LoopMode.None);
 			for (int frame = 0; frame < row.FrameCount; frame++)
 			{

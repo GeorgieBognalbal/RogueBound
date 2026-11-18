@@ -262,6 +262,7 @@ public partial class IvernMiniboss : Enemy, IBossEncounter
 		player?.BeginBossIntroLock();
 		_bossHud = GetBossHud();
 		_bossHud?.HideBossBar();
+		_bossHud?.SetBossIntroPending(true);
 		if (_animatedSprite.Animation.ToString() == "spawn")
 			await ToSignal(_animatedSprite, AnimatedSprite2D.SignalName.AnimationFinished);
 		if (!GodotObject.IsInstanceValid(this) || _isDead)

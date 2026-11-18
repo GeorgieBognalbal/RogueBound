@@ -29,6 +29,7 @@ public partial class Player : CharacterBody2D
 	private bool _bossIntroWasInvincible;
 	private bool _rooted;
 	private float _rootTimer;
+	private float _stunTimer;
 	private float _rootImmunityTimer;
 	private AnimatedSprite2D _rootOverlay;
 	private Vector2 _weaponDashDirection;
@@ -135,6 +136,14 @@ public partial class Player : CharacterBody2D
 			_invulnerabilityTimer -= (float)delta;
 		if (_rootImmunityTimer > 0.0f)
 			_rootImmunityTimer = Mathf.Max(0.0f, _rootImmunityTimer - (float)delta);
+		if (_stunTimer > 0.0f)
+		{
+			_stunTimer = Mathf.Max(0.0f, _stunTimer - (float)delta);
+			Velocity = Vector2.Zero;
+			_weaponDashDistanceRemaining = 0.0f;
+			MoveAndSlide();
+			return;
+		}
 		if (_rooted)
 		{
 			_rootTimer -= (float)delta;
@@ -231,7 +240,7 @@ public partial class Player : CharacterBody2D
 
 	public override void _Input(InputEvent @event)
 	{
-		if (_bossIntroLocked)
+		if (_bossIntroLocked || _stunTimer > 0.0f)
 			return;
 		if (@event is InputEventKey dropKey && dropKey.Pressed && !dropKey.Echo && dropKey.Keycode == Key.G)
 		{
@@ -414,6 +423,18 @@ public partial class Player : CharacterBody2D
 		AddChild(_rootOverlay);
 		_rootOverlay.AnimationFinished += OnRootOverlayAnimationFinished;
 		_rootOverlay.Play("root_wrap");
+		return true;
+	}
+
+	public bool TryApplyStun(float duration)
+	{
+		if (health <= 0.0f || _bossIntroLocked || duration <= 0.0f)
+			return false;
+		_stunTimer = Mathf.Max(_stunTimer, duration);
+		_weaponDashDistanceRemaining = 0.0f;
+		_weaponDashTimeRemaining = 0.0f;
+		_weaponComponent?.CancelForBossEntrance();
+		_animatedSprite?.Play("hit");
 		return true;
 	}
 

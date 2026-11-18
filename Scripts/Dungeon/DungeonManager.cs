@@ -176,7 +176,7 @@ namespace RogueBound.Dungeon
 			{
 				DatabaseManager database = GetNodeOrNull<DatabaseManager>("/root/DatabaseManager");
 				database?.FinishRun("Victory");
-				CallDeferred(nameof(LoadVictoryEnding));
+				_ = LoadVictoryEndingAfterBossDeath();
 			}
 		}
 
@@ -334,6 +334,13 @@ namespace RogueBound.Dungeon
 			foreach (Node node in GetTree().GetNodesInGroup("golem_rocks"))
 				if (GodotObject.IsInstanceValid(node))
 					node.QueueFree();
+		}
+
+		private async System.Threading.Tasks.Task LoadVictoryEndingAfterBossDeath()
+		{
+			float hold = BossRoster.ORC_KING_DEATH_ANIMATION_SECONDS + BossRoster.ORC_KING_DEATH_HOLD_SECONDS;
+			await ToSignal(GetTree().CreateTimer(hold), SceneTreeTimer.SignalName.Timeout);
+			if (GodotObject.IsInstanceValid(this)) LoadVictoryEnding();
 		}
 
 		private void LoadVictoryEnding() => GetTree().ChangeSceneToFile("res://Scenes/Endings/VictoryEnding.tscn");

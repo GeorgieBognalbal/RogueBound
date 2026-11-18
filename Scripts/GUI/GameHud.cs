@@ -28,7 +28,7 @@ public partial class GameHud : Control
 	private DungeonManager _dungeonManager;
 	private int _challengeNoticeVersion;
 	private Control _bossUi;
-	private Label _bossNameLabel;
+	private RichTextLabel _bossNameLabel;
 	private Label _bossTitleLabel;
 	private Panel _bossBarFrame;
 	private ColorRect _bossBarTrail;
@@ -37,6 +37,7 @@ public partial class GameHud : Control
 	private float _bossFillRatio;
 	private float _bossTrailRatio;
 	private float _bossTrailDelay;
+	private float _bossBarWidth;
 
 	public override void _Ready()
 	{
@@ -174,9 +175,11 @@ public partial class GameHud : Control
 
 	private void CreateBossBar()
 	{
-		float width = GolemBossSettings.BOSS_BAR_WIDTH;
+		float width = Mathf.Min(GolemBossSettings.BOSS_BAR_WIDTH, GetViewportRect().Size.X - 48.0f);
+		_bossBarWidth = width;
 		float viewportWidth = GetViewportRect().Size.X;
-		float contentHeight = GolemBossSettings.BOSS_BAR_TITLE_Y_OFFSET + GolemBossSettings.BOSS_TITLE_LABEL_HEIGHT + GolemBossSettings.BOSS_BAR_HEIGHT;
+		float barHeight = 22.0f;
+		float contentHeight = 78.0f;
 		_bossUi = new Control
 		{
 			Name = "BossStatus",
@@ -184,23 +187,24 @@ public partial class GameHud : Control
 			AnchorRight = 0.0f,
 			AnchorTop = 0.0f,
 			AnchorBottom = 0.0f,
-			Position = new Vector2(0, GolemBossSettings.BOSS_BAR_TOP + GolemBossSettings.BOSS_BAR_GROUP_ENTER_OFFSET),
+			Position = new Vector2(0, 12.0f),
 			Size = new Vector2(viewportWidth, contentHeight),
 			ZIndex = 100,
 			Visible = false,
 			Modulate = new Color(1, 1, 1, 0),
 			MouseFilter = MouseFilterEnum.Ignore,
 		};
-		_bossNameLabel = new Label { Name = "BossName", Text = GolemBossSettings.BOSS_NAME, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-		_bossNameLabel.Position = new Vector2((viewportWidth - width) / 2, GolemBossSettings.BOSS_BAR_NAME_Y_OFFSET);
-		_bossNameLabel.Size = new Vector2(width, GolemBossSettings.BOSS_NAME_LABEL_HEIGHT);
-		_bossNameLabel.AddThemeFontSizeOverride("font_size", (int)GolemBossSettings.BOSS_NAME_FONT_SIZE);
+		_bossNameLabel = new RichTextLabel { Name = "BossName", BbcodeEnabled = true, FitContent = false, ScrollActive = false, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
+		_bossNameLabel.Position = new Vector2((viewportWidth - width) / 2, 0);
+		_bossNameLabel.Size = new Vector2(width, 30);
+		_bossNameLabel.AddThemeFontSizeOverride("normal_font_size", 23);
 		_bossNameLabel.AddThemeColorOverride("font_color", new Color(GolemBossSettings.BOSS_TEXT_COLOR));
 		_bossNameLabel.AddThemeColorOverride("font_outline_color", new Color(GolemBossSettings.BOSS_TEXT_OUTLINE_COLOR));
 		_bossNameLabel.AddThemeConstantOverride("outline_size", GolemBossSettings.BOSS_NAME_OUTLINE_SIZE);
 		_bossTitleLabel = new Label { Name = "BossTitle", Text = GolemBossSettings.BOSS_TITLE, HorizontalAlignment = HorizontalAlignment.Center, MouseFilter = MouseFilterEnum.Ignore };
-		_bossTitleLabel.Position = new Vector2((viewportWidth - width) / 2, GolemBossSettings.BOSS_BAR_TITLE_Y_OFFSET);
-		_bossTitleLabel.Size = new Vector2(width, GolemBossSettings.BOSS_TITLE_LABEL_HEIGHT);
+		_bossTitleLabel.Visible = false;
+		_bossTitleLabel.Position = new Vector2((viewportWidth - width) / 2, 0);
+		_bossTitleLabel.Size = new Vector2(width, 30);
 		_bossTitleLabel.AddThemeFontSizeOverride("font_size", (int)GolemBossSettings.BOSS_TITLE_FONT_SIZE);
 		_bossTitleLabel.AddThemeColorOverride("font_color", new Color(GolemBossSettings.BOSS_TEXT_COLOR));
 		_bossTitleLabel.AddThemeColorOverride("font_outline_color", new Color(GolemBossSettings.BOSS_TEXT_OUTLINE_COLOR));
@@ -218,11 +222,11 @@ public partial class GameHud : Control
 			CornerRadiusBottomLeft = 0,
 			CornerRadiusBottomRight = 0,
 		};
-		_bossBarFrame = new Panel { Name = "BossBarFrame", Position = new Vector2((viewportWidth - width) / 2, GolemBossSettings.BOSS_BAR_TITLE_Y_OFFSET + GolemBossSettings.BOSS_TITLE_LABEL_HEIGHT), Size = new Vector2(width, GolemBossSettings.BOSS_BAR_HEIGHT), MouseFilter = MouseFilterEnum.Ignore };
+		_bossBarFrame = new Panel { Name = "BossBarFrame", Position = new Vector2((viewportWidth - width) / 2, 34), Size = new Vector2(width, barHeight), MouseFilter = MouseFilterEnum.Ignore };
 		_bossBarFrame.AddThemeStyleboxOverride("panel", frameStyle);
 		float inset = GolemBossSettings.BOSS_BAR_BORDER_SIZE;
 		float fillWidth = width - inset * 2;
-		float fillHeight = GolemBossSettings.BOSS_BAR_HEIGHT - inset * 2;
+		float fillHeight = barHeight - inset * 2;
 		_bossBarTrail = new ColorRect { Name = "BossBarDamageTrail", Color = new Color(GolemBossSettings.BOSS_BAR_TRAIL_COLOR), Position = new Vector2(inset, inset), Size = new Vector2(fillWidth, fillHeight), MouseFilter = MouseFilterEnum.Ignore };
 		_bossBarFill = new ColorRect { Name = "BossBarFill", Color = new Color(GolemBossSettings.BOSS_BAR_FILL_COLOR), Position = new Vector2(inset, inset), Size = new Vector2(fillWidth, fillHeight), MouseFilter = MouseFilterEnum.Ignore };
 		_bossBarFrame.AddChild(_bossBarTrail);
@@ -237,25 +241,40 @@ public partial class GameHud : Control
 	{
 		_shownBoss = boss;
 		if (boss == null) { HideBossBar(); return; }
-		_bossNameLabel.Text = config.Name;
+		_bossNameLabel.Text = $"[center]{config.Name} [font_size=16]- {config.Title}[/font_size][/center]";
 		_bossTitleLabel.Text = config.Title;
 		_bossTitleLabel.AddThemeFontSizeOverride("font_size", config.Title.Length > 20 ? 15 : (int)GolemBossSettings.BOSS_TITLE_FONT_SIZE);
 		_bossUi.Visible = true;
+		if (_waveLabel != null) _waveLabel.Visible = false;
+		if (_enemiesLabel != null) _enemiesLabel.Visible = false;
 		_bossFillRatio = _bossTrailRatio = GetBossHealthRatio();
 		_bossTrailDelay = 0.0f;
 		UpdateBossBar();
 		_bossUi.Modulate = new Color(1, 1, 1, 0);
-		_bossUi.Position = new Vector2(0, GolemBossSettings.BOSS_BAR_TOP + GolemBossSettings.BOSS_BAR_GROUP_ENTER_OFFSET);
+		_bossUi.Position = new Vector2(0, 12.0f);
 		Tween tween = CreateTween().SetParallel(true);
 		tween.TweenProperty(_bossUi, "modulate:a", 1.0f, GolemBossSettings.BOSS_BAR_ENTER_SECONDS);
-		tween.TweenProperty(_bossUi, "position:y", GolemBossSettings.BOSS_BAR_TOP, GolemBossSettings.BOSS_BAR_ENTER_SECONDS).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
+		tween.TweenProperty(_bossUi, "position:y", 12.0f, GolemBossSettings.BOSS_BAR_ENTER_SECONDS).SetTrans(Tween.TransitionType.Cubic).SetEase(Tween.EaseType.Out);
 	}
 
 	public void HideBossBar(Enemy boss = null)
 	{
-		if (boss != null && _shownBoss != boss) return;
+		if (boss != null && _shownBoss != boss)
+		{
+			if (_shownBoss == null) SetBossIntroPending(false);
+			return;
+		}
 		_shownBoss = null;
 		if (_bossUi != null) _bossUi.Visible = false;
+		if (_waveLabel != null) _waveLabel.Visible = true;
+		if (_enemiesLabel != null) _enemiesLabel.Visible = true;
+	}
+
+	public void SetBossIntroPending(bool pending)
+	{
+		if (_shownBoss != null) return;
+		if (_waveLabel != null) _waveLabel.Visible = !pending;
+		if (_enemiesLabel != null) _enemiesLabel.Visible = !pending;
 	}
 
 	private void UpdateBossBar()
@@ -272,7 +291,7 @@ public partial class GameHud : Control
 			_bossTrailDelay = Mathf.Max(0.0f, _bossTrailDelay - delta);
 		else
 			_bossTrailRatio = Mathf.MoveToward(_bossTrailRatio, ratio, delta / GolemBossSettings.BOSS_BAR_TRAIL_DRAIN_SECONDS);
-		float innerWidth = GolemBossSettings.BOSS_BAR_WIDTH - GolemBossSettings.BOSS_BAR_BORDER_SIZE * 2.0f;
+		float innerWidth = _bossBarWidth - GolemBossSettings.BOSS_BAR_BORDER_SIZE * 2.0f;
 		_bossBarFill.Size = new Vector2(Mathf.Floor(innerWidth * _bossFillRatio), _bossBarFill.Size.Y);
 		_bossBarTrail.Size = new Vector2(Mathf.Floor(innerWidth * _bossTrailRatio), _bossBarTrail.Size.Y);
 	}

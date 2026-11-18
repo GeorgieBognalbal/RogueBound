@@ -1,0 +1,23 @@
+{
+  "fps": 30,
+  "size": [
+    640,
+    360
+  ],
+  "frame_count": 108,
+  "intro": [
+    0,
+    34
+  ],
+  "hold_loop": [
+    35,
+    82
+  ],
+  "outro": [
+    83,
+    107
+  ],
+  "title": "TRUNDLE",
+  "subtitle": "THE ORC KING",
+  "note": "Play intro once, loop hold_loop until the boss is ready (e.g. one pass = 1.6s), then play outro once."
+}

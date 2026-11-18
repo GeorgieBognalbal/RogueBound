@@ -5,4 +5,4 @@
 
 [node name="OrcKing" instance=ExtResource("1_orc")]
 script = ExtResource("2_king")
-scale = Vector2(1.5, 1.5)
+scale = Vector2(1, 1)

@@ -25,6 +25,13 @@ public partial class Player : CharacterBody2D
 	private float _invulnerabilityTimer = 0.0f;
 	private bool _godMode = false;
 	public bool DebugGodMode { get => _godMode; set => _godMode = value; }
+	private bool _bossIntroLocked;
+	private bool _bossIntroWasInvincible;
+	private bool _rooted;
+	private float _rootTimer;
+	private float _stunTimer;
+	private float _rootImmunityTimer;
+	private AnimatedSprite2D _rootOverlay;
 	private Vector2 _weaponDashDirection;
 	private float _weaponDashDistanceRemaining;
 	private float _weaponDashSpeed;
@@ -117,8 +124,32 @@ public partial class Player : CharacterBody2D
 	
 	public override void _PhysicsProcess(double delta)
 	{
+		if (_bossIntroLocked)
+		{
+			Velocity = Vector2.Zero;
+			_weaponDashDistanceRemaining = 0.0f;
+			MoveAndSlide();
+			return;
+		}
+
 		if (_invulnerabilityTimer > 0)
 			_invulnerabilityTimer -= (float)delta;
+		if (_rootImmunityTimer > 0.0f)
+			_rootImmunityTimer = Mathf.Max(0.0f, _rootImmunityTimer - (float)delta);
+		if (_stunTimer > 0.0f)
+		{
+			_stunTimer = Mathf.Max(0.0f, _stunTimer - (float)delta);
+			Velocity = Vector2.Zero;
+			_weaponDashDistanceRemaining = 0.0f;
+			MoveAndSlide();
+			return;
+		}
+		if (_rooted)
+		{
+			_rootTimer -= (float)delta;
+			if (_rootTimer <= 0.0f)
+				EndRoot();
+		}
 
 		UpdatePotion((float)delta);
 		UpdateCameraShake((float)delta);
@@ -157,6 +188,8 @@ public partial class Player : CharacterBody2D
 			"ui_up",
             "ui_down"
 		);
+		if (_rooted)
+			direction = Vector2.Zero;
 
 		if (!_isAttacking && direction.X != 0)
 		{
@@ -207,6 +240,8 @@ public partial class Player : CharacterBody2D
 
 	public override void _Input(InputEvent @event)
 	{
+		if (_bossIntroLocked || _stunTimer > 0.0f)
+			return;
 		if (@event is InputEventKey dropKey && dropKey.Pressed && !dropKey.Echo && dropKey.Keycode == Key.G)
 		{
 			_weaponComponent?.DropCurrentWeapon();
@@ -313,7 +348,7 @@ public partial class Player : CharacterBody2D
 
 	public void TakeDamage(float damage)
 	{
-		if (_godMode || Invincible)
+		if (_bossIntroLocked || _godMode || Invincible)
 			return;
 
 		if (damage <= 0 || health <= 0)
@@ -353,6 +388,98 @@ public partial class Player : CharacterBody2D
 		}
 	}
 
+	public void BeginBossIntroLock()
+	{
+		if (_bossIntroLocked)
+			return;
+		_bossIntroLocked = true;
+		_bossIntroWasInvincible = Invincible;
+		Invincible = true;
+		Velocity = Vector2.Zero;
+		_weaponDashDistanceRemaining = 0.0f;
+		_weaponDashTimeRemaining = 0.0f;
+		_weaponComponent?.CancelForBossEntrance();
+	}
+
+	public bool TryApplyRoot(float duration)
+	{
+		if (_rooted || _rootImmunityTimer > 0.0f || health <= 0.0f || _bossIntroLocked)
+			return false;
+		_rooted = true;
+		_rootTimer = duration;
+		_weaponDashDistanceRemaining = 0.0f;
+		_weaponDashTimeRemaining = 0.0f;
+		if (GodotObject.IsInstanceValid(_rootOverlay))
+			_rootOverlay.QueueFree();
+		_rootOverlay = new AnimatedSprite2D
+		{
+			Name = "RootWrapOverlay",
+			SpriteFrames = BossSpriteFramesBuilder.ProjectileFrames(),
+			Animation = "root_wrap",
+			TextureFilter = CanvasItem.TextureFilterEnum.Nearest,
+			Position = Vector2.Zero,
+			ZIndex = 3,
+		};
+		AddChild(_rootOverlay);
+		_rootOverlay.AnimationFinished += OnRootOverlayAnimationFinished;
+		_rootOverlay.Play("root_wrap");
+		return true;
+	}
+
+	public bool TryApplyStun(float duration)
+	{
+		if (health <= 0.0f || _bossIntroLocked || duration <= 0.0f)
+			return false;
+		_stunTimer = Mathf.Max(_stunTimer, duration);
+		_weaponDashDistanceRemaining = 0.0f;
+		_weaponDashTimeRemaining = 0.0f;
+		_weaponComponent?.CancelForBossEntrance();
+		_animatedSprite?.Play("hit");
+		return true;
+	}
+
+	private void EndRoot()
+	{
+		if (!_rooted)
+			return;
+		_rooted = false;
+		_rootTimer = 0.0f;
+		_rootImmunityTimer = BossRoster.ROOT_IMMUNITY;
+		if (GodotObject.IsInstanceValid(_rootOverlay))
+			_rootOverlay.Play("root_break");
+	}
+
+	private void OnRootOverlayAnimationFinished()
+	{
+		if (!GodotObject.IsInstanceValid(_rootOverlay))
+			return;
+		if (_rootOverlay.Animation == "root_wrap")
+			_rootOverlay.Pause();
+		else if (_rootOverlay.Animation == "root_break")
+		{
+			_rootOverlay.QueueFree();
+			_rootOverlay = null;
+		}
+	}
+
+	public void ClearRootEffect()
+	{
+		_rooted = false;
+		_rootTimer = 0.0f;
+		_rootImmunityTimer = 0.0f;
+		if (GodotObject.IsInstanceValid(_rootOverlay))
+			_rootOverlay.QueueFree();
+		_rootOverlay = null;
+	}
+
+	public void EndBossIntroLock()
+	{
+		if (!_bossIntroLocked)
+			return;
+		_bossIntroLocked = false;
+		Invincible = _bossIntroWasInvincible;
+	}
+
 	public void Heal(float amount)
 	{
 		if (amount <= 0 || health <= 0)
@@ -367,6 +494,7 @@ public partial class Player : CharacterBody2D
 
 	private void Die()
 	{
+		ClearRootEffect();
 		GD.Print("PLAYER DIED!");
 
 		Velocity = Vector2.Zero;

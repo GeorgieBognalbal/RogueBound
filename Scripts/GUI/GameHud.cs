@@ -113,8 +113,8 @@ public partial class GameHud : Control
 		{
 			var activeWeapon = activeSlot == 0 ? primary : secondary;
 			_swapHintLabel.Text = activeWeapon?.Id == "dagger"
-				? "[Q] Swap  [G] Drop  ·  ATTACK TO DASH"
-				: "[Q] Swap  [G] Drop";
+				? "[Q] Swap  ·  [G] Drop Selected  ·  Dagger: Attack to Dash"
+				: "[Q] Swap  ·  [G] Drop Selected";
 		}
 	}
 

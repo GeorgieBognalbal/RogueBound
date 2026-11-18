@@ -63,31 +63,22 @@ public partial class WeaponComponent : Node
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
 	}
 
-	public void DropCurrentWeapon()
+	public void DropCurrentWeapon() => DropWeapon(ActiveSlot);
+
+	/// <summary>Drop the weapon in a specific hotbar slot (0 = primary, 1 = secondary).</summary>
+	public void DropWeapon(int slot)
 	{
-		var weapon = Current;
-		var world = GetTree().CurrentScene;
-		if (weapon == null || world == null) return;
+		if (slot is < 0 or > 1) return;
+		var weapon = slot == 0 ? PrimaryWeapon : SecondaryWeapon;
+		if (weapon == null || !SpawnWeaponPickup(weapon)) return;
 
-		var scene = GD.Load<PackedScene>("res://Scenes/Dungeon/WeaponPickup.tscn");
-		if (scene == null) return;
-
-		var pickup = scene.Instantiate<WeaponPickup>();
-		pickup.Weapon = weapon;
-		pickup.Position = world is Node2D world2D
-			? world2D.ToLocal(_player.GlobalPosition)
-			: _player.GlobalPosition;
-		world.AddChild(pickup);
-
-		if (ActiveSlot == 0)
+		if (slot == 0)
 			PrimaryWeapon = null;
 		else
 			SecondaryWeapon = null;
 
-		if (PrimaryWeapon != null)
-			ActiveSlot = 0;
-		else if (SecondaryWeapon != null)
-			ActiveSlot = 1;
+		if (ActiveSlot == slot || Current == null)
+			ActiveSlot = PrimaryWeapon != null ? 0 : SecondaryWeapon != null ? 1 : 0;
 
 		_isBowCharging = false;
 		_isStaffCharging = false;
@@ -124,7 +115,8 @@ public partial class WeaponComponent : Node
 	// ─── Equip ───────────────────────────────────────────────────────────────
 	/// <summary>
 	/// Equips a weapon into the given slot (0 = primary, 1 = secondary).
-	/// Pass slot = -1 to auto-fill the first empty slot (or secondary if both filled).
+	/// Pass slot = -1 to replace the active slot, so pickups and shop purchases
+	/// behave consistently with the player's selected hotbar slot.
 	/// </summary>
 	public void Equip(WeaponData weapon, int slot = -1)
 	{
@@ -133,11 +125,13 @@ public partial class WeaponComponent : Node
 
 		if (slot == -1)
 		{
-			// Auto-slot: prefer the slot that is empty
-			if (PrimaryWeapon == null)       slot = 0;
-			else if (SecondaryWeapon == null) slot = 1;
-			else                             slot = 1; // overwrite secondary
+			slot = ActiveSlot;
 		}
+		if (slot is < 0 or > 1) return;
+
+		var replacedWeapon = slot == 0 ? PrimaryWeapon : SecondaryWeapon;
+		if (replacedWeapon != null && replacedWeapon.Id != weapon.Id)
+			SpawnWeaponPickup(replacedWeapon);
 
 		if (slot == 0)      PrimaryWeapon   = weapon;
 		else if (slot == 1) SecondaryWeapon = weapon;
@@ -147,6 +141,23 @@ public partial class WeaponComponent : Node
 
 		WeaponChanged?.Invoke(PrimaryWeapon, SecondaryWeapon, ActiveSlot);
 		GD.Print($"[Weapon] Equipped '{weapon.Name}' in slot {slot}");
+	}
+
+	private bool SpawnWeaponPickup(WeaponData weapon)
+	{
+		var world = GetTree().CurrentScene;
+		if (weapon == null || world == null || _player == null) return false;
+
+		var scene = GD.Load<PackedScene>("res://Scenes/Dungeon/WeaponPickup.tscn");
+		if (scene == null) return false;
+
+		var pickup = scene.Instantiate<WeaponPickup>();
+		pickup.Weapon = weapon;
+		pickup.Position = world is Node2D world2D
+			? world2D.ToLocal(_player.GlobalPosition)
+			: _player.GlobalPosition;
+		world.AddChild(pickup);
+		return true;
 	}
 
 	/// <summary>Toggle active slot between 0 and 1.</summary>
